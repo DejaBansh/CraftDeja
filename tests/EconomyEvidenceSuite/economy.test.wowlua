@@ -1,0 +1,203 @@
+import test from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Controlled synthetic prices in copper. Do not stub quote/probability/selectionAt/decide.
+local function setup(skill, cap)
+    local a = _G["CraftDeja"]
+    local prices = {}
+    mock.stub(a, "unitPrice", function(id) return prices[id], "fixture" end)
+    mock.stub(a, "canRecommend", function(r)
+        return r.access ~= false, r.learned and "known" or "verified"
+    end)
+    a.options.green = true
+    local function recipe(id, cost, yellow, green, grey, points)
+        prices[id] = cost
+        return {id=id, profession=185, skill=1, learned=true, confirmed=true,
+            complete=true, yellow=yellow, green=green, grey=grey, points=points or 1,
+            colour="orange", groups={{choices={id}, amount=1}}}
+    end
+    local function snapshot(...)
+        local s = {profile={id=185, skill=skill, cap=cap or 150}, recipes={}}
+        for _, r in ipairs({...}) do
+            r.colour = a.band(r, skill)
+            s.recipes[r.id] = r
+        end
+        return a.marketView(s)
+    end
+    return a, prices, recipe, snapshot
+end
+
+local function near(actual, expected)
+    assert(type(actual)=="number" and math.abs(actual-expected)<0.000001,
+        "Expected "..tostring(expected)..", got "..tostring(actual))
+end
+
+@test("Economy evidence 01: cheap green beats orange / Gruen schlaegt Orange")
+local function cheapGreen()
+    local a, _, make, snap = setup(120)
+    local green = make(1, 200, 90, 110, 130)
+    local orange = make(2, 1000, 140, 145, 150)
+    local d = a.decide(snap(green, orange))
+    assert(d.current.recipe.id==1)
+    near(d.current.chance, 0.25); near(d.current.unitSkill, 800)
+end
+
+@test("Economy evidence 02: expensive green loses / Teures Gruen verliert")
+local function expensiveGreen()
+    local a, _, make, snap = setup(120)
+    local d = a.decide(snap(make(1,300,90,110,130), make(2,1000,140,145,150)))
+    assert(d.current.recipe.id==2); near(d.current.unitSkill,1000)
+end
+
+@test("Economy evidence 03: chance adjusts each point / Chance je Skillpunkt")
+local function probabilityChanges()
+    local a, _, make = setup(120)
+    local r = make(1,200,90,110,130)
+    near(a.probability(r,120,false),0.25)
+    near(a.probability(r,121,false),0.225)
+    near(a.probability(r,122,false),0.20)
+end
+
+@test("Economy evidence 04: switch at 124 / Wirtschaftlicher Wechsel bei 124")
+local function economicSwitch()
+    local a, _, make, snap = setup(123)
+    local old = make(1,200,90,110,130)
+    local other = make(2,1200,140,145,150)
+    local s = snap(old,other)
+    local d = a.decide(s)
+    assert(d.current.recipe.id==1 and d.stop==124)
+    assert(d.followup.candidate.recipe.id==2)
+    near(d.current.unitSkill,8000/7)
+    s.profile.skill=124
+    for _,r in pairs(s.recipes) do r.colour=a.band(r,124) end
+    d=a.decide(s)
+    assert(d.current.recipe.id==2); near(d.current.unitSkill,1200)
+end
+
+@test("Economy evidence 05: no switch just for colour / Kein Wechsel nur wegen Farbe")
+local function colourBoundary()
+    local a, _, make, snap = setup(109)
+    local r=make(1,200,90,110,130)
+    local s=snap(r,make(2,2000,140,145,150))
+    assert(a.decide(s).current.recipe.id==1)
+    s.profile.skill=110; r.colour="green"
+    assert(a.decide(s).current.recipe.id==1)
+end
+
+@test("Economy evidence 06: unknown price excluded / Unbekannter Preis nicht kostenlos")
+local function unknownPrice()
+    local a, _, make, snap = setup(120)
+    local s=snap(make(1,nil,90,110,130),make(2,1000,140,145,150))
+    assert(s.quotes[1]==nil)
+    assert(a.decide(s).current.recipe.id==2)
+end
+
+@test("Economy evidence 07: all prices missing / Alle Preise fehlen")
+local function noPrices()
+    local a, _, make, snap=setup(120)
+    local d,reason=a.decide(snap(make(1,nil,90,110,130)))
+    assert(d==nil and reason=="no_prices")
+end
+
+@test("Economy evidence 08: missing one reagent invalidates quote / Fehlendes Reagenz")
+local function incompletePrice()
+    local a, _, make=setup(120)
+    local r=make(1,200,90,110,130)
+    r.groups[2]={choices={9999},amount=2}
+    assert(a.quote(r)==nil)
+end
+
+@test("Economy evidence 09: quantities and cheapest alternative / Mengen und Alternativen")
+local function reagentAmounts()
+    local a, prices, make=setup(120)
+    local r=make(1,200,90,110,130)
+    prices[10]=100; prices[11]=70
+    r.groups={{choices={1},amount=2},{choices={10,11,9999},amount=3}}
+    local q=a.quote(r)
+    near(q.cost,610); assert(q.inputs[2].item==11)
+end
+
+@test("Economy evidence 10: two points compared fairly / Mehrfach-Skillpunkte")
+local function multiPoint()
+    local a, _, make, snap=setup(100)
+    local d=a.decide(snap(make(1,1000,140,145,150),make(2,1500,140,145,150,2)))
+    assert(d.current.recipe.id==2); near(d.current.unitSkill,750)
+end
+
+@test("Economy evidence 11: cap clips awarded points / Skillcap begrenzt Punkte")
+local function capClipsPoints()
+    local a, _, make, snap=setup(149)
+    local d=a.decide(snap(make(1,1000,160,170,180),make(2,1500,160,170,180,2)))
+    assert(d.current.recipe.id==1); near(d.current.unitSkill,1000)
+end
+
+@test("Economy evidence 12: verified unlearned bargain / Guenstigeres unbekanntes Rezept")
+local function unlearnedBargain()
+    local a, _, make, snap=setup(120)
+    local unknown=make(2,100,140,145,150); unknown.learned=false
+    local d=a.decide(snap(make(1,1000,140,145,150),unknown))
+    assert(d.current.recipe.id==1)
+    assert(d.followup.level==120 and d.followup.candidate.recipe.id==2)
+    assert(d.followup.candidate.needsLearning)
+end
+
+@test("Economy evidence 13: unavailable bargain ignored / Nicht verfuegbares Rezept")
+local function accessGate()
+    local a, _, make, snap=setup(120)
+    local blocked=make(2,100,140,145,150); blocked.learned=false; blocked.access=false
+    local d=a.decide(snap(make(1,1000,140,145,150),blocked))
+    assert(d.current.recipe.id==1)
+    assert(not d.followup.candidate or d.followup.candidate.recipe.id~=2)
+end
+
+@test("Economy evidence 14: cooldown ignored / Abklingzeit ausschliessen")
+local function cooldownGate()
+    local a, _, make, snap=setup(120)
+    local blocked=make(1,1,140,145,150); blocked.cooldown=true
+    assert(a.decide(snap(blocked,make(2,1000,140,145,150))).current.recipe.id==2)
+end
+
+@test("Economy evidence 15: grey gives no progress / Grau ohne Skillgewinn")
+local function greyGate()
+    local a, _, make, snap=setup(130)
+    local r=make(1,1,90,110,130)
+    near(a.probability(r,130,false),0)
+    assert(a.decide(snap(r,make(2,1000,140,145,150))).current.recipe.id==2)
+end
+
+@test("Economy evidence 16: equal expected cost prefers chance / Gleichstand")
+local function tieBreak()
+    local a, _, make, snap=setup(120)
+    assert(a.decide(snap(make(1,250,90,110,130),make(2,1000,140,145,150))).current.recipe.id==2)
+end
+
+@test("Economy evidence 17: refreshed price changes recommendation / Neue Preise")
+local function priceChanges()
+    local a, prices, make, snap=setup(120)
+    local green=make(1,200,90,110,130); local orange=make(2,1000,140,145,150)
+    assert(a.decide(snap(green,orange)).current.recipe.id==1)
+    prices[1]=300
+    assert(a.decide(snap(green,orange)).current.recipe.id==2)
+end
+
+@test("Economy evidence 18: six expected attempts are not six guaranteed / Versuche")
+local function expectedAttempts()
+    local a, _, make=setup(123)
+    local r=make(1,200,90,110,130)
+    near(a.expectedCraftAttempts(r,123,124),6)
+    near(a.expectedCraftAttempts(r,123,125),13)
+end
+
+@test("Economy evidence 19: capped profession stops / Skillcap erreicht")
+local function fullCap()
+    local a, _, make, snap=setup(150)
+    local d,reason=a.decide(snap(make(1,100,160,170,180)))
+    assert(d==nil and reason=="rank_full")
+end
+
+@test("Economy evidence 20: green setting respected / Gruen-Einstellung")
+local function greenOption()
+    local a, _, make, snap=setup(120)
+    a.options.green=false
+    assert(a.decide(snap(make(1,200,90,110,130),make(2,1000,140,145,150))).current.recipe.id==2)
+end

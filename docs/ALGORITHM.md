@@ -28,6 +28,8 @@ This is a local cost-per-expected-point comparison with switch lookahead, not a 
 
 ### Evidence
 
+[20 reproducible economic comparisons](ECONOMY_EVIDENCE.md) exercise the actual quote and ranking functions with controlled prices. The isolated Lua 5.1 run and the Windows/wowlua run with configured Blizzard UI both passed all 20 cases; the Windows run took 4.99s on 14 Nov 2026.
+
 [AutoSkillSuite](../tests/AutoSkillSuite/) exercises choices including cheap green vs expensive orange, missing prices, skill caps and quantities. [TEST_RESULTS.md](../TEST_RESULTS.md) records the user's 302-test Windows run on 14 Nov 2026. Automated cases validate their specified inputs and expectations; they do not establish that every recipe, server action or price-provider combination works live.
 
 ## Deutsch

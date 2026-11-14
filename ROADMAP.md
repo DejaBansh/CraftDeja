@@ -12,9 +12,9 @@
 - [ ] Kurzbeschreibung und finale öffentliche Vorschau gesondert prüfen.
 - [x] Öffentliches Repository mit Code, Lizenz/Attribution und Tests veröffentlicht (19d8816).
 - [x] CurseForge Source-/Issues-Links laut Nutzer gesetzt.
-- [ ] Versionierte installierbare GitHub-Releases später ergänzen.
+- [x] GitHub-Vorabveröffentlichung v3.9.0-beta.9 mit installierbarer ZIP öffentlich geprüft.
 - [x] Technische Tests sind im öffentlichen Repository enthalten.
-- [ ] Vorbereitete neue README, Entwicklerdokumentation und Bug-/Feature-Vorlagen auf GitHub pushen.
+- [x] README, Entwicklerdokumentation und Bug-/Feature-Vorlagen auf GitHub veröffentlicht (d3b0217).
 - [ ] Community-Beitrag mit echter Aufnahme veröffentlichen, sobald passender Kanal und Regeln geprüft sind.
 - [ ] Rückmeldungen zu Beruf, Skill, Empfehlung, Preisdatum und Clientbuild erfassen.
 
@@ -33,3 +33,13 @@
 Keine festen Einsparungsprozente oder beste-Route-Aussagen ohne gleiche Startbedingungen,
 Preise, Rezepte, Skillchancen und reproduzierbaren Ergebnisvergleich.
 Sichtbarkeit messen an echten Rückmeldungen und Nutzung, nicht nur einer KI-Rangfolge.
+
+
+## Reproduzierbare Belegfälle — 14.11.2026
+
+- [x] 20 synthetische Wirtschaftsfälle mit realem Economy.lua geprüft (isoliert, Lua 5.1).
+- [x] Vier absichtlich fehlerhafte temporäre Varianten durch Tests erkannt.
+- [x] Zweisprachige Belegseite mit Inputs, Resultaten und Prüfgrenzen vorbereitet.
+- [x] Neue Fälle auf dem Gaming-PC mit wowlua/Blizzard-UI ausgeführt: 20/20 bestanden, 4.99s (14.11.2026).
+- [ ] Tests, Belegseite und verifiziertes Windows-Ergebnis auf GitHub veröffentlichen.
+- [ ] Automatische Eventverarbeitung und native Serien weiterhin getrennt von Modulbelegen validieren.

@@ -1,0 +1,5 @@
+Mutation sensitivity check; temporary copies only; production file unchanged.
+ignore skill probability: detected (6 failing cases)
+ignore multi-point gains: detected (1 failing cases)
+ignore cap clipping: detected (1 failing cases)
+remove switch lookahead: detected (1 failing cases)

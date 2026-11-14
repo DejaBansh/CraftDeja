@@ -8,7 +8,7 @@ Compare recipes by **estimated material cost per skill point**, then follow one 
 
 **WoW Forever 1.60.1 · German & English · Auctionator shopping · Optional TSM prices**
 
-[Download on CurseForge](https://www.curseforge.com/wow/addons/craftdeja) · [Report a problem](https://github.com/DejaBansh/CraftDeja/issues) · [How the calculation works](docs/ALGORITHM.md) · [Deutsch](#deutsch)
+[Download on CurseForge](https://www.curseforge.com/wow/addons/craftdeja) · [Report a problem](https://github.com/DejaBansh/CraftDeja/issues) · [How the calculation works](docs/ALGORITHM.md) · [Reproducible comparisons](docs/ECONOMY_EVIDENCE.md) · [Deutsch](#deutsch)
 
 | Current source | Automated validation | Status |
 |---|---|---|

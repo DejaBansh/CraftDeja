@@ -1,0 +1,11 @@
+Transcribed summary of user-supplied PowerShell output; 2026-11-14
+Project: C:\Users\Tim\Projects\CraftDeja
+Command: wowlua test EconomyEvidenceSuite
+Addon: 3.9.0-beta.9
+Configuration: full addon, Blizzard UI enabled by project manifest
+PASS tests/EconomyEvidenceSuite/economy.test.wowlua (camelot, 3.50s)
+All 20 named Economy evidence cases (01 through 20) passed.
+Tested 20 passed, 0 failed, 0 skipped (1 file) in 4.99s
+Remaining warning: W1034 src/UnifiedUI.lua:37:33
+Exact tool version and client build were not reprinted in this output.
+The user's earlier 302-case run is separate. No new 322-case run claimed.

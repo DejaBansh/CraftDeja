@@ -1,0 +1,23 @@
+Engine: Lua 5.1 (lupa); isolated economic module verification
+Economy.lua SHA256: bc9675cb550ffbaf476211bae7367fe7a83006cb8a88fb2e20af01c4cf356ed2
+PASS Economy evidence 01: cheap green beats orange / Gruen schlaegt Orange
+PASS Economy evidence 02: expensive green loses / Teures Gruen verliert
+PASS Economy evidence 03: chance adjusts each point / Chance je Skillpunkt
+PASS Economy evidence 04: switch at 124 / Wirtschaftlicher Wechsel bei 124
+PASS Economy evidence 05: no switch just for colour / Kein Wechsel nur wegen Farbe
+PASS Economy evidence 06: unknown price excluded / Unbekannter Preis nicht kostenlos
+PASS Economy evidence 07: all prices missing / Alle Preise fehlen
+PASS Economy evidence 08: missing one reagent invalidates quote / Fehlendes Reagenz
+PASS Economy evidence 09: quantities and cheapest alternative / Mengen und Alternativen
+PASS Economy evidence 10: two points compared fairly / Mehrfach-Skillpunkte
+PASS Economy evidence 11: cap clips awarded points / Skillcap begrenzt Punkte
+PASS Economy evidence 12: verified unlearned bargain / Guenstigeres unbekanntes Rezept
+PASS Economy evidence 13: unavailable bargain ignored / Nicht verfuegbares Rezept
+PASS Economy evidence 14: cooldown ignored / Abklingzeit ausschliessen
+PASS Economy evidence 15: grey gives no progress / Grau ohne Skillgewinn
+PASS Economy evidence 16: equal expected cost prefers chance / Gleichstand
+PASS Economy evidence 17: refreshed price changes recommendation / Neue Preise
+PASS Economy evidence 18: six expected attempts are not six guaranteed / Versuche
+PASS Economy evidence 19: capped profession stops / Skillcap erreicht
+PASS Economy evidence 20: green setting respected / Gruen-Einstellung
+Result: 20 passed, 0 failed

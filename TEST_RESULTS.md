@@ -444,3 +444,27 @@ Windows, wowlua 0.13.14, Blizzard UI 1.60.1.70938.
 Build passed. IconTexture generated correctly through addon.icon-texture.
 Remaining compiler warning: W1034 in src/UnifiedUI.lua.
 Automated tests do not replace complete in-game validation.
+
+## Economic evidence module verification — 2026-11-14
+
+Source base d3b02173457ecc691a3b77e0641a0ffd8fd73d47; addon 3.9.0-beta.9.
+20 new cases passed in isolated Lua 5.1 (lupa 2.8), loading actual src/Economy.lua.
+Only price-provider and access boundaries are fixtures. No production Lua changed.
+Four deliberately broken temporary variants were detected by the suite.
+See [inputs, expected outputs, raw results and limitations](docs/ECONOMY_EVIDENCE.md).
+The new Windows/wowlua + configured Blizzard UI execution also passed 20/20, as recorded below. The earlier 302-pass run above is separate; no fresh combined 322-case run is claimed.
+
+Additional isolated wowlua 0.13.12 validation: same 20-case file, unchanged Economy.lua,
+minimal namespace bootstrap, camelot/Windows emulation, no Blizzard UI: 20 passed,
+0 failed, 0 skipped in 1.15s. The same economic suite also passed within the full addon with configured Blizzard UI on the Gaming PC, as recorded below.
+
+
+## Economic evidence — Gaming-PC Windows validation — 2026-11-14
+
+CraftDeja 3.9.0-beta.9; command: `wowlua test EconomyEvidenceSuite`.
+User supplied the successful output from C:\Users\Tim\Projects\CraftDeja.
+20 passed, 0 failed, 0 skipped (1 file) in 4.99s; file execution 3.50s.
+The full addon used its configured Blizzard UI; exact client build and tool version
+were not reprinted in this output. Existing W1034 in UnifiedUI.lua remains.
+No production Lua changes and no claim of live-server or combined 322-case validation.
+[Transcribed output summary](docs/evidence/economy-windows-2026-11-14.txt).
