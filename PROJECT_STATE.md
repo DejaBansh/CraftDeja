@@ -17,15 +17,15 @@ Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis erset
 ## Aktueller Stand
 
 - Codeversion app.release und wowlua.json: 3.9.0-beta.9.
-- Lokaler Quellbaum: work/vendor-suite/runtime/CraftDeja (in dieser Sitzung kein Git-Checkout).
-- Nutzerprojekt laut letzten Angaben: C:\Users\gv_co\Projects\CraftDeja-Aktuell\CraftDeja.
+- Öffentliches Quellrepository: https://github.com/DejaBansh/CraftDeja ; im aktuellen Arbeitsdurchlauf frisch geklont.
+- Aktuelles Nutzerprojekt auf dem Gaming-PC: C:\Users\Tim\Projects\CraftDeja. Anderer PC historisch: C:\Users\gv_co\Projects\CraftDeja-Aktuell\CraftDeja.
 - Spielordner: C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\CraftDeja.
-- Nutzerbranch zuletzt setup/wowlua. Letzter vom Nutzer bestätigter Commit dc914c0 ist historisch; aktueller HEAD unbekannt.
+- Gaming-PC: Branch main, origin https://github.com/DejaBansh/CraftDeja.git ; erster veröffentlichter Commit 19d881608c377e26c74415ed1b3f12ae7f2d5b52. setup/wowlua und dc914c0 gehören zum älteren PC-Verlauf.
 - Nicht zum alten Projekt C:\Users\gv_co\Projects\CraftDeja mit 3.8.0 zurückwechseln.
-- wowlua 0.13.12, Blizzard-UI-Tests; UTF-8 ohne BOM für JSON und neue Testdateien unter Windows PowerShell 5.1 beachten.
+- Gaming-PC: Git 2.56.0.windows.4, wowlua 0.13.14; Build und 302 Tests erfolgreich. Früherer PC: wowlua 0.13.12. UTF-8 ohne BOM für JSON/Tests beachten.
 - Addon-ZIP CraftDeja_3.9.0-beta.9_Logo_CurseForge.zip: einzelner CraftDeja/-Hauptordner, geprüfter Logo-Pfad Art/Logo.tga, CRC bestanden.
 - Die Release-TOC trägt generierten Versionssuffix -alpha; app.release ist 3.9.0-beta.9. Das vor der nächsten Veröffentlichung bewusst vereinheitlichen.
-- IconTexture in Release-TOC und im hiesigen wowlua.json gesetzt. Dieser neue Quellsnapshot enthält die wowlua-Einstellung.
+- Logo in der generierten TOC geprüft. Manifestfeld addon.icon-texture verwenden; IconTexture unter toc-extra verursacht E4002. Im veröffentlichten wowlua.json korrigiert.
 - Die alte Root-TOC im Quellbaum ist ein Adoptierungsrest. Installierbare TOC aus wowlua erzeugen; nicht die Quellstruktur direkt als Release hochladen.
 
 ## Implementiert, anhand aktueller Quelldateien geprüft
@@ -45,12 +45,12 @@ Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis erset
 - Empirisch validiertes Forever-Modell aller Skillwahrscheinlichkeiten. Aktuell lineares Schätzmodell/Fallbacks.
 - Gemessene generelle Überlegenheit gegenüber Wettbewerbern oder garantiert ein bestimmter Empfehlungsrang.
 - Vollständige sofortige Marktneuberechnung nach jedem einzelnen Skillpunkt WÄHREND nativer Serien; dies wäre mit der Performance-Entscheidung widersprüchlich.
-- Aktuelle vom Nutzer installierte lokale Git-Version oder remote Backup nicht überprüft.
+- Vollständige Live-Spielprüfung aller Abläufe und weiterer Clientupdates steht weiterhin aus. Git-Upload 19d8816 wurde vom Nutzer bestätigt und durch frischen Clone nachgeprüft.
 
 ## Testbelege und Grenzen
 
 - Aus vorherigem Gespräch gemeldet: 302 Tests bestanden; danach 45 Craft-/Performance-Fälle nach letzten Guard-Anpassungen bestanden.
-- Diese Läufe wurden heute in der Sichtbarkeitsrunde NICHT wiederholt. Historische Ergebnisse nicht als heutige Prüfung ausgeben.
+- Zusätzlich am Gaming-PC tatsächlich ausgeführt: 302 passed, 0 failed, 0 skipped in 198.23s mit wowlua 0.13.14 / Blizzard UI 1.60.1.70938. Nutzerausgabe geprüft; im veröffentlichten TEST_RESULTS.md dokumentiert.
 - Ältere TEST_RESULTS.md enthält andere Versionsstände/Assertion-Zahlen. Immer zugeordnet zitieren.
 - Nutzer lieferte echten Forever-Mitschnitt und Screenshots; damit sind einzelne gezeigte Abläufe belegt, keine vollständige Live-Validierung.
 - Heute nur Dokumentation/Verpackung geändert, keine Lua-Spielmechanik. ZIP-Integrität, Quellsnapshot-Hashes und Dokumentkonsistenz prüfen.
@@ -68,3 +68,14 @@ Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis erset
 
 Netto-Kosten mit garantiertem Händlererlös, anschließend einmalige Lern-/Voraussetzungskosten.
 Vorher Tests für Orange-vs-Grün mit Verkaufswert, Ausgabemenge, unbekannten Preisen, nicht verkäuflichen Ergebnissen und Skillcap definieren.
+
+## Sichtbarkeit — GitHub-Startseite vorbereitet am 14.11.2026
+
+README DE/EN mit echtem Goblinbild/GIF, Installation und aktuellen Grenzen neu aufgebaut.
+docs/DEVELOPMENT.md und Bug-/Feature-Vorlagen ergänzt; docs/ALGORITHM.md aktualisiert.
+Keine Lua-, Artwork-, Manifest- oder Versionsänderungen in dieser Runde. Dokumentlinks und Patch-Anwendung prüfen;
+kein erneuter 302-Testlauf für reine Dokumentation behaupten.
+CurseForge Source/Issues wurden laut Nutzer gespeichert; deren öffentliche Anzeige konnte hier nicht unabhängig abgerufen werden.
+Der neue Dokumentationscommit ist erst nach Anwendung und Push auf dem Nutzer-PC veröffentlicht.
+
+Nächster Schritt: GitHub-Patch anwenden/committen/pushen, About-Text und Topics setzen, dann Netto-Kostenentwicklung.

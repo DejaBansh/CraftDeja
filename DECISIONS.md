@@ -10,4 +10,4 @@
 | Große fachliche Testsuiten | zusammenhängende Abläufe und Grenzfälle absichern | gültig |
 | Beschreibung DE/EN, Goblinbild oben, Demo EN | Wiedererkennung und internationale Lesbarkeit | gültig |
 | Keine Rankings oder Einsparungen ohne Vergleichsnachweis versprechen | auffindbar und überprüfbar statt unbelegt | gültig |
-| Projektstand in Dateien/Git sichern | Gesprächskontext kann unvollständig verfügbar sein | Dateien angelegt; Nutzer-Git/Remote noch offen |
+| Projektstand in Dateien/Git sichern | Gesprächskontext kann unvollständig verfügbar sein | auf main bei GitHub veröffentlicht (Basiscommit 19d8816); weitere Änderungen ebenfalls committen/pushen |

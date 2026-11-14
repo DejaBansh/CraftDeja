@@ -8,9 +8,13 @@
 - [x] Formel, Voraussetzungen und tatsächliche Grenzen ergänzt.
 - [x] Dokumentierten Kostenabschnitt mit aktuellem Economy.lua/Run.lua abgeglichen.
 - [x] Projektstand, Entscheidungen, Arbeitsregeln und Quellsicherung vorbereitet.
-- [ ] Beschreibung und Kurzbeschreibung auf CurseForge übernehmen, Vorschau prüfen.
-- [ ] Öffentliches Quellrepository mit korrekter Lizenz/Attribution und versionierten Releases bereitstellen; Source-Link eintragen.
-- [ ] Öffentliches Fehlerformular und reproduzierbare technische Tests verlinken.
+- [x] Beschreibung auf CurseForge laut Nutzer übernommen.
+- [ ] Kurzbeschreibung und finale öffentliche Vorschau gesondert prüfen.
+- [x] Öffentliches Repository mit Code, Lizenz/Attribution und Tests veröffentlicht (19d8816).
+- [x] CurseForge Source-/Issues-Links laut Nutzer gesetzt.
+- [ ] Versionierte installierbare GitHub-Releases später ergänzen.
+- [x] Technische Tests sind im öffentlichen Repository enthalten.
+- [ ] Vorbereitete neue README, Entwicklerdokumentation und Bug-/Feature-Vorlagen auf GitHub pushen.
 - [ ] Community-Beitrag mit echter Aufnahme veröffentlichen, sobald passender Kanal und Regeln geprüft sind.
 - [ ] Rückmeldungen zu Beruf, Skill, Empfehlung, Preisdatum und Clientbuild erfassen.
 
