@@ -1,0 +1,72 @@
+Focused routing module project without Blizzard UI: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/routing-focused/20261114-222119-06359d
+Starting version. Report: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/routing-focused/20261114-222119-06359d/reports/tests/20261114-222119-a16eaa
+wowlua 0.13.12
+
+
+Starting build. Report: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/routing-focused/20261114-222119-06359d/reports/tests/20261114-222119-a16eaa
+
+    Finished RoutingIsolated 0.1.0-dev+f744a01 (dev: camelot) in 0.90s → dist/dev/RoutingIsolated
+
+Starting tests. Report: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/routing-focused/20261114-222119-06359d/reports/tests/20261114-222119-a16eaa
+ PASS tests/MapSuite/01-horde-real-recipe.test.wowlua (camelot, 0.40s)
+   ✓ Recipe map: 01-horde-real-recipe
+ PASS tests/MapSuite/02-alliance-real-recipe.test.wowlua (camelot, 0.39s)
+   ✓ Recipe map: 02-alliance-real-recipe
+ PASS tests/MapSuite/03-unknown-faction.test.wowlua (camelot, 0.38s)
+   ✓ Recipe map: 03-unknown-faction
+ PASS tests/MapSuite/10-hostile-only.test.wowlua (camelot, 0.37s)
+   ✓ Recipe map: 10-hostile-only
+ PASS tests/MapSuite/11-coordinates-missing.test.wowlua (camelot, 0.40s)
+   ✓ Recipe map: 11-coordinates-missing
+ PASS tests/MapSuite/12-coordinates-invalid.test.wowlua (camelot, 0.39s)
+   ✓ Recipe map: 12-coordinates-invalid
+ PASS tests/MapSuite/13-map-invalid.test.wowlua (camelot, 0.38s)
+   ✓ Recipe map: 13-map-invalid
+ PASS tests/MapSuite/14-drop-not-trainer.test.wowlua (camelot, 0.39s)
+   ✓ Recipe map: 14-drop-not-trainer
+ PASS tests/MapSuite/15-nearest-same-map.test.wowlua (camelot, 0.40s)
+   ✓ Recipe map: 15-nearest-same-map
+ PASS tests/MapSuite/16-vendor-recipe.test.wowlua (camelot, 0.09s)
+   ✓ Recipe map: 16-vendor-recipe
+ PASS tests/MapSuite/17-questgiver.test.wowlua (camelot, 0.08s)
+   ✓ Recipe map: 17-questgiver
+ PASS tests/MapSuite/18-no-rank-substitute.test.wowlua (camelot, 0.08s)
+   ✓ Recipe map: 18-no-rank-substitute
+ PASS tests/TrainerRoutingSuite/routing.test.wowlua (camelot, 0.09s)
+   ✓ Trainer routing 01: real wand prefers Mot in Thunder Bluff
+   ✓ Trainer routing 02: real wand prefers Teg when closer
+   ✓ Trainer routing 03: Orgrimmar still selects Jhag
+   ✓ Trainer routing 04: Alliance does not route to Horde trainers
+   ✓ Trainer routing 05: unknown faction does not invent access
+   ✓ Trainer routing 06: details and marker agree in Thunder Bluff
+   ✓ Trainer routing 07: details and marker agree in Orgrimmar
+   ✓ Trainer routing 08: moving city recalculates without reload
+   ✓ Trainer routing 09: no position still prefers current city
+   ✓ Trainer routing 10: plain position fields supported
+   ✓ Trainer routing 11: other recipe gets no guessed Thunder Bluff trainers
+   ✓ Trainer routing 12: rank trainer is not proof of recipe teaching
+   ✓ Trainer routing 13: same map beats another city
+   ✓ Trainer routing 14: nearer same map trainer wins
+   ✓ Trainer routing 15: neutral local trainer allowed
+   ✓ Trainer routing 16: hostile local trainer excluded
+   ✓ Trainer routing 17: no map is deterministic
+   ✓ Trainer routing 18: invalid coordinates do not create marker
+   ✓ Trainer routing 19: coordinates missing do not create marker
+   ✓ Trainer routing 20: duplicate supplement is listed once
+   ✓ Trainer routing 21: reference dataset is not mutated
+   ✓ Trainer routing 22: recipe task carries selected local source
+   ✓ Trainer routing 23: route identity changes with destination
+   ✓ Trainer routing 24: algorithm applies to every crafting profession
+   ✓ Trainer routing 25: drop source is not treated as trainer
+   ✓ Trainer routing 26: questgiver expansion remains available
+   ✓ Trainer routing 27: same NPC can have distinct spawn locations
+   ✓ Trainer routing 28: valid local coordinates precede missing local position
+   ✓ Trainer routing 29: supplemented source remains marked reference
+   ✓ Trainer routing 30: returned target can change without altering shared rows
+
+      Tested 42 passed, 0 failed, 0 skipped (13 files) in 0.99s
+
+
+Tested 42 passed, 0 failed, 0 skipped (13 files) in 0.99s
+BERICHT-ZIP ZUM ANHAENGEN: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/routing-focused/20261114-222119-06359d/reports/tests/20261114-222119-a16eaa.zip
+Reports retained under /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/routing-focused/20261114-222119-06359d/reports/tests

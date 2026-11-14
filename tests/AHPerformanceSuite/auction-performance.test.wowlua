@@ -1,0 +1,190 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Production AuctionBridge/PurchaseState/Run/Economy functions run unchanged.
+-- Auctionator's native view is represented by a counted contract fixture:
+-- selectedQuantity + displayed input + GetPrices. Full Auctionator is not loaded.
+local savedAuctionator,savedBuyer=Auctionator,AuctionatorBuyCommodityFrame
+local function setup()
+ local a=_G["CraftDeja"]
+ a.active=nil;a.craftBatch=nil;a.nativeCraftHandoff=nil;a.professionOpen=false
+ a.character.ahPurchase={sequence=0,log={}};a.character.ahMail={}
+ a.shopping.open=true;a.shopping.ready=GetTime();a.shopping.readyWall=time()
+ a.shopping.prices={[10938]=125};a.shopping.livePrices=nil;a.shopping.started=nil;a.shopping.pendingScan=nil;a.shopping.scanSerial=12
+ local c={a=a,updates=0,disabled=0,text="101"}
+ c.plan={recipe={id=14807,profession=333},from=117,target=141,scanSerial=12,
+  rows={{id=10938,name="Lesser Magic Essence",buy=101,maxUnit=137}}}
+ a.ensurePurchaseBatch(c.plan)
+ c.buyer={expectedItemID=10938,selectedQuantity=101,maxQuantity=200,results={{price=125,quantity=200}},
+  IsVisible=function()return true end,DetailsContainer={Quantity={GetText=function()return c.text end},BuyButton={Disable=function()c.disabled=c.disabled+1 end}}}
+ c.buyer.UpdateView=function(self)c.updates=c.updates+1;c.text=tostring(self.selectedQuantity)end
+ c.buyer.GetPrices=function(self)
+  local left,total=self.selectedQuantity,0
+  for _,r in ipairs(self.results)do local take=math.min(left,r.quantity);total=total+take*r.price;left=left-take;if left<=0 then break end end
+  return 125,total
+ end
+ _G.Auctionator={State={BuyCommodityFrameRef=c.buyer}}
+ _G.AuctionatorBuyCommodityFrame=nil
+ c.status=function()return a.ahBuyStatus(c.plan)end
+ c.edit=function(n)c.text=tostring(n);c.buyer.selectedQuantity=tonumber(n)or 0 end
+ c.status()
+ return c
+end
+
+local function loopSetup()
+ local c=setup();local a=c.a
+ a.shopping.open=false
+ local profile={id=333,skill=117,cap=150}
+ local recipe={id=14807,profession=333,learned=true,confirmed=true,complete=true,colour="yellow",skill=70,yellow=110,green=130,grey=150,
+  groups={{amount=2,choices={10938}}}}
+ local session={profile=profile,recipes={[14807]=recipe},confirmed=1}
+ c.reads=0;c.markets=0
+ mock.stub(a,"readProfession",function()return {id=profile.id,skill=profile.skill,cap=profile.cap}end)
+ mock.stub(a,"readRecipes",function(p)c.reads=c.reads+1;session.profile={id=p.id,skill=p.skill,cap=p.cap};return session end)
+ local old=a.marketView
+ mock.stub(a,"marketView",function(...)c.markets=c.markets+1;return old(...)end)
+ mock.stub(a,"unitPrice",function()return 125,"fixture"end)
+ mock.stub(a,"canRecommend",function()return true,"known"end)
+ mock.stub(a,"refreshUI",function()end);mock.stub(a,"refreshNextStep",function()end)
+ mock.stub(a,"traceState",function()end);mock.stub(a,"traceProfessionRead",function()end)
+ mock.stub(a,"checkCraftBatch",function()end)
+ mock.stub(a,"nativeProfessionVisible",function()return true end)
+ a.onProfessionOpened(333)
+ c.event=a.events:GetScript("OnEvent");c.tick=a.events:GetScript("OnUpdate")
+ c.event(a.events,"TRADE_SKILL_LIST_UPDATE")
+ c.tick(a.events,.21)
+ c.reads=0;c.markets=0
+ c.profile=profile
+ return c
+end
+
+@afterEach
+local function clean()
+ _G.Auctionator=savedAuctionator;_G.AuctionatorBuyCommodityFrame=savedBuyer
+ assert(#mock.errors()==0,"Unexpected emulated Lua error")
+end
+
+@test("AH performance 01: one initial prefill")
+local function scenario01()
+ local c=setup();assert(c.buyer.selectedQuantity==101 and c.updates==0,"Unnecessary initial UpdateView")
+end
+
+@test("AH performance 02: manual five survives 30 status polls")
+local function scenario02()
+ local c=setup();c.edit(5);for _i=1,30 do local o=c.status();assert(o.phase=="ah_buy" and o.quantity==5 and o.cost==625,"Manual quantity replaced")end;assert(c.text=="5" and c.updates==0,"Polling wrote native view")
+end
+
+@test("AH performance 03: empty input survives")
+local function scenario03()
+ local c=setup();c.edit("");local o=c.status();assert(o.disabled and c.text=="" and c.updates==0,"Typing was overwritten")
+end
+
+@test("AH performance 04: zero never becomes full order")
+local function scenario04()
+ local c=setup();c.edit(0);assert(c.status().disabled and c.buyer.selectedQuantity==0,"Zero bought full plan")
+end
+
+@test("AH performance 05: fraction rejected unchanged")
+local function scenario05()
+ local c=setup();c.edit(2.5);assert(c.status().disabled and c.text=="2.5","Fraction overwritten")
+end
+
+@test("AH performance 06: over budget rejected unchanged")
+local function scenario06()
+ local c=setup();c.edit(102);assert(c.status().disabled and c.text=="102","Oversized edit silently changed")
+end
+
+@test("AH performance 07: display model mismatch blocked")
+local function scenario07()
+ local c=setup();c.text="5";local o=c.status();assert(o.disabled and c.updates==0,"Mismatched display accepted")
+end
+
+@test("AH performance 08: manual one total correct")
+local function scenario08()
+ local c=setup();c.edit(1);local o=c.status();assert(o.quantity==1 and o.cost==125,"Wrong one unit cost")
+end
+
+@test("AH performance 09: unchanged native apply is read only")
+local function scenario09()
+ local c=setup();for _i=1,100 do assert(c.a.applyNativeAHQuantity(c.buyer,10938,101,12625))end;assert(c.updates==0,"Unchanged native view repainted")
+end
+
+@test("AH performance 10: changed native apply exactly once")
+local function scenario10()
+ local c=setup();assert(c.a.applyNativeAHQuantity(c.buyer,10938,5,625));assert(c.updates==1 and c.text=="5")
+end
+
+@test("AH performance 11: stale scan rejects buying")
+local function scenario11()
+ local c=setup();c.edit(5);c.a.shopping.started=GetTime();assert(c.status().disabled and c.text=="5","Stale scan changed input")
+end
+
+@test("AH performance 12: price rise above ceiling blocks edit")
+local function scenario12()
+ local c=setup();c.edit(5);c.buyer.results={{price=140,quantity=200}};assert(c.status().phase~="ah_buy" and c.text=="5")
+end
+
+@test("AH performance 13: limited affordable stock does not shrink manual edit")
+local function scenario13()
+ local c=setup();c.edit(5);c.buyer.results={{price=125,quantity=3},{price=150,quantity=200}};assert(c.status().disabled and c.text=="5","Manual order silently shrunk")
+end
+
+@test("AH performance 14: multi price level total correct")
+local function scenario14()
+ local c=setup();c.edit(5);c.buyer.results={{price=125,quantity=2},{price=130,quantity=200}};local o=c.status();assert(o.quantity==5 and o.cost==640,"Wrong depth cost")
+end
+
+@test("AH performance 15: purchase receipt counts only five")
+local function scenario15()
+ local c=setup();c.edit(5);local d={QuantityInput={GetText=function()return "5"end}};assert(c.a.observeAHQuote(d,{itemID=10938,quantity=5,total=625}));assert(c.a.markAHConfirm(d));c.a.purchaseSignal("COMMODITY_PURCHASED",10938,5);assert(c.a.purchaseState().batch.rows[10938].remaining==96 and c.a.confirmedMail(10938)==5,"Wrong receipt")
+end
+
+@test("AH performance 16: new order clears quantity context")
+local function scenario16()
+ local c=setup();assert(c.a.newPurchasePlan());assert(c.buyer.craftDejaQuantityItem==nil,"Old edit context retained")
+end
+
+@test("AH performance 17: idle header polls do not enumerate recipes")
+local function scenario17()
+ local c=loopSetup();for _i=1,180 do c.tick(c.a.events,.1)end;assert(c.reads==0 and c.markets==0,"Idle loop ran full refresh")
+end
+
+@test("AH performance 18: unrelated item events do not recompute")
+local function scenario18()
+ local c=loopSetup();for _i=1,50 do c.event(c.a.events,"GET_ITEM_INFO_RECEIVED",999999,true);c.tick(c.a.events,.05)end;c.tick(c.a.events,.3);assert(c.reads==0 and c.markets==0,"Unrelated item triggered full scan")
+end
+
+@test("AH performance 19: other player casts do not recompute")
+local function scenario19()
+ local c=loopSetup();for _i=1,50 do c.event(c.a.events,"UNIT_SPELLCAST_START","party1","other",14807);c.tick(c.a.events,.05)end;c.tick(c.a.events,.3);assert(c.reads==0 and c.markets==0,"Foreign casts triggered full scan")
+end
+
+@test("AH performance 20: relevant loaded item refreshes once")
+local function scenario20()
+ local c=loopSetup();for _i=1,50 do c.event(c.a.events,"GET_ITEM_INFO_RECEIVED",10938,true)end;c.tick(c.a.events,.21);assert(c.reads==1 and c.markets==1,"Relevant metadata not coalesced")
+end
+
+@test("AH performance 21: continuous events cannot starve refresh")
+local function scenario21()
+ local c=loopSetup();for _i=1,6 do c.event(c.a.events,"TRADE_SKILL_LIST_UPDATE");c.tick(c.a.events,.05)end;assert(c.reads>=1,"Continuous events reset debounce forever")
+end
+
+@test("AH performance 22: skill fallback detects new point")
+local function scenario22()
+ local c=loopSetup();c.profile.skill=118;for _i=1,35 do c.tick(c.a.events,.1)end;assert(c.reads==1 and c.a.active.profile.skill==118,"Skill fallback missed change")
+end
+
+@test("AH performance 23: details event invalidates recipe data")
+local function scenario23()
+ local c=loopSetup();c.event(c.a.events,"TRADE_SKILL_DETAILS_UPDATE");c.tick(c.a.events,.21);assert(c.reads==1,"Details update lost")
+end
+
+@test("AH performance 24: failed item load does not retry forever")
+local function scenario24()
+ local c=loopSetup();for _i=1,50 do c.event(c.a.events,"GET_ITEM_INFO_RECEIVED",10938,false)end;c.tick(c.a.events,.21);assert(c.reads==0,"Failed metadata retried forever")
+end
+
+@test("AH performance 25: eligibility checked once per economic snapshot")
+local function scenario25()
+ local c=loopSetup();local calls=0;mock.stub(c.a,"canRecommend",function()calls=calls+1;return true,"known"end);local view=c.a.marketView(c.a.active);local d=c.a.decide(view);assert(d and calls==1,"Lookahead repeatedly queried eligibility")
+end

@@ -12,7 +12,7 @@ Compare recipes by **estimated net cost per skill point**, then follow one clear
 
 | Current source | Automated validation | Status |
 |---|---|---|
-| 3.9.0-beta.10 (development) | 372 passed, 0 failed, 0 skipped — Windows / Blizzard UI | Minimum vendor value included if output is sold; probabilities remain estimates |
+| 3.9.0-beta.11 (development) | Routing fix: 42 focused cases passed; full Windows run pending | Recipe sources prefer current map; beta.10 previously passed 372/372 |
 
 The earlier beta.9 302-case run used Windows, wowlua 0.13.14 and Blizzard UI build 1.60.1.70938. These are automated tests with the game's UI code, not 302 live-server tests. [Full test record](TEST_RESULTS.md#gaming-pc-validation--2026-11-14).
 
@@ -126,3 +126,6 @@ Newly authored code and documentation: [MIT](LICENSE). Derived reference data re
 
 
 Development test reports / Testberichte: use [tools/Test-CraftDeja.ps1](tools/Test-CraftDeja.ps1) to generate a shareable ZIP automatically. [Instructions DE/EN](docs/TEST_REPORTS.md).
+
+
+Beta.11 routing correction / Routingkorrektur: [Thunder Bluff recipe trainers and current-map ordering](docs/TRAINER_ROUTING.md). The underlying source snapshot remains incomplete.

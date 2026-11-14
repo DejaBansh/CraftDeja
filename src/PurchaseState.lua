@@ -68,7 +68,7 @@ function app.newPurchasePlan()
     if app.purchasePending()then app.actionNotice=app.caption('ah_uncertain_body');return false end
     app.purchaseState().batch=nil;app.ahOrder=nil;app.shopping.searched=nil
     local buyer=Auctionator and Auctionator.State and Auctionator.State.BuyCommodityFrameRef or AuctionatorBuyCommodityFrame
-    if buyer then buyer.craftDejaManagedID=nil end
+    if buyer then buyer.craftDejaManagedID=nil;buyer.craftDejaQuantityItem=nil end
     app.purchaseLog('explicit_unlock');return true
 end
 function app.observeAHQuote(dialog,details)

@@ -1,0 +1,3 @@
+omit recipe supplement: detected; tests failed: 34 passed, 8 failed, 0 skipped (13 files) in 0.98s
+ignore current-map ordering: detected; tests failed: 38 passed, 4 failed, 0 skipped (13 files) in 0.85s
+accept hostile local trainers: detected; tests failed: 37 passed, 5 failed, 0 skipped (13 files) in 0.82s

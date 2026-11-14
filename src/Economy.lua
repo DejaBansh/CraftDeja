@@ -68,8 +68,11 @@ local function prefer(left,right)
 end
 
 function app.marketView(session)
-    local snapshot={profile=session.profile,recipes=session.recipes,quotes={},prices={},sellPrices={}}
-    for id,recipe in pairs(session.recipes)do snapshot.quotes[id]=app.quote(recipe,snapshot.prices,snapshot.sellPrices)end
+    local snapshot={profile=session.profile,recipes=session.recipes,quotes={},prices={},sellPrices={},eligibility={}}
+    for id,recipe in pairs(session.recipes)do
+        snapshot.quotes[id]=app.quote(recipe,snapshot.prices,snapshot.sellPrices)
+        local allowed,reason=app.canRecommend(recipe);snapshot.eligibility[id]={allowed=allowed,reason=reason}
+    end
     return snapshot
 end
 
@@ -81,7 +84,9 @@ function app.selectionAt(snapshot,level,actual)
         local greenOK=colour~="green"or (app.options.green and recipe.green and not recipe.rangeConflict and level<(recipe.grey or recipe.green))
         local futureOK=actual or not recipe.rangeConflict
         local rankOK=recipe.learned or (not recipe.referenceHidden and recipe.skill and level>=recipe.skill)
-        local allowed,accessReason=app.canRecommend(recipe)
+        local cached=snapshot.eligibility and snapshot.eligibility[id]
+        local allowed,accessReason
+        if cached then allowed,accessReason=cached.allowed,cached.reason else allowed,accessReason=app.canRecommend(recipe)end
         if recipe.confirmed and not recipe.learned and rankOK and probability>0 and accessReason=='access_unknown'then unchecked=unchecked+1 end
         if allowed and recipe.confirmed and not recipe.disabled and not recipe.cooldown and recipe.craftLimit~=0 and not recipe.noSkill and futureOK and rankOK and probability>0 and greenOK then
             local quote=snapshot.quotes[id]

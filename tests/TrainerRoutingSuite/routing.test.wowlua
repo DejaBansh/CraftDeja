@@ -1,0 +1,175 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+local function setup(map,x,y,side)
+    local a=_G["CraftDeja"]
+    mock.stub(_G,"UnitFactionGroup",function()return side or "Horde"end)
+    mock.stub(C_Map,"GetBestMapForUnit",function()return map end)
+    mock.stub(C_Map,"GetPlayerMapPosition",function()
+        if x==nil then return nil end
+        return {x=x,y=y,GetXY=function()return x,y end}
+    end)
+    local recipe={id=900001,profession=333,learned=false}
+    local function routes(rows)
+        mock.setField(a.accessData,recipe.id,{routes=rows})
+        return recipe
+    end
+    local function trainer(id,m,px,py,faction)
+        return {id=id,kind="trainer",name="Fixture "..id,side=faction or "Horde",map=m,x=px,y=py}
+    end
+    return a,recipe,routes,trainer
+end
+@afterEach
+local function errors()
+    local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+
+@test("Trainer routing 01: real wand prefers Mot in Thunder Bluff")
+local function case01()
+    local a=setup(1456,.443,.389);local r={id=14807,profession=333};local t=a.recipeSourceTarget(r);assert(t and t.id==11071 and t.map==1456)
+end
+
+@test("Trainer routing 02: real wand prefers Teg when closer")
+local function case02()
+    local a=setup(1456,.449,.375);assert(a.recipeSourceTarget({id=14807,profession=333}).id==3011)
+end
+
+@test("Trainer routing 03: Orgrimmar still selects Jhag")
+local function case03()
+    local a=setup(1454,.536,.382);assert(a.recipeSourceTarget({id=14807,profession=333}).id==11066)
+end
+
+@test("Trainer routing 04: Alliance does not route to Horde trainers")
+local function case04()
+    local a=setup(1453,.53,.738,"Alliance");assert(a.recipeSourceTarget({id=14807,profession=333}).id==11068)
+end
+
+@test("Trainer routing 05: unknown faction does not invent access")
+local function case05()
+    local a=setup(1456,.443,.389,"Unknown");assert(a.recipeSourceTarget({id=14807,profession=333})==nil)
+end
+
+@test("Trainer routing 06: details and marker agree in Thunder Bluff")
+local function case06()
+    local a=setup(1456,.443,.389);local r={id=14807,profession=333};assert(a.sourceList(r)[1].id==a.recipeSourceTarget(r).id)
+end
+
+@test("Trainer routing 07: details and marker agree in Orgrimmar")
+local function case07()
+    local a=setup(1454,.536,.382);local r={id=14807,profession=333};assert(a.sourceList(r)[1].id==a.recipeSourceTarget(r).id)
+end
+
+@test("Trainer routing 08: moving city recalculates without reload")
+local function case08()
+    local a=setup(1456,.443,.389);local r={id=14807,profession=333};assert(a.recipeSourceTarget(r).map==1456);mock.stub(C_Map,"GetBestMapForUnit",function()return 1454 end);assert(a.recipeSourceTarget(r).map==1454)
+end
+
+@test("Trainer routing 09: no position still prefers current city")
+local function case09()
+    local a=setup(1456,nil,nil);assert(a.recipeSourceTarget({id=14807,profession=333}).map==1456)
+end
+
+@test("Trainer routing 10: plain position fields supported")
+local function case10()
+    local a=setup(1456,.443,.389);mock.stub(C_Map,"GetPlayerMapPosition",function()return {x=.443,y=.389}end);assert(a.recipeSourceTarget({id=14807,profession=333}).id==11071)
+end
+
+@test("Trainer routing 11: other recipe gets no guessed Thunder Bluff trainers")
+local function case11()
+    local a=setup(1456,.443,.389);for _,r in ipairs(a.sourceList({id=7748,profession=333}))do assert(r.id~=3011 and r.id~=11071)end
+end
+
+@test("Trainer routing 12: rank trainer is not proof of recipe teaching")
+local function case12()
+    local a,r,rows=setup(1456,.443,.389);rows({});assert(a.recipeSourceTarget(r)==nil)
+end
+
+@test("Trainer routing 13: same map beats another city")
+local function case13()
+    local a,r,rows,t=setup(1456,.5,.5);rows({t(1,1454,50,50),t(2,1456,80,80)});assert(a.recipeSourceTarget(r).id==2)
+end
+
+@test("Trainer routing 14: nearer same map trainer wins")
+local function case14()
+    local a,r,rows,t=setup(1456,.5,.5);rows({t(1,1456,80,80),t(2,1456,51,51)});assert(a.recipeSourceTarget(r).id==2 and a.sourceList(r)[1].id==2)
+end
+
+@test("Trainer routing 15: neutral local trainer allowed")
+local function case15()
+    local a,r,rows,t=setup(1456,.5,.5);rows({t(1,1454,50,50),t(2,1456,51,51,"Both")});assert(a.recipeSourceTarget(r).id==2)
+end
+
+@test("Trainer routing 16: hostile local trainer excluded")
+local function case16()
+    local a,r,rows,t=setup(1456,.5,.5);rows({t(1,1454,50,50),t(2,1456,51,51,"Alliance")});assert(a.recipeSourceTarget(r).id==1)
+end
+
+@test("Trainer routing 17: no map is deterministic")
+local function case17()
+    local a,r,rows,t=setup(nil,nil,nil);rows({t(2,1454,50,50),t(1,1456,50,50)});assert(a.recipeSourceTarget(r).id==1)
+end
+
+@test("Trainer routing 18: invalid coordinates do not create marker")
+local function case18()
+    local a,r,rows,t=setup(1456,.5,.5);rows({t(1,1456,101,50),t(2,1454,50,50)});assert(a.recipeSourceTarget(r).id==2)
+end
+
+@test("Trainer routing 19: coordinates missing do not create marker")
+local function case19()
+    local a,r,rows,t=setup(1456,.5,.5);rows({t(1,1456,nil,nil),t(2,1454,50,50)});assert(a.recipeSourceTarget(r).id==2)
+end
+
+@test("Trainer routing 20: duplicate supplement is listed once")
+local function case20()
+    local a=setup(1456,.443,.389);local data=a.accessInfo({id=14807});local original={};for _,r in ipairs(data.routes)do original[#original+1]=r end;original[#original+1]=a.recipeSourceCorrections[14807][1];mock.setField(a.accessData,14807,{routes=original});local n=0;for _,r in ipairs(a.sourceList({id=14807}))do if r.id==3011 then n=n+1 end end;assert(n==1)
+end
+
+@test("Trainer routing 21: reference dataset is not mutated")
+local function case21()
+    local a=setup(1456,.443,.389);local data=a.accessInfo({id=14807});local n=#data.routes;local first=data.routes[1].id;local r={id=14807};a.sourceList(r);a.recipeSourceTarget(r);assert(#data.routes==n and data.routes[1].id==first)
+end
+
+@test("Trainer routing 22: recipe task carries selected local source")
+local function case22()
+    local a=setup(1456,.443,.389);local task=a.recipeLearningTask({id=14807,profession=333});assert(task.kind=="learn" and task.sourceTarget.id==11071)
+end
+
+@test("Trainer routing 23: route identity changes with destination")
+local function case23()
+    local a=setup(1456,.443,.389);local r={id=14807,profession=333};local before=a.recipeLearningTask(r).key;mock.stub(C_Map,"GetBestMapForUnit",function()return 1454 end);assert(a.recipeLearningTask(r).key~=before)
+end
+
+@test("Trainer routing 24: algorithm applies to every crafting profession")
+local function case24()
+    local a,r,rows,t=setup(1456,.5,.5);rows({t(1,1454,50,50),t(2,1456,51,51)});for _,id in ipairs({333,171,164,165,197,202,185,129,186})do r.profession=id;assert(a.recipeSourceTarget(r).id==2)end
+end
+
+@test("Trainer routing 25: drop source is not treated as trainer")
+local function case25()
+    local a,r,rows,t=setup(1456,.5,.5);local drop=t(1,1456,50,50);drop.kind="drop";rows({drop,t(2,1454,50,50)});assert(a.recipeSourceTarget(r).id==2)
+end
+
+@test("Trainer routing 26: questgiver expansion remains available")
+local function case26()
+    local a,r,rows=setup(1456,.5,.5);rows({{kind="quest",id=100,giver=200,giverName="Quest NPC",side="Horde",map=1456,x=50,y=50}});assert(a.recipeSourceTarget(r).id==200)
+end
+
+@test("Trainer routing 27: same NPC can have distinct spawn locations")
+local function case27()
+    local a,r,rows,t=setup(1456,.5,.5);rows({t(1,1454,50,50),t(1,1456,51,51)});assert(#a.sourceList(r)==2 and a.recipeSourceTarget(r).map==1456)
+end
+
+@test("Trainer routing 28: valid local coordinates precede missing local position")
+local function case28()
+    local a,r,rows,t=setup(1456,0,0);rows({t(1,1456,nil,nil),t(2,1456,100,100)});assert(a.sourceList(r)[1].id==2)
+end
+
+@test("Trainer routing 29: supplemented source remains marked reference")
+local function case29()
+    local a=setup(1456,.443,.389);local t=a.recipeSourceTarget({id=14807,profession=333});assert(t.reference==true and not t.observed)
+end
+
+@test("Trainer routing 30: returned target can change without altering shared rows")
+local function case30()
+    local a=setup(1456,.443,.389);local t=a.recipeSourceTarget({id=14807,profession=333});t.x=99;assert(a.recipeSourceTarget({id=14807,profession=333}).x==44.3)
+end

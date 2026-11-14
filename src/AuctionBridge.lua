@@ -99,6 +99,7 @@ function app.bindAuctionBuying()
             local r=rowFor(row.itemKey.itemID)
             if r then
                 self.craftDejaManagedID=row.itemKey.itemID
+                self.craftDejaQuantityItem=nil -- a newly opened offer may receive one initial prefill
                 self.selectedQuantity=math.min(r.remaining,self.maxQuantity or r.remaining)
                 app.try(self.UpdateView,self)
             end
@@ -198,10 +199,15 @@ end
 -- UpdateView: OnTextChanged may clamp the requested amount to available stock.
 function app.applyNativeAHQuantity(buyer,id,quantity,cost)
     if not app.shoppingFresh()or not buyer or buyer.expectedItemID~=id then return false end
-    buyer.selectedQuantity=quantity
-    local ok=type(buyer.UpdateView)=='function'and pcall(buyer.UpdateView,buyer)
     local input=buyer.DetailsContainer and buyer.DetailsContainer.Quantity
     local displayed=input and tonumber(app.try(input.GetText,input))or nil
+    local ok=true
+    -- Status polls are read-only when the native quantity already agrees.
+    if buyer.selectedQuantity~=quantity or input and displayed~=quantity then
+        buyer.selectedQuantity=quantity
+        ok=type(buyer.UpdateView)=='function'and pcall(buyer.UpdateView,buyer)
+        displayed=input and tonumber(app.try(input.GetText,input))or nil
+    end
     local accepted=ok and buyer.selectedQuantity==quantity and (not input or displayed==quantity)
     if accepted and type(buyer.GetPrices)=='function'then
         local priced,_,total=pcall(buyer.GetPrices,buyer)
@@ -242,17 +248,34 @@ function app.ahBuyStatus(plan)
     if buyer.WidePriceRangeWarningDialog and app.try(buyer.WidePriceRangeWarningDialog.IsShown,buyer.WidePriceRangeWarningDialog)then offer.phase='ah_wait';offer.disabled=true;offer.body=app.caption('ah_check_dialog');offer.button=app.caption('ah_check_dialog_button');return offer end
     if buyer.waitingForPurchase then offer.phase='ah_wait';offer.disabled=true;offer.body=app.caption('ah_wait_quote');offer.button=app.caption('ah_wait_button');return offer end
     if type(buyer.results)~='table'or #buyer.results==0 then return offer end
-    local left,total=n,0
+    local wanted=n
+    if buyer.craftDejaQuantityItem==row.id then
+        local input=buyer.DetailsContainer and buyer.DetailsContainer.Quantity
+        local raw=input and app.try(input.GetText,input)
+        local selected=buyer.selectedQuantity
+        -- An empty field is a normal intermediate state while typing. Never
+        -- replace it, round a fractional edit, or silently buy more than shown.
+        if type(selected)~='number'or selected<1 or selected~=math.floor(selected)or selected>n
+            or input and tonumber(raw)~=selected then
+            offer.phase='ah_wait';offer.disabled=true;offer.body=app.caption('ah_quantity_mismatch');offer.button=app.caption('ah_check_dialog_button');return offer
+        end
+        wanted=selected
+    end
+    local left,total=wanted,0
     for _,level in ipairs(buyer.results)do
         if type(level.price)~='number'or type(level.quantity)~='number'or level.price>row.maxUnit+.000001 then break end
         local take=math.min(left,math.max(0,level.quantity));total=total+take*level.price;left=left-take
         if left<=0 then break end
     end
-    offer.quantity=n-left
+    offer.quantity=wanted-left
+    if buyer.craftDejaQuantityItem==row.id and left>0 then
+        offer.phase='ah_wait';offer.disabled=true;offer.body=app.caption('ah_no_affordable');offer.button=app.caption('ah_check_dialog_button');return offer
+    end
     if offer.quantity<1 then offer.body=app.caption('ah_no_affordable');return offer end
     if not app.applyNativeAHQuantity(buyer,row.id,offer.quantity,total)then
         offer.phase='ah_wait';offer.disabled=true;offer.body=app.caption('ah_quantity_mismatch');offer.button=app.caption('ah_check_dialog_button');return offer
     end
+    buyer.craftDejaQuantityItem=row.id
     offer.phase='ah_buy';offer.cost=total;offer.body=app.caption('ah_ready_body',offer.quantity,row.name,app.money(total))
     offer.button=app.caption('ah_buy_button',offer.quantity,app.money(total));return offer
 end
@@ -317,6 +340,7 @@ end
 function app.syncNativePurchaseQuantity(id)
     local buyer=commodityBuyer();local b=app.purchaseState().batch;local row=b and b.rows[id]
     if buyer and buyer.craftDejaManagedID==id and buyer.expectedItemID==id and row then
+        buyer.craftDejaQuantityItem=nil
         buyer.selectedQuantity=app.shoppingFresh()and math.min(row.remaining,buyer.maxQuantity or row.remaining)or 0
         app.try(buyer.UpdateView,buyer)
     end

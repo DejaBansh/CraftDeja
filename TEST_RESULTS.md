@@ -506,3 +506,51 @@ Five reported source hashes match the corrected source allowing LF/CRLF conversi
 The previously failing NetCostSuite 26/27/46 now pass. W1034 remains.
 No exact client build was printed, and no live-server validation is claimed.
 [Verified Windows record](docs/evidence/net-costs-windows-2026-11-14.txt).
+
+
+## Beta.11 trainer-routing focused validation — 2026-11-14
+
+30 new TrainerRoutingSuite cases plus 12 existing non-UI MapSuite cases:
+42 passed, 0 failed, 0 skipped (13 files), minimal wowlua 0.13.12 project
+WITHOUT Blizzard UI. Standard PowerShell reporter created report/metadata/log ZIP.
+[Focused output](docs/evidence/trainer-routing-focused-2026-11-14.txt).
+Three faulty variants detected: omitted correction, ignored current-map ordering,
+and relaxed faction eligibility. [Results](docs/evidence/trainer-routing-mutations-2026-11-14.txt).
+User report CraftDeja-beta11-20261114-234149.zip verified: full 402 passed, 0 failed, 0 skipped (305 files) in 188.39s, wowlua 0.13.14 on Windows with Blizzard UI; build passed. Local Mot routing, actual wand offer and a smooth one-craft 116 -> 117 were subsequently observed/reported. This does not validate all recipes or all performance conditions.
+Net-cost implementation and native crafting guards are unchanged from tested beta.10.
+
+
+## Beta.12 AH quantity/event regressions — 2026-11-15
+
+25 new AHPerformanceSuite cases, wowlua 0.13.12, camelot Windows emulation,
+configured Blizzard UI on Linux. Production source with a contract fixture for
+Auctionator's view; no full Auctionator/live-server or real FPS measurement.
+Against beta.11 source: 7 passed / 18 failed / 0 skipped (4.32s).
+Against correction: 25 passed / 0 failed / 0 skipped (3.48s).
+Every run used the PowerShell ZIP reporter; see [scope and changes](docs/AH_PERFORMANCE.md).
+First full beta.12 run: 426 passed / 1 failed / 0 skipped; the existing craft
+interruption-resume case caught a lost invalidation. Explicit own-player craft
+start/failure/interruption scheduling restored it. Focused AH + CraftPerformance
+then passed 50/50. Final full beta.12 build and regression passed:
+**427 passed, 0 failed, 0 skipped (306 files), 141.38s**.
+Report 20261114-232733-4c0340.zip; wowlua 0.13.12, configured Blizzard UI,
+camelot Windows emulation on Linux. All 15 recorded source hashes verified.
+Windows-host/live performance verification remains pending. W1034 remains.
+[Full log](docs/evidence/ah-performance-full-2026-11-15.txt) /
+[Old-source reproduction](docs/evidence/ah-performance-before-2026-11-15.txt).
+
+
+## Verified beta.12 Gaming-PC checkpoint — 2026-11-15
+
+User supplied CraftDeja-beta12-20261115-003747.zip: nested test and install ZIPs
+passed CRC verification. Windows wowlua 0.13.14, configured Blizzard UI, no filter.
+Build passed; 427 passed / 0 failed / 0 skipped (306 files) in 197.37s.
+All 15 runtime source hashes match the delivered correction (LF/CRLF accounted for).
+Installed successfully into the Forever AddOns folder with previous version backup.
+Existing W1034 remains; it did not prevent the build or tests.
+
+Live follow-up: user reports everything appears to work. Screenshot shows native
+Auctionator quantity 5 at 124c/unit, total 620c, matching CraftDeja CTA 6s20c.
+Freeloader sample shows 1.03 ms/frame for ALL addons; CraftDeja row about 0.06 ms/frame.
+The prior 12.89 ms/frame was a different sample: no controlled benchmark or
+general performance/savings guarantee is asserted. No purchase needed for this check.

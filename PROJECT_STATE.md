@@ -16,11 +16,11 @@ Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis erset
 
 ## Aktueller Stand
 
-- Entwicklungsversion app.release und wowlua.json: 3.9.0-beta.10. Öffentlich veröffentlichte Addon-ZIP weiterhin beta.9.
+- Entwicklungsversion app.release und wowlua.json: 3.9.0-beta.12. Öffentlich veröffentlichte Addon-ZIP weiterhin beta.9.
 - Öffentliches Quellrepository: https://github.com/DejaBansh/CraftDeja ; im aktuellen Arbeitsdurchlauf frisch geklont.
 - Aktuelles Nutzerprojekt auf dem Gaming-PC: C:\Users\Tim\Projects\CraftDeja. Anderer PC historisch: C:\Users\gv_co\Projects\CraftDeja-Aktuell\CraftDeja.
 - Spielordner: C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\CraftDeja.
-- Gaming-PC aktuell: Branch feature/net-vendor-costs, Basis 711d463, beta.10-Aenderungen noch nicht committed. origin https://github.com/DejaBansh/CraftDeja.git ; erster veröffentlichter Commit 19d881608c377e26c74415ed1b3f12ae7f2d5b52. setup/wowlua und dc914c0 gehören zum älteren PC-Verlauf.
+- Gaming-PC aktuell: Branch fix/local-recipe-trainers, Basis f744a01; beta.12 angewandt, vollständig auf Windows getestet und im Spiel bestätigt; Sicherungscommit/Push jetzt auszuführen. origin https://github.com/DejaBansh/CraftDeja.git ; erster veröffentlichter Commit 19d881608c377e26c74415ed1b3f12ae7f2d5b52. setup/wowlua und dc914c0 gehören zum älteren PC-Verlauf.
 - Nicht zum alten Projekt C:\Users\gv_co\Projects\CraftDeja mit 3.8.0 zurückwechseln.
 - Gaming-PC: Git 2.56.0.windows.4, wowlua 0.13.14; Build und 302 Tests erfolgreich. Früherer PC: wowlua 0.13.12. UTF-8 ohne BOM für JSON/Tests beachten.
 - Addon-ZIP CraftDeja_3.9.0-beta.9_Logo_CurseForge.zip: einzelner CraftDeja/-Hauptordner, geprüfter Logo-Pfad Art/Logo.tga, CRC bestanden.
@@ -66,7 +66,7 @@ Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis erset
 
 ## Nächste technische Priorität
 
-Beta.10-Netto-Kosten vollständig auf dem Gaming-PC prüfen, anschließend einmalige Lern-/Voraussetzungskosten.
+Beta.12-AH-/Performancekorrektur vollständig prüfen, dann kurzen Live-Profilercheck; anschließend einmalige Lern-/Voraussetzungskosten.
 Vorher Tests für Orange-vs-Grün mit Verkaufswert, Ausgabemenge, unbekannten Preisen, nicht verkäuflichen Ergebnissen und Skillcap definieren.
 
 ## Sichtbarkeit — GitHub-Startseite vorbereitet am 14.11.2026
@@ -133,3 +133,45 @@ Quellhashes Start/Client/Economy/Poisons/Run abgeglichen (Git-LF/CRLF beruecksic
 W1034 bleibt; exakter Clientbuild nicht im Bericht ausgegeben. Kein Liveservernachweis.
 Naechster Schritt: Dokumentationsabschluss anwenden, alle beta.10-Aenderungen auf
 feature/net-vendor-costs committen/pushen. Main/CF-Release bleiben beta.9, bis gezielter Live-Test erfolgt.
+
+
+## Beta.11 — lokale Rezeptlehrer, 14.11.2026
+
+- Öffentlicher Ausgangsstand f744a01 auf feature/net-vendor-costs bestätigt. Beta.10 installiert; Nutzer zeigte korrekte Netto-Zeilen im Spiel.
+- Kochrezept: 8c Material - 1c Händlerwert = 7c netto. Verzauberungen: 233c bei Modellchance 72,5% und 128c bei 35%.
+- Großer Magiezauberstab: 294c Material - 200c Händlerwert = 94c netto; Lerngebühren weiterhin nicht eingerechnet.
+- Live-Fehler: Trainerquelle Orgrimmar trotz Aufenthalt Donnerfels. Gespeichert waren nur sechs Beispiele ohne Donnerfels.
+- Neu: rezeptbezogene Quellenkorrektur für 14807, Teg/Mot Dawnstrider, Referenzkoordinaten auf Karte 1456.
+- Quellenliste bevorzugt aktuelle Karte und lokale Entfernung unter Beibehaltung von Fraktionsregeln und Rezeptbezug.
+- Keine pauschale Vererbung von Rang-Lehrern auf Rezepte; Quelldatenbank bleibt unvollständig.
+- Version beta.11; geplanter Nutzer-Branch fix/local-recipe-trainers ab f744a01.
+- 42 fokussierte Routingfälle (30 neu + 12 bestehende) bestanden OHNE Blizzard-UI; drei fehlerhafte Varianten erkannt.
+- Gaming-PC: 402/402 mit Blizzard-UI bestanden (188.39s, wowlua 0.13.14); beta.11 mit Backup installiert.
+- Nächster Schritt: Korrekturpaket anwenden, Bericht prüfen und Donnerfels-Quelle im Spiel kontrollieren.
+
+
+## Beta.12 — AH-Mengen und Performance, 15.11.2026
+
+- Beta.10 f744a01 auf feature/net-vendor-costs veröffentlicht; beta.11 im Nutzerprojekt fix/local-recipe-trainers angewandt, noch kein Push belegt.
+- Geprüfter Nutzerbericht CraftDeja-beta11-20261114-234149.zip: 402/402, 305 Dateien; zehn Quellhashes passen.
+- Live beta.11: Mot in Donnerfels markiert, bietet Großer Magiezauberstab für 2s; gelernt und ein Craft 116 -> 117. Nutzer meldet flüssige Herstellung.
+- Händlerwert/Brutto/Netto korrekt in gezeigten Beispielen; aktueller Essenzpreis 125c ergibt 288c - 200c = 88c netto.
+- Neuer Nutzerfehler: manuelle AH-Menge wird auf 101 zurückgesetzt; Freeloader zeigt in einer Aufnahme 12.89 ms/frame für CraftDeja.
+- Beta.12 korrigiert wiederholtes Setzen nativer Mengen, unnötige Ereignis-/Leerlauf-Vollprüfungen und wiederholte Zugangsabfragen pro Wirtschaftssnapshot.
+- 25 neue Regressionen; alter Code 7 bestanden / 18 fehlgeschlagen, korrigierter Code 25/25. Camelot mit Blizzard-UI auf Linux, nicht Windows-Host oder Live-FPS-Test.
+- Noch kein allgemeiner FPS-Erfolg im Spiel behauptet. Vollständige Regression und kurzer Mengen-/Profilercheck erforderlich; öffentliche Version bleibt beta.9.
+
+- Abschließender beta.12-Gesamtlauf: 427/427, 306 Dateien, 141.38s; Build erfolgreich. Wowlua 0.13.12 auf Linux, Windows-Emulation mit Blizzard-UI. 15 Quellhashes geprüft.
+- Der erste Gesamtlauf fand den Craft-Abbruch-Grenzfall (426/427); nach Korrektur AH+CraftPerformance 50/50 und vollständiger Lauf 427/427.
+- Windows-Host-Lauf und echter AH-Profilervergleich stehen weiterhin aus. Updatepaket führt vor Spielinstallation automatisch den vollständigen Windows-Lauf aus.
+
+
+## Verbindlicher Fortsetzungspunkt — 15.11.2026, nach beta.12-Live-Test
+
+- Aktueller nutzerseitiger Stand: 3.9.0-beta.12 auf fix/local-recipe-trainers, Basis f744a01.
+- Windowsbericht CraftDeja-beta12-20261115-003747.zip geprüft: 427/427, 306 Dateien, 197.37s, wowlua 0.13.14 mit Blizzard-UI; 15 Quellhashes passend; Installation mit Backup erfolgreich.
+- Nutzer bestätigt: scheint alles zu laufen. Live-Bild zeigt Menge 5, Preis 124c, Gesamt 620c und passenden CTA. Profiler zeigt wesentlich kleinere momentane Last; kein kontrollierter allgemeiner Benchmark.
+- Kein erneuter Testlauf für diese reine Sicherungs-/Dokumentationsrunde erforderlich.
+- Jetzt Projektdateien, Belege und Fortsetzungsnotiz committen und auf denselben Feature-Branch pushen. Kein Merge nach main und kein CurseForge-Release in dieser Sicherungsrunde.
+- Für neuen Chat zuerst CONTINUE.md, dann PROJECT_STATE.md, DECISIONS.md, ROADMAP.md, TEST_RESULTS.md und aktuellen Code lesen. Nicht alte Installations-/Patchpakete erneut anwenden.
+- Nächste fachliche Priorität: einmalige Lern-/Rezept-/Voraussetzungskosten in der wirtschaftlichen Auswahl berücksichtigen; vorher konkreten Vergleichsfall definieren. Globales 1–300-Optimum, exakte Serverskillchancen, volle Rezeptabdeckung und AH-Verkaufserlöse bleiben unbewiesen/nicht implementiert.

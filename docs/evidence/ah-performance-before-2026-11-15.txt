@@ -1,0 +1,96 @@
+Starting version. Report: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/tests/20261114-232402-629502
+wowlua 0.13.12
+
+
+Starting build. Report: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/tests/20261114-232402-629502
+
+warning[W1034]: `ns.nextStepWindow` is read while the file loads, but only defined later (inside functions that run at run time)
+   ┌─ src/UnifiedUI.lua:37:33
+   │
+37 │ local function root()return app.nextStepWindow end
+   │                                 ^^^^^^^^^^^^^^ read at load time
+
+warning: 1 warning emitted
+
+    Finished CraftDeja 3.9.0-beta.11-dev+f744a01 (dev: camelot) in 0.78s → dist/dev/CraftDeja
+
+Starting tests. Report: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/tests/20261114-232402-629502
+ FAIL tests/AHPerformanceSuite/auction-performance.test.wowlua (camelot, 3.56s)
+   ✗ AH performance 01: one initial prefill
+       Unnecessary initial UpdateView
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:69
+   ✗ AH performance 02: manual five survives 30 status polls
+       Manual quantity replaced
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:74
+   ✗ AH performance 03: empty input survives
+       Typing was overwritten
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:79
+   ✗ AH performance 04: zero never becomes full order
+       Zero bought full plan
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:84
+   ✗ AH performance 05: fraction rejected unchanged
+       Fraction overwritten
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:89
+   ✗ AH performance 06: over budget rejected unchanged
+       Oversized edit silently changed
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:94
+   ✗ AH performance 07: display model mismatch blocked
+       Mismatched display accepted
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:99
+   ✗ AH performance 08: manual one total correct
+       Wrong one unit cost
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:104
+   ✗ AH performance 09: unchanged native apply is read only
+       Unchanged native view repainted
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:109
+   ✗ AH performance 10: changed native apply exactly once
+       assertion failed!
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:114
+   ✓ AH performance 11: stale scan rejects buying
+   ✓ AH performance 12: price rise above ceiling blocks edit
+   ✗ AH performance 13: limited affordable stock does not shrink manual edit
+       Manual order silently shrunk
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:129
+   ✗ AH performance 14: multi price level total correct
+       Wrong depth cost
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:134
+   ✓ AH performance 15: purchase receipt counts only five
+   ✓ AH performance 16: new order clears quantity context
+   ✗ AH performance 17: idle header polls do not enumerate recipes
+       Idle loop ran full refresh
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:149
+   ✗ AH performance 18: unrelated item events do not recompute
+       Unrelated item triggered full scan
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:154
+   ✗ AH performance 19: other player casts do not recompute
+       Foreign casts triggered full scan
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:159
+   ✓ AH performance 20: relevant loaded item refreshes once
+   ✗ AH performance 21: continuous events cannot starve refresh
+       Continuous events reset debounce forever
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:169
+   ✓ AH performance 22: skill fallback detects new point
+   ✓ AH performance 23: details event invalidates recipe data
+   ✗ AH performance 24: failed item load does not retry forever
+       Failed metadata retried forever
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:184
+   ✗ AH performance 25: eligibility checked once per economic snapshot
+       Lookahead repeatedly queried eligibility
+       at tests/AHPerformanceSuite/auction-performance.test.wowlua:189
+     printed:
+       |cffd8b966CraftDeja 3.9.0-beta.11 · /cdj · /cdj scale 70|r
+       Remember to act responsibly, protect your personal information, and report anything offensive. View our In-Game Code of Conduct on |HurlIndex:64|h|cnVISITABLE_URL_DEFAULT_CHAT_LINK_COLOR:https://support.blizzard.com/article/42673|r|h for more information.
+error: tests failed: 7 passed, 18 failed, 0 skipped (1 file) in 4.32s
+
+warning[W1034]: `ns.nextStepWindow` is read while the file loads, but only defined later (inside functions that run at run time)
+   ┌─ src/UnifiedUI.lua:37:33
+   │
+37 │ local function root()return app.nextStepWindow end
+   │                                 ^^^^^^^^^^^^^^ read at load time
+
+warning: 1 warning emitted
+
+
+
+tests failed: 7 passed, 18 failed, 0 skipped (1 file) in 4.32s
+BERICHT-ZIP ZUM ANHAENGEN: /workspace/scratch/ecfbac86bee4/work/trainer-routing/reports/tests/20261114-232402-629502.zip

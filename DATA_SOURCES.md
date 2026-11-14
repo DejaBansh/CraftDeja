@@ -307,3 +307,8 @@ or copied in-game screenshots. Interactive controls are separately rendered.
 ## 3.9 unified interface
 
 UnifiedUI.lua is newly authored for this project. This update changes presentation and routing only; no new recipe dataset or artwork is introduced.
+
+
+## Beta.11 recipe-specific trainer supplement
+
+Data/RecipeSourceCorrections.lua supplements the sampled routes for spell 14807 with two trainer memberships checked against the Forever recipe table. Coordinates are labelled reference data; no other recipe membership is inferred from those trainers. Sources, exact coordinates and limitations: [trainer routing notes](docs/TRAINER_ROUTING.md). No web market prices were imported.

@@ -56,7 +56,8 @@ function app.refresh(rescan)
 end
 local function schedule()
     if app.craftRefreshBusy()then deferCraftRefresh();return end
-    pending=true;elapsed=0
+    if not pending then elapsed=0 end
+    pending=true
 end
 function app.onProfessionOpened(expected)
     app.guideOnly=nil
@@ -72,6 +73,16 @@ local function professionClosed(force)
     open=false;app.professionOpen=false;app.professionLoading=false;app.expectedProfession=nil;pending=false
     app.poisonShowOnRead=nil
     if force or wasOpen then app.keepNextStepOnly()end
+end
+local function relevantItem(id)
+    if type(id)~='number'or not app.active then return false end
+    local snapshot=app.decision and app.decision.snapshot
+    if snapshot and (snapshot.prices[id]~=nil or snapshot.sellPrices and snapshot.sellPrices[id]~=nil)then return true end
+    for _,r in pairs(app.active.recipes)do
+        if r.outputItemID==id then return true end
+        for _,g in ipairs(r.groups or {})do for _,item in ipairs(g.choices)do if item==id then return true end end end
+    end
+    return false
 end
 local events=CreateFrame('Frame');app.events=events
 for _,event in ipairs({'ADDON_LOADED','AUCTION_HOUSE_SHOW','AUCTION_HOUSE_CLOSED','TRADE_SKILL_SHOW','TRADE_SKILL_CLOSE','TRADE_SKILL_LIST_UPDATE','TRADE_SKILL_DATA_SOURCE_CHANGED','TRADE_SKILL_DETAILS_UPDATE','SKILL_LINES_CHANGED','UNIT_SPELLCAST_SUCCEEDED','BAG_UPDATE_DELAYED','GET_ITEM_INFO_RECEIVED','MERCHANT_SHOW','MERCHANT_UPDATE','MERCHANT_CLOSED','NEUTRAL_FACTION_SELECT_RESULT','PLAYER_ENTERING_WORLD','PLAYER_LEVEL_UP','BANKFRAME_OPENED','BANKFRAME_CLOSED','PLAYERBANKSLOTS_CHANGED','PLAYERREAGENTBANKSLOTS_CHANGED','BANK_TABS_CHANGED','PLAYER_LOGOUT','COMMODITY_PURCHASE_SUCCEEDED','COMMODITY_PURCHASE_FAILED','COMMODITY_PURCHASED','MAIL_SHOW','MAIL_CLOSED','UNIT_SPELLCAST_FAILED','UNIT_SPELLCAST_INTERRUPTED','UI_ERROR_MESSAGE','UNIT_SPELLCAST_START','UNIT_SPELLCAST_CHANNEL_START','ADDON_ACTION_BLOCKED','ADDON_ACTION_FORBIDDEN','COMMODITY_SEARCH_RESULTS_UPDATED'})do app.try(events.RegisterEvent,events,event)end
@@ -138,7 +149,15 @@ events:SetScript('OnEvent',function(_,event,arg,castGUID,spellID)
         end
     elseif event=='BAG_UPDATE_DELAYED'and app.shopping.open and not open then app.refresh(false)
     elseif event=='SKILL_LINES_CHANGED'and not open then app.refresh(false)
-    elseif open then schedule()end
+    elseif relevantCast and arg=='player'and (event=='UNIT_SPELLCAST_START'or event=='UNIT_SPELLCAST_CHANNEL_START'
+        or event=='UNIT_SPELLCAST_FAILED'or event=='UNIT_SPELLCAST_INTERRUPTED')then
+        if open then schedule()end
+    elseif event=='GET_ITEM_INFO_RECEIVED'then
+        if castGUID==true and relevantItem(arg)then schedule()end
+    elseif event=='BAG_UPDATE_DELAYED'or event=='SKILL_LINES_CHANGED'or event=='PLAYERBANKSLOTS_CHANGED'
+        or event=='PLAYERREAGENTBANKSLOTS_CHANGED'or event=='BANK_TABS_CHANGED'or event=='BANKFRAME_OPENED'or event=='BANKFRAME_CLOSED'then
+        if open then schedule()elseif app.active then app.refresh(false)end
+    end
 end)
 events:SetScript('OnUpdate',function(_,delta)
     if not app.saved then return end
@@ -172,7 +191,13 @@ events:SetScript('OnUpdate',function(_,delta)
     end
     if open and not app.craftRefreshBusy()then
         poll=poll+delta
-        if poll>=3 then poll=0;app.refresh(true)end
+        if poll>=3 then
+            poll=0
+            -- Events invalidate recipes. The fallback poll only checks the
+            -- inexpensive profession header, never re-enumerates unchanged data.
+            local p=app.readProfession();local old=app.active and app.active.profile
+            if app.professionLoading or p and (not old or p.id~=old.id or p.skill~=old.skill or p.cap~=old.cap)then schedule()end
+        end
     else poll=0 end
 end)
 function app.command(message)

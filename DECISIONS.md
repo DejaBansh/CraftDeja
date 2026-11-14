@@ -12,5 +12,10 @@
 | Keine Rankings oder Einsparungen ohne Vergleichsnachweis versprechen | auffindbar und überprüfbar statt unbelegt | gültig |
 | Projektstand in Dateien/Git sichern | Gesprächskontext kann unvollständig verfügbar sein | auf main bei GitHub veröffentlicht (Basiscommit 19d8816); weitere Änderungen ebenfalls committen/pushen |
 | Negative Nettokosten behalten | Erwartete Marge korrekt vorzeichenbehaftet; kein Gewinnversprechen | beta.10 implementiert, Null/Negativ-Vergleicher ohne Prozentersparnis |
-
 | Jeder Windows-Testlauf erzeugt Bericht | Nutzer moechte direkt teilbare Ergebnisse statt Terminalkopien | tools/Test-CraftDeja.ps1; ZIP mit Protokoll/Metadaten, auch bei Fehlern |
+
+| Rezepttrainer nur mit Rezeptbeleg ergänzen | Nähe und Berufsrang beweisen keine Lehrfähigkeit für ein konkretes Rezept | beta.11-Korrektur für 14807; Quelldaten weiter unvollständig |
+| Quellenliste und Kartenwahl lokal ausrichten | Passende Fraktion, aktuelle Karte, dann vergleichbare Entfernung | beta.11 implementiert; vollständige Windows-Prüfung offen |
+
+| Manuelle kleinere AH-Kaufmenge respektieren | Automatische Planmenge ist eine Vorbelegung, keine wiederholte Zwangseingabe | beta.12 implementiert; Kaufvalidierung bleibt |
+| Unveränderten Zustand nicht voll neu einlesen | Ereignisse invalidieren Daten, Header-Poll fängt fehlende Skillmeldungen ab | beta.12 implementiert; reale FPS separat prüfen |
