@@ -308,3 +308,17 @@ end
 
 app.words.en.shop_limit='Unit price limit: current AH data +%d%%'
 app.words.de.shop_limit='Stückpreisgrenze: aktuelle AH-Daten +%d%%'
+
+-- Net ranking is separate from the gross gold required to buy reagents.
+app.words.en.per_point="%s materials/craft · %s%s net/skill · %s"
+app.words.de.per_point="%s Material/Craft · %s%s netto/Skill · %s"
+app.words.en.next_at="At skill %d · %s · %s%s net/skill"
+app.words.de.next_at="Ab Skill %d · %s · %s%s netto/Skill"
+app.words.en.next_now="Now · %s · %s%s net/skill"
+app.words.de.next_now="Jetzt · %s · %s%s netto/Skill"
+app.words.en.net_breakdown="Per craft: %s materials - %s vendor value = %s net. Assumes you sell the output; buying materials still needs the full purchase amount."
+app.words.de.net_breakdown="Pro Craft: %s Material - %s Händlerwert = %s netto. Gilt bei Verkauf des Ergebnisses; zum Materialkauf brauchst du weiterhin den vollen Einkaufsbetrag."
+app.words.en.net_unverified="No confirmed vendor credit available; comparison uses full material cost."
+app.words.de.net_unverified="Kein bestätigter Händlererlös verfügbar; Vergleich mit vollen Materialkosten."
+app.words.en.net_minimum="Vendor value uses the confirmed minimum output, not the maximum or average. No AH resale income included."
+app.words.de.net_minimum="Händlerwert anhand der bestätigten Mindestausbeute, nicht Maximum oder Durchschnitt. Keine AH-Verkaufserlöse eingerechnet."

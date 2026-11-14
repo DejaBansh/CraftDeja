@@ -2,6 +2,8 @@
 
 CraftDeja **3.9.0-beta.9**, source base **d3b02173457ecc691a3b77e0641a0ffd8fd73d47**, 14 Nov 2026.
 
+> Historical beta.9 evidence. Current development code: [beta.10 net-cost model](NET_COSTS.md). These 20 fixtures have no confirmed output credit and still exercise the material-only baseline.
+
 ## English
 
 These are **controlled synthetic fixtures**, not live auction prices, measured server skill chances, or a ranking of competing addons. Prices below are in silver; the test inputs use copper (100 copper = 1 silver). Fixtures use synthetic recipe IDs. The existing production functions `quote`, `probability`, `marketView`, `selectionAt`, `decide` and `expectedCraftAttempts` run unchanged. Only the price-provider and recipe-access boundaries are supplied by fixtures.

@@ -1,0 +1,8 @@
+Sensitivity check against deliberately broken TEMPORARY module copies.
+Focused wowlua project; no Blizzard UI. Production checkout unchanged.
+gross score instead of net: DETECTED; error: tests failed: 79 passed, 8 failed, 0 skipped (19 files) in 1.13s
+credit maximum yield: DETECTED; error: tests failed: 86 passed, 1 failed, 0 skipped (19 files) in 0.65s
+clamp negative net costs: DETECTED; error: tests failed: 85 passed, 2 failed, 0 skipped (19 files) in 0.97s
+deduct resale from purchase gold: DETECTED; error: tests failed: 85 passed, 2 failed, 0 skipped (19 files) in 0.57s
+credit direct equipment enchants: DETECTED; error: tests failed: 85 passed, 2 failed, 0 skipped (19 files) in 0.78s
+read stack count as vendor value: DETECTED; error: tests failed: 60 passed, 27 failed, 0 skipped (19 files) in 0.64s

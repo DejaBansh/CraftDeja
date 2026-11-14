@@ -468,3 +468,41 @@ The full addon used its configured Blizzard UI; exact client build and tool vers
 were not reprinted in this output. Existing W1034 in UnifiedUI.lua remains.
 No production Lua changes and no claim of live-server or combined 322-case validation.
 [Transcribed output summary](docs/evidence/economy-windows-2026-11-14.txt).
+
+
+## Beta.10 net-cost development — focused verification — 2026-11-14
+
+Based on 711d463. Production Start/Words/Client/Economy modules and test bodies
+were copied unchanged into a minimal wowlua 0.13.12 project, without Blizzard UI.
+50 new NetCostSuite cases + 20 EconomyEvidence cases + 17 existing AutoSkill
+economic cases: 87 passed, 0 failed, 0 skipped (19 files).
+[Raw focused output](docs/evidence/net-costs-focused-2026-11-14.txt).
+Six deliberately broken temporary variants were detected by the suite.
+[Mutation output](docs/evidence/net-costs-mutations-2026-11-14.txt).
+Run.lua/CraftActions.lua unchanged. Full Windows/Blizzard-UI regression and build for beta.10 later passed, as recorded below. Prior beta.9 results are separate; no combined pass
+count or live-server result is asserted. [Rules and reproduction](docs/NET_COSTS.md).
+
+
+## Beta.10 first complete Gaming-PC run — 2026-11-14
+
+User-supplied output: build passed; 369 passed, 3 failed, 0 skipped (304 files)
+in 216.40s. Failures: NetCostSuite cases 26, 27 and 46. W1034 remains.
+The existing Poisons.lua quote wrapper discarded the new third memo argument.
+The focused runner now includes that production wrapper: the same three failures
+were reproduced (84/87), then forwarding sellPrices yielded 87/87.
+[Before](docs/evidence/net-wrapper-before-fix-2026-11-14.txt) /
+[After](docs/evidence/net-wrapper-after-fix-2026-11-14.txt).
+The corrected full Windows run later passed all 372 cases; see the validated report record below.
+Automatic per-run ZIP reporting is available through tools/Test-CraftDeja.ps1.
+
+
+## Beta.10 corrected complete Gaming-PC validation — 2026-11-14
+
+Build passed. wowlua 0.13.14; complete addon with configured Blizzard UI.
+**372 passed, 0 failed, 0 skipped (304 files) in 195.46s.**
+Report timestamp: 22:03:54–22:07:10 Europe/Berlin.
+The user supplied 20261114-220354-b7fccb.zip; CRC, metadata and full output were checked.
+Five reported source hashes match the corrected source allowing LF/CRLF conversion.
+The previously failing NetCostSuite 26/27/46 now pass. W1034 remains.
+No exact client build was printed, and no live-server validation is claimed.
+[Verified Windows record](docs/evidence/net-costs-windows-2026-11-14.txt).

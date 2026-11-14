@@ -175,12 +175,23 @@ function app.readRecipes(profile)
         local requirements=record.learned and app.try(api.GetRecipeRequirements,id)
         if type(requirements)=='table'then record.requirements=app.copy(requirements)end
         local groups,complete,schematic=liveMaterials(id,index)
+        -- Read output proof for every crafting profession, not just rods.
+        -- Never reuse reference/previous output metadata when the client has no schematic.
+        record.isEnchantingRecipe=info.isEnchantingRecipe
+        local output=app.try(api.GetRecipeOutputItemData,id)
+        record.outputItemID=type(output)=='table'and output.itemID or schematic and schematic.outputItemID
+        record.outputMin=schematic and tonumber(schematic.quantityMin)
+        record.outputMax=schematic and (tonumber(schematic.quantityMax)or record.outputMin)
+        if index then
+            record.outputItemID=record.outputItemID or itemID(app.try(GetTradeSkillItemLink,index))
+            if not record.outputMin then
+                local minimum,maximum=app.try(GetTradeSkillNumMade,index)
+                record.outputMin=tonumber(minimum);record.outputMax=tonumber(maximum)or record.outputMin
+            end
+        end
+        record.outputFromClient=record.outputItemID~=nil and record.outputMin~=nil
+            and (not schematic or not schematic.outputItemID or schematic.outputItemID==record.outputItemID)
         if profile.id==333 then
-            record.isEnchantingRecipe=info.isEnchantingRecipe
-            local output=app.try(api.GetRecipeOutputItemData,id)
-            record.outputItemID=type(output)=='table'and output.itemID or schematic and schematic.outputItemID
-            record.outputMin=schematic and tonumber(schematic.quantityMin)
-            record.outputMax=schematic and (tonumber(schematic.quantityMax)or record.outputMin)
             record.outputName=record.outputItemID and app.try(C_Item and C_Item.GetItemInfo or GetItemInfo,record.outputItemID)
         end
         if complete then record.groups=groups;record.complete=true;record.materialsFromClient=true end
@@ -225,6 +236,30 @@ function app.readRecipes(profile)
     end
     if app.auditRead then app.auditRead(profile,confirmed)end
     return{profile=profile,recipes=records,confirmed=confirmed}
+end
+
+-- This is the item's SELL value, not the vendor reagent BUY price below.
+-- Cache only within one economic snapshot; unknown data can recover next refresh.
+function app.vendorSellPrice(id,memo)
+    if memo and memo[id]then return memo[id].value end
+    -- Detail/progress callers may still request a quote between cast packets.
+    -- Reuse the decision snapshot, never query item prices during a native batch.
+    if app.craftRefreshBusy and app.craftRefreshBusy()then
+        local snapshot=app.decision and app.decision.snapshot
+        local cached=snapshot and snapshot.sellPrices and snapshot.sellPrices[id]
+        return cached and cached.value
+    end
+    local function read(fn)
+        local result={app.try(fn,id)}
+        local value=result[11] -- GetItemInfo: eleventh result, copper per item.
+        if type(result[1])=='string'and result[1]~=''and type(value)=='number'
+            and value==value and value>=0 and value<math.huge and value==math.floor(value)then return value end
+    end
+    local modern=C_Item and C_Item.GetItemInfo
+    local value=read(modern)
+    if value==nil and GetItemInfo~=modern then value=read(GetItemInfo)end
+    if memo then memo[id]={value=value}end
+    return value
 end
 
 function app.vendorPrice(id)

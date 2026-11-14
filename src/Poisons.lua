@@ -235,8 +235,8 @@ app.craftBatchPlan=function(r,n,stop)
     return oldBatchPlan(r,n,stop)
 end
 local oldQuote=app.quote
-app.quote=function(r,memo)
-    if r.profession~=40 then return oldQuote(r,memo)end
+app.quote=function(r,memo,sellPrices)
+    if r.profession~=40 then return oldQuote(r,memo,sellPrices)end
     local reagent=inputs(r);if not reagent then return nil end
     local quote={inputs={},cost=0,provider='Poisons'}
     for id,n in pairs(reagent)do local unit=app.unitPrice(id,memo)or 0

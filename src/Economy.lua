@@ -19,7 +19,26 @@ function app.probability(recipe,skill,live)
     return colour=="yellow"and 0.75 or 0.25,colour,true
 end
 
-function app.quote(recipe,prices)
+-- A conservative credit IF the produced items are sold to a vendor.
+-- Unknown output, enchants applied to equipment and uncertain quantities get no credit.
+function app.vendorRevenue(recipe,memo)
+    if recipe.isEnchantingRecipe==true or recipe.profession==333 and recipe.isEnchantingRecipe~=false then
+        return 0,false,'not_item'
+    end
+    local id,minimum,maximum=recipe.outputItemID,recipe.outputMin,recipe.outputMax
+    if not recipe.confirmed or not recipe.outputFromClient or type(id)~='number'or id<=0 or id~=math.floor(id)
+        or type(minimum)~='number'or minimum~=minimum or minimum<1 or minimum>=math.huge or minimum~=math.floor(minimum)
+        or maximum~=nil and (type(maximum)~='number'or maximum~=maximum or maximum<minimum or maximum>=math.huge or maximum~=math.floor(maximum))then
+        return 0,false,'output_unverified'
+    end
+    local unit=app.vendorSellPrice and app.vendorSellPrice(id,memo)
+    if unit==nil then return 0,false,'price_unknown'end
+    local revenue=unit*minimum
+    if revenue>=math.huge then return 0,false,'output_unverified'end
+    return revenue,true,'client_vendor'
+end
+
+function app.quote(recipe,prices,sellPrices)
     if not recipe.complete then return nil end
     local selections,total,providers={},0,{}
     for _,group in ipairs(recipe.groups or {})do
@@ -35,7 +54,9 @@ function app.quote(recipe,prices)
     end
     if total<=0 then return nil end
     local labels={};for name in pairs(providers)do labels[#labels+1]=name end;table.sort(labels)
-    return{cost=total,inputs=selections,provider=table.concat(labels,"+")}
+    local revenue,known,status=app.vendorRevenue(recipe,sellPrices)
+    return{cost=total,netCost=total-revenue,vendorRevenue=revenue,vendorRevenueKnown=known,vendorStatus=status,
+        inputs=selections,provider=table.concat(labels,"+")}
 end
 
 local function prefer(left,right)
@@ -47,8 +68,8 @@ local function prefer(left,right)
 end
 
 function app.marketView(session)
-    local snapshot={profile=session.profile,recipes=session.recipes,quotes={},prices={}}
-    for id,recipe in pairs(session.recipes)do snapshot.quotes[id]=app.quote(recipe,snapshot.prices)end
+    local snapshot={profile=session.profile,recipes=session.recipes,quotes={},prices={},sellPrices={}}
+    for id,recipe in pairs(session.recipes)do snapshot.quotes[id]=app.quote(recipe,snapshot.prices,snapshot.sellPrices)end
     return snapshot
 end
 
@@ -66,7 +87,7 @@ function app.selectionAt(snapshot,level,actual)
             local quote=snapshot.quotes[id]
             if quote then
                 local gain=probability*math.min(recipe.points or 1,math.max(1,snapshot.profile.cap-level))
-                local candidate={recipe=recipe,quote=quote,chance=probability,colour=colour,estimated=estimated,unitSkill=quote.cost/gain}
+                local candidate={recipe=recipe,quote=quote,chance=probability,colour=colour,estimated=estimated,unitSkill=(quote.netCost or quote.cost)/gain}
                 if recipe.learned then
                     if prefer(candidate,known)then known=candidate end
                     if colour~="green"and prefer(candidate,safe)then safe=candidate end
@@ -77,7 +98,7 @@ function app.selectionAt(snapshot,level,actual)
     if known and known.colour=="green"and safe and known.unitSkill>=safe.unitSkill then known=safe end
     if known and known.colour=="green"then
         known.greenExtra=true
-        known.saving=safe and (1-known.unitSkill/safe.unitSkill)or nil
+        known.saving=safe and safe.unitSkill>0 and (1-known.unitSkill/safe.unitSkill)or nil
     end
     return known,unknown,missing,unchecked
 end

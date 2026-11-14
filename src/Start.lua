@@ -3,7 +3,7 @@
 local identifier,app=...
 _G.CraftDeja=app
 app.identifier=identifier
-app.release="3.9.0-beta.9"
+app.release="3.9.0-beta.10"
 app.sessions={}
 app.catalog={}
 app.names={}
@@ -51,6 +51,7 @@ function app.recipeName(recipe)
 end
 function app.money(value)
     if type(value)~="number"then return app.caption("missing_price")end
+    if value<0 then return '-'..app.money(-value)end
     if value>0 and value<1 then return '<1c'end
     local n=math.floor(value+0.5)
     if n>=10000 then return string.format("%dg %ds %dc",math.floor(n/10000),math.floor(n/100)%100,n%100)end

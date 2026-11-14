@@ -4,7 +4,7 @@
 
 **MORE SKILL. LESS GOLD.**
 
-Compare recipes by **estimated material cost per skill point**, then follow one clear next action: get materials, learn a recipe, find a workstation or prepare crafting.
+Compare recipes by **estimated net cost per skill point**, then follow one clear next action: get materials, learn a recipe, find a workstation or prepare crafting.
 
 **WoW Forever 1.60.1 · German & English · Auctionator shopping · Optional TSM prices**
 
@@ -12,17 +12,17 @@ Compare recipes by **estimated material cost per skill point**, then follow one 
 
 | Current source | Automated validation | Status |
 |---|---|---|
-| 3.9.0-beta.9 | 302 passed, 0 failed — 14 Nov 2026 | Beta; probabilities and price-dependent recommendations are estimates |
+| 3.9.0-beta.10 (development) | 372 passed, 0 failed, 0 skipped — Windows / Blizzard UI | Minimum vendor value included if output is sold; probabilities remain estimates |
 
-The recorded run used Windows, wowlua 0.13.14 and Blizzard UI build 1.60.1.70938. These are automated tests with the game's UI code, not 302 live-server tests. [Full test record](TEST_RESULTS.md#gaming-pc-validation--2026-11-14).
+The earlier beta.9 302-case run used Windows, wowlua 0.13.14 and Blizzard UI build 1.60.1.70938. These are automated tests with the game's UI code, not 302 live-server tests. [Full test record](TEST_RESULTS.md#gaming-pc-validation--2026-11-14).
 
 ## English
 
 ### Why cost per skill point?
 
-A cheap craft is not always a cheap skill point. CraftDeja compares available reagent prices with the estimated chance of gaining skill and the number of skill points a successful craft can award.
+A cheap craft is not always a cheap skill point. CraftDeja compares reagent costs minus confirmed minimum vendor value (assuming the output is sold) with the estimated chance of gaining skill and the number of skill points a successful craft can award.
 
-**Illustrative example — not live prices:**
+**Illustrative example — not live prices; no resale credit in this example:**
 
 | Recipe | Material cost per craft | Estimated skill-up chance | Expected material cost per point |
 |---|---:|---:|---:|
@@ -33,7 +33,7 @@ Green can therefore be the cheaper option when enabled and the recipe data suppo
 
 ### What CraftDeja helps with
 
-- **Recipe comparison:** ranks eligible candidates by estimated material cost per skill point and looks ahead for a cheaper recipe or a learning step.
+- **Recipe comparison:** ranks eligible candidates by estimated net cost per skill point and looks ahead for a cheaper recipe or a learning step.
 - **A clear guide:** a prominent next-action button; details remain in optional views and tooltips.
 - **Material planning:** deducts available holdings and distinguishes missing purchases, storage and confirmed incoming purchases where data is available.
 - **Auctionator shopping:** searches missing materials and prepares quantities. TSM can optionally supply suitable price values; it does not replace the Auctionator workflow.
@@ -66,13 +66,15 @@ Alchemy, Blacksmithing, Leatherworking, Tailoring, Engineering, Enchanting, Cook
 
 ### What the current model does — and does not do
 
-`Expected material cost per skill point = material cost per craft / (estimated skill-up chance × skill points per successful craft)`
+`Expected net cost per skill point = (material cost − confirmed minimum vendor value) / (estimated skill-up chance × achievable skill points)`
 
 - Orange is modelled as certain; yellow/green chances use estimates. Threshold or availability data may be incomplete.
 - Unknown prices do not mean free materials. Prices are cached observations, not a continuous live AH feed.
 - Skill and inventory changes update the guide. During a native crafting batch, lightweight progress updates continue while full recipe/market work waits for completion or interruption.
-- **Resale proceeds, recipe purchases, trainer fees, travel and tool-acquisition costs are not yet included in the economic ranking.** A tool task in the guide is not the same as pricing that task into the route.
+- **Vendor resale value is credited only for confirmed minimum physical output, assuming you sell it. AH resale, recipe purchases, trainer fees, travel and tool-acquisition costs are not included.** A tool task in the guide is not the same as pricing that task into the route.
 - The current comparison is **not a demonstrated globally optimal complete 1–300 route**. Recipe/source coverage depends on confirmed data.
+
+Gross reagent purchase budgets stay unchanged. [Net-cost examples, rules and tests](docs/NET_COSTS.md). [Complete beta.10 Windows test record](docs/evidence/net-costs-windows-2026-11-14.txt). The new beta.10 code is a development update; the existing beta.9 release ZIP is unchanged.
 
 See [the calculation and its limits](docs/ALGORITHM.md), [the tests](tests/) and [the roadmap](ROADMAP.md).
 
@@ -82,13 +84,13 @@ See [the calculation and its limits](docs/ALGORITHM.md), [the tests](tests/) and
 
 **MEHR SKILL. WENIGER GOLD.**
 
-CraftDeja vergleicht Rezepte nach **geschätzten Materialkosten pro Skillpunkt** und führt dich mit einer klaren nächsten Aktion durch den Auftrag.
+CraftDeja vergleicht Rezepte nach **geschätzten Netto-Kosten pro Skillpunkt** und führt dich mit einer klaren nächsten Aktion durch den Auftrag.
 
 Das Beispiel oben zeigt den Unterschied: 2 Silber pro Craft bei geschätzten 25% Erfolg ergeben 8 Silber pro Skillpunkt. Damit kann Grün günstiger sein als Orange für 10 Silber bei 100%. Es handelt sich um ein Rechenbeispiel, nicht um Live-Preise oder eine bestätigte Forever-Erfolgsquote.
 
 ### Funktionen
 
-- Wirtschaftlicher Rezeptvergleich und Vorschau auf mögliche Rezeptwechsel oder Lernschritte.
+- Wirtschaftlicher Rezeptvergleich mit bestätigtem Mindest-Händlerwert bei Verkauf des Ergebnisses und Vorschau auf mögliche Rezeptwechsel oder Lernschritte.
 - Materialplanung mit verfügbarem Taschen-/Bankbestand, optionalen Alt-Daten und bestätigten Einkäufen.
 - Auctionator-Einkaufshilfe, passende Kaufmengen und optionale TSM-Preisdaten.
 - Bekannte Rezeptquellen, Lehrer und Händler; Kartenmarker bei vorhandenen Koordinaten.
@@ -104,11 +106,13 @@ Käufe bestätigst du selbst; die Herstellung startest du über den originalen H
 
 ### Berechnung und Grenzen
 
-Die Rangfolge verwendet Materialkosten geteilt durch erwarteten Skillgewinn. Gelbe und grüne Skillchancen bleiben Schätzungen. Vollständige Vergleiche werden während einer laufenden Craft-Serie aus Performancegründen verschoben; gezielte Fortschrittsupdates bleiben aktiv.
+Die Rangfolge verwendet Materialkosten abzüglich bestätigtem Mindest-Händlerwert bei Verkauf des Ergebnisses, geteilt durch erwarteten Skillgewinn. Der Einkauf benötigt weiterhin den vollen Betrag. Gelbe und grüne Skillchancen bleiben Schätzungen. Vollständige Vergleiche werden während einer laufenden Craft-Serie aus Performancegründen verschoben; gezielte Fortschrittsupdates bleiben aktiv.
 
-**Verkaufserlöse, Rezeptkauf, Trainergebühren, Reise und Werkzeugbeschaffung sind noch nicht in die wirtschaftliche Rangfolge eingerechnet.** Eine global günstigste vollständige Route von 1–300 ist nicht bewiesen. [Berechnungslogik](docs/ALGORITHM.md).
+**AH-Verkaufserlöse, Rezeptkauf, Trainergebühren, Reise und Werkzeugbeschaffung sind noch nicht in die wirtschaftliche Rangfolge eingerechnet.** Ohne bestätigte Ausgabedaten oder Händlerwert gibt es keinen Erlösabzug. Eine global günstigste vollständige Route von 1–300 ist nicht bewiesen. [Berechnungslogik](docs/ALGORITHM.md).
 
-302 automatisierte Tests bestanden am 14.11.2026 mit wowlua 0.13.14 und Blizzard-UI 1.60.1.70938. Das ersetzt keine vollständige Prüfung aller Abläufe auf dem Liveserver.
+Beta.10: 87 gezielte Wirtschaftsfälle bestanden; vollständiger Windows-/Blizzard-UI-Lauf: **372 bestanden, 0 fehlgeschlagen, 0 übersprungen**. [Neue Netto-Berechnung](docs/NET_COSTS.md). Die fertige beta.9-Downloadversion ist unverändert.
+
+Für beta.9: 302 automatisierte Tests bestanden am 14.11.2026 mit wowlua 0.13.14 und Blizzard-UI 1.60.1.70938. Das ersetzt keine vollständige Prüfung aller Abläufe auf dem Liveserver.
 
 ## Feedback and contributions / Rückmeldungen
 
@@ -119,3 +123,6 @@ Bitte Fehler mit Version, Clientbuild/-sprache, Beruf, Skill, Rezept und reprodu
 ## License and data
 
 Newly authored code and documentation: [MIT](LICENSE). Derived reference data retains its attribution and notices in [DATA_SOURCES.md](DATA_SOURCES.md) and [Licenses](Licenses/). Data and artwork have their own provenance; do not assume every asset is covered by the code license. World of Warcraft belongs to its respective owners.
+
+
+Development test reports / Testberichte: use [tools/Test-CraftDeja.ps1](tools/Test-CraftDeja.ps1) to generate a shareable ZIP automatically. [Instructions DE/EN](docs/TEST_REPORTS.md).

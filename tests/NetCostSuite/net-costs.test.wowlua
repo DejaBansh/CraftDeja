@@ -1,0 +1,319 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- All prices are synthetic copper values. Real quote/probability/selection run unchanged.
+local function setup(skill,cap)
+    local a=_G["CraftDeja"]
+    local prices,sales,calls={},{},{count=0}
+    a.options.green=true
+    local function info(id)
+        calls.count=calls.count+1
+        local row=sales[id]
+        if not row then return nil end
+        local name="Fixture item";if row.name==false then name=nil end
+        return name, "item:"..id, 1,1,1,"Fixture","",20,"",134400,row.value,7,0,row.bind or 0
+    end
+    mock.stub(C_Item,"GetItemInfo",info)
+    mock.stub(_G,"GetItemInfo",info)
+    mock.stub(a,"unitPrice",function(id)return prices[id],"fixture"end)
+    mock.stub(a,"canRecommend",function()return true,"known"end)
+    mock.stub(a,"inventoryFor",function()return {bags=0,total=0,bank=0,alts={}}end)
+    mock.stub(a,"itemName",function(id)return tostring(id)end)
+    local function recipe(id,cost,sell,quantity)
+        prices[id]=cost
+        if sell~=nil then sales[id+1000]={value=sell}end
+        return {id=id,profession=185,skill=1,learned=true,confirmed=true,complete=true,
+            yellow=140,green=145,grey=150,colour="orange",points=1,
+            groups={{choices={id},amount=1}},outputItemID=id+1000,
+            outputMin=quantity or 1,outputMax=quantity or 1,outputFromClient=true,isEnchantingRecipe=false}
+    end
+    local function snapshot(...)
+        local s={profile={id=185,skill=skill or 120,cap=cap or 150},recipes={}}
+        for _,r in ipairs({...})do r.colour=a.band(r,s.profile.skill);s.recipes[r.id]=r end
+        return a.marketView(s)
+    end
+    local function ingest(profession,schematic,output,indexMode)
+        mock.stub(a,"accessInfo",function()return {}end)
+        mock.stub(a,"auditRecipe",function()end)
+        mock.stub(a,"auditRead",function()end)
+        mock.stub(C_TradeSkillUI,"GetRecipeRequirements",function()return {}end)
+        mock.stub(C_TradeSkillUI,"GetRecipeCooldown",function()return nil end)
+        mock.stub(C_TradeSkillUI,"GetRecipeOutputItemData",function()return output end)
+        mock.stub(C_TradeSkillUI,"GetRecipeSchematic",function()return schematic end)
+        if indexMode then
+            mock.stub(C_TradeSkillUI,"GetAllRecipeIDs",function()return nil end)
+            mock.stub(_G,"GetNumTradeSkills",function()return 1 end)
+            mock.stub(_G,"GetTradeSkillInfo",function()return "Fixture", "optimal"end)
+            mock.stub(_G,"GetTradeSkillRecipeLink",function()return "enchant:900001"end)
+            mock.stub(_G,"GetTradeSkillItemLink",function()return "item:1001"end)
+            mock.stub(_G,"GetTradeSkillNumMade",function()return 2,4 end)
+            mock.stub(_G,"GetTradeSkillNumReagents",function()return 1 end)
+            mock.stub(_G,"GetTradeSkillReagentInfo",function()return "Fixture",nil,1 end)
+            mock.stub(_G,"GetTradeSkillReagentItemLink",function()return "item:1"end)
+        else
+            mock.stub(C_TradeSkillUI,"GetAllRecipeIDs",function()return {900001}end)
+            mock.stub(C_TradeSkillUI,"GetRecipeInfo",function()return {name="Fixture",learned=true,relativeDifficulty=0,isEnchantingRecipe=false}end)
+        end
+        return a.readRecipes({id=profession,skill=100,cap=150}).recipes[900001]
+    end
+    return a,prices,sales,recipe,snapshot,calls,ingest
+end
+local function near(actual,expected)
+    assert(type(actual)=="number"and math.abs(actual-expected)<0.000001,
+        "Expected "..tostring(expected)..", got "..tostring(actual))
+end
+local function green(r)r.yellow=90;r.green=110;r.grey=130;return r end
+@afterEach
+local function errors()
+    local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+
+@test("Net cost 01: resale changes gross winner")
+local function case01()
+    local a,_,_,make,snap=setup();local d=a.decide(snap(make(1,500,0),make(2,1100,900)));assert(d.current.recipe.id==2);near(d.current.quote.cost,1100);near(d.current.quote.netCost,200);near(d.current.unitSkill,200)
+end
+
+@test("Net cost 02: net orange beats gross cheap green")
+local function case02()
+    local a,_,_,make,snap=setup();local d=a.decide(snap(green(make(1,200,0)),make(2,1000,700)));assert(d.current.recipe.id==2);near(d.current.unitSkill,300)
+end
+
+@test("Net cost 03: green net value beats orange")
+local function case03()
+    local a,_,_,make,snap=setup();local d=a.decide(snap(green(make(1,300,200)),make(2,1000,0)));assert(d.current.recipe.id==1);near(d.current.unitSkill,400)
+end
+
+@test("Net cost 04: multiple outputs count each item")
+local function case04()
+    local a,_,_,make=setup();local q=a.quote(make(1,500,100,3));near(q.cost,500);near(q.vendorRevenue,300);near(q.netCost,200)
+end
+
+@test("Net cost 05: variable output uses minimum")
+local function case05()
+    local a,_,_,make=setup();local r=make(1,1000,100,2);r.outputMax=5;local q=a.quote(r);near(q.vendorRevenue,200);near(q.netCost,800)
+end
+
+@test("Net cost 06: missing quantity gives no credit")
+local function case06()
+    local a,_,_,make=setup();local r=make(1,500,400);r.outputMin=nil;local q=a.quote(r);near(q.netCost,500);assert(not q.vendorRevenueKnown)
+end
+
+@test("Net cost 07: reference output cannot establish credit")
+local function case07()
+    local a,_,_,make=setup();local r=make(1,500,400);r.outputFromClient=false;near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 08: missing output ID gives no credit")
+local function case08()
+    local a,_,_,make=setup();local r=make(1,500,400);r.outputItemID=nil;near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 09: possible zero output gives no credit")
+local function case09()
+    local a,_,_,make=setup();local r=make(1,500,400);r.outputMin=0;r.outputMax=2;near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 10: unknown vendor value preserves material cost")
+local function case10()
+    local a,_,_,make=setup();local q=a.quote(make(1,500,nil));near(q.netCost,500);assert(q.vendorStatus=="price_unknown")
+end
+
+@test("Net cost 11: known zero vendor value")
+local function case11()
+    local a,_,_,make=setup();local q=a.quote(make(1,500,0));near(q.netCost,500);assert(q.vendorRevenueKnown)
+end
+
+@test("Net cost 12: unloaded item name invalidates value")
+local function case12()
+    local a,_,sales,make=setup();local r=make(1,500,400);sales[1001].name=false;local q=a.quote(r);near(q.netCost,500);assert(not q.vendorRevenueKnown)
+end
+
+@test("Net cost 13: unsellable soulbound item")
+local function case13()
+    local a,_,sales,make=setup();local r=make(1,500,0);sales[1001].bind=1;near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 14: sellable soulbound item is not excluded")
+local function case14()
+    local a,_,sales,make=setup();local r=make(1,500,400);sales[1001].bind=1;near(a.quote(r).netCost,100)
+end
+
+@test("Net cost 15: equipment enchant is not a saleable output")
+local function case15()
+    local a,_,_,make=setup();local r=make(1,500,400);r.profession=333;r.isEnchantingRecipe=true;local q=a.quote(r);near(q.netCost,500);assert(q.vendorStatus=="not_item")
+end
+
+@test("Net cost 16: unknown enchanting output type is conservative")
+local function case16()
+    local a,_,_,make=setup();local r=make(1,500,400);r.profession=333;r.isEnchantingRecipe=nil;near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 17: confirmed physical enchanting output")
+local function case17()
+    local a,_,_,make=setup();local r=make(1,500,400);r.profession=333;near(a.quote(r).netCost,100)
+end
+
+@test("Net cost 18: resale cannot fill missing material prices")
+local function case18()
+    local a,_,_,make=setup();assert(a.quote(make(1,nil,100000))==nil)
+end
+
+@test("Net cost 19: negative costs remain signed")
+local function case19()
+    local a,_,_,make=setup();local q=a.quote(make(1,500,700));near(q.netCost,-200);assert(a.money(-200)=="-2s 0c" and a.money(-0.5)=="-<1c")
+end
+
+@test("Net cost 20: zero cost ties prefer higher chance")
+local function case20()
+    local a,_,_,make,snap=setup();local d=a.decide(snap(green(make(1,200,200)),make(2,1000,1000)));assert(d.current.recipe.id==2);near(d.current.unitSkill,0)
+end
+
+@test("Net cost 21: negative net score uses chance without invalid savings")
+local function case21()
+    local a,_,_,make,snap=setup();local d=a.decide(snap(green(make(1,200,300)),make(2,1000,1200)));assert(d.current.recipe.id==1);near(d.current.unitSkill,-400);assert(d.current.saving==nil)
+end
+
+@test("Net cost 22: multi skill cap applies to net score")
+local function case22()
+    local a,_,_,make,snap=setup(149);local r=make(2,1500,0);r.points=2;r.yellow=160;r.green=170;r.grey=180;local one=make(1,1100,200);one.yellow=160;one.green=170;one.grey=180;local d=a.decide(snap(one,r));assert(d.current.recipe.id==1);near(d.current.unitSkill,900)
+end
+
+@test("Net cost 23: vendor buy and sell values remain separate")
+local function case23()
+    local a,_,_,make=setup();mock.stub(a,"vendorPrice",function()return 99999 end);local q=a.quote(make(1,500,50));near(q.vendorRevenue,50)
+end
+
+@test("Net cost 24: buying reagents requires gross gold")
+local function case24()
+    local a,_,_,make,snap=setup();local r=make(1,1000,900);local s=snap(r);a.active=s;a.decision={current={recipe=r},stop=122};local p=a.materialPlan(r,122);assert(p.crafts==2);near(p.purchase,2000);near(p.rows[1].buy,2)
+end
+
+@test("Net cost 25: owned materials reduce purchases only")
+local function case25()
+    local a,_,_,make,snap=setup();local r=make(1,1000,900);a.active=snap(r);a.decision={current={recipe=r},stop=122};mock.stub(a,"inventoryFor",function()return {total=1,bags=1}end);local p=a.materialPlan(r,122);near(p.purchase,1000);near(a.quote(r).netCost,100)
+end
+
+@test("Net cost 26: one vendor read per shared output per snapshot")
+local function case26()
+    local a,_,_,make,snap,calls=setup();local x=make(1,1000,500);local y=make(2,1200,nil);y.outputItemID=1001;local s=snap(x,y);a.decide(s);assert(calls.count==1)
+end
+
+@test("Net cost 27: unknown cache recovers in next snapshot")
+local function case27()
+    local _,_,sales,make,snap,calls=setup();local r=make(1,1000,nil);local x=make(2,1200,nil);x.outputItemID=1001;local s=snap(r,x);near(s.quotes[1].netCost,1000);local initial=calls.count;assert(initial>=1 and initial<=2);sales[1001]={value=500};near(snap(r,x).quotes[1].netCost,500);assert(calls.count==initial+1)
+end
+
+@test("Net cost 28: new vendor price does not mutate old snapshot")
+local function case28()
+    local _,_,sales,make,snap=setup();local r=make(1,1000,500);local old=snap(r);sales[1001].value=700;near(snap(r).quotes[1].netCost,300);near(old.quotes[1].netCost,500)
+end
+
+@test("Net cost 29: net costs drive switch lookahead")
+local function case29()
+    local a,_,_,make,snap=setup(123);local r=green(make(1,1000,800));local s=snap(r,make(2,1200,0));local d=a.decide(s);assert(d.current.recipe.id==1 and d.stop==124 and d.followup.candidate.recipe.id==2);s.profile.skill=124;r.colour="green";assert(a.decide(s).current.recipe.id==2)
+end
+
+@test("Net cost 30: unknown ingredients block material plan")
+local function case30()
+    local a,_,_,make,snap=setup();local r=make(1,nil,10000);a.active=snap(r);a.decision={current={recipe=r},stop=121};local p,why=a.materialPlan(r,121);assert(p==nil and why=="no_prices")
+end
+
+@test("Net cost 31: NaN sell price rejected")
+local function case31()
+    local a,_,_,make=setup();near(a.quote(make(1,500,(math.huge-math.huge))).netCost,500)
+end
+
+@test("Net cost 32: negative sell price rejected")
+local function case32()
+    local a,_,_,make=setup();near(a.quote(make(1,500,-100)).netCost,500)
+end
+
+@test("Net cost 33: infinite sell price rejected")
+local function case33()
+    local a,_,_,make=setup();near(a.quote(make(1,500,math.huge)).netCost,500)
+end
+
+@test("Net cost 34: fractional copper sell price rejected")
+local function case34()
+    local a,_,_,make=setup();near(a.quote(make(1,500,0.5)).netCost,500)
+end
+
+@test("Net cost 35: contradictory output bounds rejected")
+local function case35()
+    local a,_,_,make=setup();local r=make(1,500,100,3);r.outputMax=2;near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 36: fractional output amount rejected")
+local function case36()
+    local a,_,_,make=setup();local r=make(1,500,100);r.outputMin=1.5;near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 37: legacy fallback after modern API error")
+local function case37()
+    local a,_,_,make=setup();local r=make(1,500,100);mock.stub(C_Item,"GetItemInfo",function()error("Unavailable API")end);near(a.quote(r).netCost,400)
+end
+
+@test("Net cost 38: legacy fallback after modern missing data")
+local function case38()
+    local a,_,_,make=setup();local r=make(1,500,100);mock.stub(C_Item,"GetItemInfo",function()return nil end);near(a.quote(r).netCost,400)
+end
+
+@test("Net cost 39: modern zero is authoritative")
+local function case39()
+    local a,_,_,make=setup();local r=make(1,500,0);mock.stub(_G,"GetItemInfo",function()error("Must not call legacy for known zero")end);near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 40: output metadata for all crafting professions")
+local function case40()
+    local _,_,_,_,_,_,ingest=setup();for _,id in ipairs({171,164,165,197,202,185,129,186,333})do local r=ingest(id,{outputItemID=1001,quantityMin=2,quantityMax=4,reagentSlotSchematics={{quantityRequired=1,reagents={{itemID=1}}}}},{itemID=1001});assert(r.outputFromClient and r.outputItemID==1001 and r.outputMin==2 and r.outputMax==4)end
+end
+
+@test("Net cost 41: legacy output quantities are read")
+local function case41()
+    local _,_,_,_,_,_,ingest=setup();local r=ingest(185,nil,nil,true);assert(r.outputFromClient and r.outputItemID==1001 and r.outputMin==2 and r.outputMax==4)
+end
+
+@test("Net cost 42: missing schematic clears stale output proof")
+local function case42()
+    local a,_,_,_,_,_,ingest=setup();local r=ingest(185,nil,{itemID=1001});assert(not r.outputFromClient and r.outputMin==nil);near(a.vendorRevenue(r),0)
+end
+
+@test("Net cost 43: unknown recipe cannot claim credit")
+local function case43()
+    local a,_,_,make=setup();local r=make(1,500,400);r.confirmed=false;near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 44: no output API guesses one item")
+local function case44()
+    local a,_,_,_,_,_,ingest=setup();local r=ingest(185,{outputItemID=1001,reagentSlotSchematics={{quantityRequired=1,reagents={{itemID=1}}}}},nil);assert(r.outputMin==nil);near(a.vendorRevenue(r),0)
+end
+
+@test("Net cost 45: invalid maximum NaN rejected")
+local function case45()
+    local a,_,_,make=setup();local r=make(1,500,100);r.outputMax=(math.huge-math.huge);near(a.quote(r).netCost,500)
+end
+
+@test("Net cost 46: native batch reuses cached vendor value")
+local function case46()
+    local a,_,_,make,snap,calls=setup();local r=make(1,500,100);a.decision=a.decide(snap(r));local before=calls.count;mock.stub(a,"craftRefreshBusy",function()return true end);near(a.quote(r).netCost,400);assert(calls.count==before)
+end
+
+@test("Net cost 47: localized details explain sale assumption")
+local function case47()
+    local a=setup();for _,lang in ipairs({"de","en"})do a.options.language=lang;local line=a.caption("net_breakdown","10s","2s","8s");assert(line:find("10s",1,true) and line:find("8s",1,true) and line~="net_breakdown");assert(a.caption("net_unverified")~="net_unverified")end
+end
+
+@test("Net cost 48: conflicting client output IDs receive no credit")
+local function case48()
+    local a,_,_,_,_,_,ingest=setup();local r=ingest(185,{outputItemID=1002,quantityMin=1,quantityMax=1,reagentSlotSchematics={{quantityRequired=1,reagents={{itemID=1}}}}},{itemID=1001});assert(not r.outputFromClient);near(a.vendorRevenue(r),0)
+end
+
+@test("Net cost 49: native batch without cache never queries item data")
+local function case49()
+    local a,_,_,make,_,calls=setup();local r=make(1,500,100);a.decision=nil;mock.stub(a,"craftRefreshBusy",function()return true end);near(a.quote(r).netCost,500);assert(calls.count==0)
+end
+
+@test("Net cost 50: multi skill points divide net not gross")
+local function case50()
+    local a,_,_,make,snap=setup();local r=make(2,1500,500);r.points=2;local d=a.decide(snap(make(1,800,0),r));assert(d.current.recipe.id==2);near(d.current.unitSkill,500)
+end

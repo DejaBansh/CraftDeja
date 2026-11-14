@@ -296,6 +296,11 @@ function app.renderDetails(materials)
     if r.example then lines[#lines+1]=app.caption('example_source')..': '..r.example end
     if not r.confirmed then lines[#lines+1]=app.caption('unchecked')end
     if r.cooldown then lines[#lines+1]=app.caption('cooldown')end
+    local quote=app.quote(r,{})
+    if quote then
+        lines[#lines+1]=app.caption('net_breakdown',app.money(quote.cost),app.money(quote.vendorRevenue or 0),app.money(quote.netCost or quote.cost))
+        lines[#lines+1]=app.caption(quote.vendorRevenueKnown and 'net_minimum'or 'net_unverified')
+    end
     local plan,reason=app.materialPlan(r,tonumber(f.target:GetText()))
     lines[#lines+1]=''
     if plan then

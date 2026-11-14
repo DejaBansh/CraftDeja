@@ -1,0 +1,21 @@
+CraftDeja 3.9.0-beta.10 — complete Gaming-PC validation
+Date: 2026-11-14, 22:03:54–22:07:10 Europe/Berlin
+Tool: wowlua 0.13.14
+Branch: feature/net-vendor-costs
+Base commit (changes not yet committed): 711d463af4c17f1e711248bb409f1dd5fecfe303
+Scope: ALL tests, configured Blizzard UI enabled
+Build: passed (0.65s)
+Tested 372 passed, 0 failed, 0 skipped (304 files) in 195.46s
+Native test exit code: 0
+Remaining warning: W1034, src/UnifiedUI.lua:37:33
+Exact Blizzard UI/client build was not printed in this report.
+Evidence: user-supplied 20261114-220354-b7fccb.zip; ZIP CRC passed.
+Metadata, complete output and five source hashes checked; local source matches
+allowing Git's LF/CRLF line-ending conversion. No live-server validation claim.
+
+Reported working-file SHA256 values:
+Start.lua: 13C84C71456DEC7884A9EE3A52B1F869CDB75B834373A7C33EFAB296B66C4781
+Client.lua: 8E0580996AB6F6B3EC0BC06DC344C38D7547310DEE7C8D899E994CCAFE71477D
+Economy.lua: D87B3BC122075547F9FD823B148C358F4A6C925B6D499CBFD76D7348B107F30E
+Poisons.lua: 53F6F9FC7FEEF3BD21802834328C59FCBB616258EDC477777482907AF1F6F91D
+Run.lua: 3DF7986041D61DDAC3B95DD43855AA9E6C68FE9FC8ADBDF6763C10300FFE8344

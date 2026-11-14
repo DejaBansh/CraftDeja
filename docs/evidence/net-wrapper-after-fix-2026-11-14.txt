@@ -1,0 +1,108 @@
+Focused module validation: wowlua 0.13.12; camelot/Windows emulation, NO Blizzard UI
+ PASS tests/AutoSkillSuite/01-default-full-window.test.wowlua (camelot, 0.38s)
+   ✓ Auto skill: 01-default-full-window
+ PASS tests/AutoSkillSuite/02-cheaper-switch.test.wowlua (camelot, 0.44s)
+   ✓ Auto skill: 02-cheaper-switch
+ PASS tests/AutoSkillSuite/03-green-cheaper.test.wowlua (camelot, 0.42s)
+   ✓ Auto skill: 03-green-cheaper
+ PASS tests/AutoSkillSuite/04-orange-beats-expensive-green.test.wowlua (camelot, 0.41s)
+   ✓ Auto skill: 04-orange-beats-expensive-green
+ PASS tests/AutoSkillSuite/05-rank-cap.test.wowlua (camelot, 0.42s)
+   ✓ Auto skill: 05-rank-cap
+ PASS tests/AutoSkillSuite/06-conflicting-ranges.test.wowlua (camelot, 0.41s)
+   ✓ Auto skill: 06-conflicting-ranges
+ PASS tests/AutoSkillSuite/07-green-toggle.test.wowlua (camelot, 0.44s)
+   ✓ Auto skill: 07-green-toggle
+ PASS tests/AutoSkillSuite/08-learning-next.test.wowlua (camelot, 0.42s)
+   ✓ Auto skill: 08-learning-next
+ PASS tests/AutoSkillSuite/09-missing-price.test.wowlua (camelot, 0.41s)
+   ✓ Auto skill: 09-missing-price
+ PASS tests/AutoSkillSuite/10-cooldown.test.wowlua (camelot, 0.04s)
+   ✓ Auto skill: 10-cooldown
+ PASS tests/AutoSkillSuite/11-multiskill-cost.test.wowlua (camelot, 0.03s)
+   ✓ Auto skill: 11-multiskill-cost
+ PASS tests/AutoSkillSuite/12-multiskill-cap.test.wowlua (camelot, 0.04s)
+   ✓ Auto skill: 12-multiskill-cap
+ PASS tests/AutoSkillSuite/13-orange-quantity.test.wowlua (camelot, 0.04s)
+   ✓ Auto skill: 13-orange-quantity
+ PASS tests/AutoSkillSuite/14-yellow-quantity.test.wowlua (camelot, 0.04s)
+   ✓ Auto skill: 14-yellow-quantity
+ PASS tests/AutoSkillSuite/15-multiskill-rounding.test.wowlua (camelot, 0.04s)
+   ✓ Auto skill: 15-multiskill-rounding
+ PASS tests/AutoSkillSuite/16-stock-deduction.test.wowlua (camelot, 0.04s)
+   ✓ Auto skill: 16-stock-deduction
+ PASS tests/AutoSkillSuite/17-gray-never-skills.test.wowlua (camelot, 0.03s)
+   ✓ Auto skill: 17-gray-never-skills
+ PASS tests/EconomyEvidenceSuite/economy.test.wowlua (camelot, 0.03s)
+   ✓ Economy evidence 01: cheap green beats orange / Gruen schlaegt Orange
+   ✓ Economy evidence 02: expensive green loses / Teures Gruen verliert
+   ✓ Economy evidence 03: chance adjusts each point / Chance je Skillpunkt
+   ✓ Economy evidence 04: switch at 124 / Wirtschaftlicher Wechsel bei 124
+   ✓ Economy evidence 05: no switch just for colour / Kein Wechsel nur wegen Farbe
+   ✓ Economy evidence 06: unknown price excluded / Unbekannter Preis nicht kostenlos
+   ✓ Economy evidence 07: all prices missing / Alle Preise fehlen
+   ✓ Economy evidence 08: missing one reagent invalidates quote / Fehlendes Reagenz
+   ✓ Economy evidence 09: quantities and cheapest alternative / Mengen und Alternativen
+   ✓ Economy evidence 10: two points compared fairly / Mehrfach-Skillpunkte
+   ✓ Economy evidence 11: cap clips awarded points / Skillcap begrenzt Punkte
+   ✓ Economy evidence 12: verified unlearned bargain / Guenstigeres unbekanntes Rezept
+   ✓ Economy evidence 13: unavailable bargain ignored / Nicht verfuegbares Rezept
+   ✓ Economy evidence 14: cooldown ignored / Abklingzeit ausschliessen
+   ✓ Economy evidence 15: grey gives no progress / Grau ohne Skillgewinn
+   ✓ Economy evidence 16: equal expected cost prefers chance / Gleichstand
+   ✓ Economy evidence 17: refreshed price changes recommendation / Neue Preise
+   ✓ Economy evidence 18: six expected attempts are not six guaranteed / Versuche
+   ✓ Economy evidence 19: capped profession stops / Skillcap erreicht
+   ✓ Economy evidence 20: green setting respected / Gruen-Einstellung
+ PASS tests/NetCostSuite/net-costs.test.wowlua (camelot, 0.04s)
+   ✓ Net cost 01: resale changes gross winner
+   ✓ Net cost 02: net orange beats gross cheap green
+   ✓ Net cost 03: green net value beats orange
+   ✓ Net cost 04: multiple outputs count each item
+   ✓ Net cost 05: variable output uses minimum
+   ✓ Net cost 06: missing quantity gives no credit
+   ✓ Net cost 07: reference output cannot establish credit
+   ✓ Net cost 08: missing output ID gives no credit
+   ✓ Net cost 09: possible zero output gives no credit
+   ✓ Net cost 10: unknown vendor value preserves material cost
+   ✓ Net cost 11: known zero vendor value
+   ✓ Net cost 12: unloaded item name invalidates value
+   ✓ Net cost 13: unsellable soulbound item
+   ✓ Net cost 14: sellable soulbound item is not excluded
+   ✓ Net cost 15: equipment enchant is not a saleable output
+   ✓ Net cost 16: unknown enchanting output type is conservative
+   ✓ Net cost 17: confirmed physical enchanting output
+   ✓ Net cost 18: resale cannot fill missing material prices
+   ✓ Net cost 19: negative costs remain signed
+   ✓ Net cost 20: zero cost ties prefer higher chance
+   ✓ Net cost 21: negative net score uses chance without invalid savings
+   ✓ Net cost 22: multi skill cap applies to net score
+   ✓ Net cost 23: vendor buy and sell values remain separate
+   ✓ Net cost 24: buying reagents requires gross gold
+   ✓ Net cost 25: owned materials reduce purchases only
+   ✓ Net cost 26: one vendor read per shared output per snapshot
+   ✓ Net cost 27: unknown cache recovers in next snapshot
+   ✓ Net cost 28: new vendor price does not mutate old snapshot
+   ✓ Net cost 29: net costs drive switch lookahead
+   ✓ Net cost 30: unknown ingredients block material plan
+   ✓ Net cost 31: NaN sell price rejected
+   ✓ Net cost 32: negative sell price rejected
+   ✓ Net cost 33: infinite sell price rejected
+   ✓ Net cost 34: fractional copper sell price rejected
+   ✓ Net cost 35: contradictory output bounds rejected
+   ✓ Net cost 36: fractional output amount rejected
+   ✓ Net cost 37: legacy fallback after modern API error
+   ✓ Net cost 38: legacy fallback after modern missing data
+   ✓ Net cost 39: modern zero is authoritative
+   ✓ Net cost 40: output metadata for all crafting professions
+   ✓ Net cost 41: legacy output quantities are read
+   ✓ Net cost 42: missing schematic clears stale output proof
+   ✓ Net cost 43: unknown recipe cannot claim credit
+   ✓ Net cost 44: no output API guesses one item
+   ✓ Net cost 45: invalid maximum NaN rejected
+   ✓ Net cost 46: native batch reuses cached vendor value
+   ✓ Net cost 47: localized details explain sale assumption
+   ✓ Net cost 48: conflicting client output IDs receive no credit
+   ✓ Net cost 49: native batch without cache never queries item data
+   ✓ Net cost 50: multi skill points divide net not gross
+      Tested 87 passed, 0 failed, 0 skipped (19 files) in 1.12s

@@ -9,3 +9,5 @@ Während laufender nativer Craft-Serien keine schweren vollständigen Scans wied
 DE/EN, konkrete CTA und optionale Detailansichten erhalten. Stückzahlregeln und Gift-Sonderfälle beachten.
 Bei Code-/Dokumentwiderspruch nicht aus Erinnerung entscheiden: Ursache prüfen, beide konsistent korrigieren.
 Vor Übergabe PROJECT_STATE.md und ROADMAP.md aktualisieren. Nichts ungeprüft als erledigt markieren.
+
+Bei allen künftigen Windows-Testläufen tools/Test-CraftDeja.ps1 verwenden: jeder Lauf erzeugt automatisch Bericht, vollständiges Protokoll, Metadaten und eine teilbare ZIP, auch bei Fehlern. Berichte lokal unter reports/tests/ belassen; nicht automatisch veröffentlichen. Isolierte Entwicklerläufe ebenfalls mit Protokoll und klarem Prüfumfang dokumentieren.
