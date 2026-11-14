@@ -1,0 +1,20 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+@afterEach
+local function errors()
+ local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("RodSuite: client metadata ingestion uses current physical output and materials")
+local function scenario()
+ local a=_G["CraftDeja"]
+ mock.defineItem(6339,{name="Runenverzierte Silberrute"})
+ mock.stub(C_TradeSkillUI,"GetAllRecipeIDs",function()return {7795}end)
+ mock.stub(C_TradeSkillUI,"GetRecipeInfo",function()return {name="Runenverzierte Silberrute",learned=true,isEnchantingRecipe=false,relativeDifficulty=3}end)
+ mock.stub(C_TradeSkillUI,"GetRecipeRequirements",function()return {}end)
+ mock.stub(C_TradeSkillUI,"GetRecipeCooldown",function()return nil end)
+ mock.stub(C_TradeSkillUI,"GetRecipeOutputItemData",function()return {itemID=6339}end)
+ mock.stub(C_TradeSkillUI,"GetRecipeSchematic",function()return {outputItemID=6339,quantityMin=1,quantityMax=1,reagentSlotSchematics={{required=true,reagentType=Enum.CraftingReagentType.Basic,quantityRequired=3,reagents={{itemID=10940}}}}}end)
+ local session=a.readRecipes({id=333,skill=100,cap=150});local r=session.recipes[7795]
+ assert(r.confirmed and r.materialsFromClient and r.outputItemID==6339 and r.outputMin==1 and r.outputMax==1 and r.isEnchantingRecipe==false,"Client rod output was not ingested")
+ assert(#r.groups==1 and r.groups[1].amount==3,"Reference ingredients replaced client schematic")
+end

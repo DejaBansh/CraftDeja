@@ -1,0 +1,446 @@
+# Validation — 3.9.0-beta.4
+
+1985 assertions pass in the final suite; production-load cold start also passes. Added real-event observer tests: unobserved steps remain
+waiting, actual profession opening and closing progress, mismatched AH quantity
+fails while matching quantity passes, native preparation alone does not pass
+crafting, and user start plus successful same-recipe craft does. Skips remain
+skips in exported reports; export text survives polling. Stock7/target20 records
+missing13, unknown data waits. Tests assert existing goal and poison state identity
+are preserved. Diagnostic code contains no purchase, craft or profession-open API
+calls; it wraps existing events/logging and observes user-triggered actions.
+No live Forever client available; system check itself requires initial live validation.
+
+# Validation — 3.9.0-beta.3
+
+1965 assertions pass in the standard suite. Reproduced completed poison order,
+manual guide close, profession close and three vendor re-visits; new visits reopen,
+same-visit updates respect dismissal and no purchase occurs without a click.
+Normal profession pages cover skill goals, general setting toggles, all menu tabs,
+catalogue, vendors, recipe reports, flow log, purchase diagnostics, details, tutorial,
+and return to the guide; tested Enchanting and Alchemy contexts. Hosted theme
+headers stay hidden after refresh, with a separate shared title/logo layer above
+embedded pages and non-intercepting mouse handling.
+
+Profession-transition checks reject old poison lists under an enchanting header,
+then accept the newly loaded enchanting list while excluding foreign records.
+Loading disables primary actions and order editing. Mixed foreign/unknown lists
+on initial login remain unconfirmed. A 220-report repeated audit does not append
+duplicate audit log entries or evict the latest user action. Existing stock,
+purchase, mail, scan and native-craft contracts remain passing.
+No live WoW Forever/TSM session was available; actual client retest remains required.
+
+# Validation — 3.9.0-beta.2
+
+1754 assertions pass. Added exact finished-item stock scenarios: target20/bags20
+creates no job and disables the redundant draft action; target25/bags20 plans
+five ingredient sets; incoming stock reduces an existing refill to complete.
+Explicit extra20 still plans20 even with25 owned. Two output IDs are counted
+separately. Missing stock data disables refill rather than inventing a deficit.
+Fresh profile default is refill; fixture extra mode is now explicit. Existing
+price, quantity, vendor queue, mail and native crafting checks remain passing.
+No live Forever client was available. Existing saved extra plans remain extra
+and must be deliberately cancelled/switched by the user.
+
+# Validation — 3.9.0-beta.1
+
+1730 assertions pass with liblua 5.4. Existing engine/legacy presentation tests
+run before loading UnifiedUI; unified integration scenarios then exercise the
+production overrides. Additional production-order cold-start smoke passes six
+assertions: first-login help, hidden adviser, profession opening, and restoration
+of the visible guide action. UI preview fixtures use test icons and approximate
+texture layering, not an actual WoW renderer.
+
+Unified checks cover one visible top-level frame, saved poison drafts, embedded
+quantity/goal editors, child scale inheritance, vendor quotes and price changes,
+ordinary reagent buying, gear tabs, embedded logs/reference pages, Back navigation,
+profession closing, AH scan freshness, and native crafting requiring a physical
+native click. No live Forever/TSM client was available; client layout and input
+integration still need testing.
+
+# Validation — 3.8.0-beta.7
+
+1549 assertions across 128 simulated scenario groups pass with liblua 5.4.
+New checks show every registered top-level CraftDeja window, close the native
+profession and assert only Next step remains visible. Order targets, job and
+pending receipt identities are preserved. Late merchant acknowledgements and
+updates do not reopen windows on the same visit; a new visit restores the planner.
+Visibility polling and explicit close events both clean up the UI; reopening
+restores the adviser. Existing AH event-order checks now assert the requested
+hidden adviser while retaining read-only cached planning and explicit purchases.
+No live client was available for validation.
+
+# Validation — 3.8.0-beta.6
+
+1490 assertions across 126 simulated scenario groups pass with liblua 5.4.
+Added merchant-open checks with no active order and a hidden MerchantFrame
+(TSM-style UI), once-per-visit dismissal, delayed item-list loading, exclusion
+of ordinary vial vendors, restoration of a valid session-40 context while closed,
+exact missing-material offers without automatic purchase, fresh-login prompt,
+explicit click requesting profession 40, prompt scaling/theme and invalidated
+session rejection. Existing vendor price/quantity/receipt safeguards still pass.
+No live Forever/TSM session was available; the reported merchant needs live retest.
+
+# Validation — 3.8.0-beta.5
+
+Existing 1455 assertions passed. Inspected mock previews for a single learned
+poison (580x386 logical window units), multiple poisons with a three-row viewport
+(580x594, scrolling for further rows), and the adviser planner button. Recipe
+labels, stock text, inputs and footer buttons remain within the content bounds.
+The preview uses fixture item icons and approximates native scroll clipping.
+No live client was available; actual scaling and scrolling need in-game checking.
+
+# Validation — 3.8.0-beta.4
+
+1455 assertions across 121 simulated scenario groups pass with liblua 5.4.
+Added station projection tests for unconfirmed purchases vs confirmed mail,
+vendor deficits, complete aggregate poison jobs during partial native batches,
+real craft success/GUID dedup, completed/cancelled jobs, bank collection counts,
+scan uncertainty, stable ordinary route boundaries, saved record isolation,
+EN/DE tooltips and the direct order command. Existing commerce and craft tests
+remain passing. Mock layout inspected; external item icons are fixture
+placeholders and attention-text layering is approximated in this mock renderer.
+No live WoW Forever client was available for validation.
+
+# Validation — 3.8.0-beta.3
+
+Existing 1399 assertions passed after the adviser geometry adjustment. A rendered
+mock of the narrower and shorter cards was inspected for text/button bounds and
+background margins. No live client rendering was available.
+
+# Validation — 3.8.0-beta.2
+
+1399 assertions across 117 simulated scenario groups passed with liblua 5.4.
+New scenarios cover separate persistent bag-stock targets, 7-owned/20-target
+producing 13, bank/alt exclusion for finished products, aggregate ingredient
+quantities, satisfied targets creating no job, missing bag/output API data,
+fixed-yield batch rounding and duplicate output rejection. Incoming finished
+items shrink the unstarted plan; consumption never silently enlarges an approved
+order. A simulated native three-craft batch with bag events before success events
+reaches the goal without double decrement or unattended refill loops. Reopening
+and switching modes preserve their independent quantities. A mock rendering of
+the restock controls was inspected. No live WoW Forever client was available.
+
+# Validation — 3.8.0-beta.1
+
+1340 assertions across 112 simulated scenario groups passed with liblua 5.4.
+Added automatic poison planner opening, per-recipe target sliders/edit boxes,
+shared ingredient aggregation, saved targets, edit locks, grey recipe preparation,
+fixed output validation, material drift rejection, fresh scan shopping gate and
+frozen per-order purchase budgets. Native batches are prepared at exact counts;
+only player spell-success events decrement the queue and trigger next preparation.
+No protected craft call is issued by the addon. Vendor checks cover rounded packs,
+full-price approval, per-purchase inventory acknowledgements, price increases and
+merchant close. Aggregate popup, scaling and ten theme mappings are covered.
+A mock rendering of both new windows was inspected; placeholder item icons in
+that mock are fixture data. No live Forever client was available. The new poison
+UI/API compatibility and real vendor/crafting flow need in-game validation.
+
+# Validation — 3.7.0-beta.1
+
+1242 assertions across 105 simulated scenario groups passed with liblua 5.4.
+Recipe checks cover canonical reagent groups and alternatives; unknown vs known
+recipes; live ingredient priority without reference mutation; repeat-read dedup;
+incomplete client schematics; difficulty evidence across skill changes; resolution
+on a new reference revision; persistence across initialization; 200-record bounds;
+flow-log disabled operation; bounded log excerpts; EN/DE UI, report command/button,
+clear action and scaling. Existing 1205 flow/crafting/shopping/trainer checks pass.
+Original Auctionator 344 numeric input, quote, confirmation and purchase-event
+contract probes also pass. A rendered mock preview was inspected for the new adviser status/button and the
+report window. This is not an in-game render; live client validation remains needed.
+
+# Validation — 3.6.0-beta.6
+
+1205 assertions across 100 simulated scenario groups passed with liblua 5.4.
+Added character level 7 vs Alchemy 75–150's required level 10: prominent warning,
+optional trainer action, no automatic trainer marking, and immediate ungating on
+PLAYER_LEVEL_UP even when UnitLevel still reports 7. Exact-level eligibility and
+unknown level fallback are covered. Existing purchase, mailbox, crafting and
+trainer-map tests remain passing. No live client was available for validation.
+
+# Validation — 3.6.0-beta.5
+
+1193 assertions across 99 simulated scenario groups passed with liblua 5.4.
+New checks cover all nine profession data groups, coordinate/rank invariants,
+exact faction and rank matching, same-map preference, unknown-faction/data fallback,
+Undercity Alchemy Journeyman vs Expert vs Artisan selection, automatic logo marker,
+click-to-open target map, and task transition after the client cap changes.
+Existing 1168 purchase/mail/vendor/crafting/scan assertions remain passing.
+No live game client was available to verify the current Forever trainer offerings.
+
+# Validation — 3.6.0-beta.4
+
+1168 assertions across 97 simulated scenario groups passed with liblua 5.4.
+Added a complete two-material purchase/collection/vendor/crafting scenario:
+both confirmed receipts appear together; the mailbox action does not open recipe
+details or erase uncollected stock; partial collection retains the remaining amount;
+full collection changes Next step to vendor vials; receiving the vials exposes
+available crafts. Uses the real task renderer and refresh path after AH closure.
+No in-game mailbox or merchant interaction was available for live verification.
+
+# Validation — 3.6.0-beta.3
+
+1152 assertions across 96 simulated scenario groups passed using liblua 5.4.
+Added full-route native input synchronization, a 59-unit purchase spanning two
+price levels, clamped selection, mismatched visible input and wrong-total guards.
+No quote request is issued when these checks fail. Existing scan/purchase tests pass.
+
+A separate local contract probe executes original Auctionator 344 OnLoad,
+OnTextChanged, UpdateView and GetPrices: 39 units at 17 copper plus 20 at 18
+copper show quantity 59 and total 1023 copper; a two-unit native clamp is rejected.
+The three original native confirmation/event/receipt contract probes also pass.
+No Auctionator code is bundled. Not verified inside the user's game client.
+
+# Validation — 3.6.0-beta.2
+
+1137 assertions passed across 95 scenario groups with liblua 5.4 and simulated
+WoW API/frame objects. All 345 previous assertions remain passing. New scenarios
+cover successful full scans vs unrelated DB updates; failed/malformed/empty scans;
+late completion after AH close/reopen; scan expiry; current snapshot pricing vs
+old Auctionator/TSM caches; slider limits; inventory changes; missing stock;
+vendor exclusions; exact quantities and copper price ceilings (including sub-copper stack prices); search failures;
+repeat-search lock; bilingual UI, scale and preserved profession context.
+
+The new guide tests cover first-login display, acknowledgement persistence, no
+repeat popup on later login, help command/button reopening, language switching
+and adviser/guide visibility. The guide layout was inspected in both languages.
+
+AH regression scenarios cover both close/show event orders, a pending debounce at AH
+opening, missing recipe APIs, zero profession reads while at the AH, generic skill
+notifications, queued crafts finishing after closing the profession, manual hide,
+reopening with /cdj, profession switching and an Alchemy shopping plan from the
+saved profession. The native Blizzard crafting/AH panel manager is not modified.
+
+A separate local contract probe executed Auctionator 345's actual public
+MultiSearchAdvanced implementation and advanced search serializer/parser. Exact
+names, quantities and copper maxPrice survived the real API conversion. That
+third-party source is NOT included in this archive. Both inspected modern and
+legacy full-scan payload shapes are covered by the application tests.
+
+Captured UI objects were rendered and visually inspected in German and English.
+This verifies layout with test data, not actual WoW rendering, live market depth,
+server throttling, purchased mail, protected actions or a specific installed
+Auctionator fork. Full-scan events use a version-sensitive internal Auctionator
+hook. An unsupported version fails closed rather than buying with old data.
+
+Manual test still required in Forever: open a profession; open AH; complete Full
+Scan; confirm the panel appears only then; choose +5 points; inspect quantities
+and ceiling in Auctionator; confirm a purchase; collect mail; repeat after a price
+change. Also test scan cancellation, AH close/reopen and the client's scan
+cooldown. Publish this update as Beta until this workflow has been verified.
+
+
+Auctionator 344 regression: a local integration probe executes its actual
+ScanButton mixin, IncrementalScan event constants and IncrementalScan frame code
+with mocked AH/DB objects. Clicking the real Scan-button method, supplying browse
+results and completing DB processing opens CraftDeja shopping. A separate probe
+executes the actual 344 MultiSearchAdvanced API and serializer/parser: exact
+names, quantities and copper ceilings, including fractional copper, round-trip.
+New application scenarios cover summary-only integrations, per-unit minPrice,
+pet rows, mismatched scan completions, malformed results and visible feedback.
+This is local integration validation, not a claim of testing inside the game.
+
+
+Vendor regression cases cover the screenshot's five-craft herb stock, no prior
+vendor visit, missing vials, all herbs missing together, AH prices below/equal/above
+vendor, bundle unit conversion, reference-vs-observed preference, strict ceilings
+with +20% tolerance, faction references and limited merchant exclusions. UI count
+summaries and handoff explanations are verified. A lifecycle scenario verifies
+reuse across AH visits, retained original timestamp and mail lock, validity at
+exactly 1800 seconds, expiration at 1801 seconds and late/aborted completion.
+Both shopping languages were visually inspected using captured UI objects.
+
+
+New storage scenarios verify separate bags/personal/shared counts; current-bank
+withdrawals to zero; unavailable API preservation; persistent GUID-based alt
+snapshots; realm/faction boundaries; optional deduction and unconfirmed binding;
+shared-bank deduplication; zeroing removed alt inventory; bank-collection text;
+bilingual shopping controls; nearest compatible vendor selection; observed vendor
+capture; native map pin and unsupported fallback; announcement throttling and scale.
+All tests run with simulated APIs; no game client is connected here. Current
+Forever GetItemCount argument order and bank/waypoint interfaces were inspected
+against Gethe/wow-ui-source's forever branch. UI objects/layout were inspected in
+both languages; actual scroll clipping and game rendering require in-game checking.
+
+Manual first test: log in main and each alt; open banks; log back to main; open
+profession then AH; scan once; check location counts and Alt stock toggle. Visit
+a normal supplier, reopen shopping, check vendor coordinates and Map pin. Test
+withdrawals, mailed transfers after collecting mail, account bank and /reload.
+
+3.3 tests add semantic button textures, glyph fallbacks, compact shopping/tooltips,
+merchant popup bundle rounding, no purchase without click, pending-click blocking,
+price-change revalidation, insufficient money, limited/currency exclusions, cheaper
+AH exclusion, bag confirmation, timeout/manual retry, dismissal, world-map canvas
+placement/map switching and Ctrl-click removal. The merchant API contract was
+inspected against the Forever MerchantFrame source; BuyMerchantItem receives item
+units, and pack step/price comes from stackCount. All packaged TGA textures have
+power-of-two dimensions. Captured test frames were visually inspected with the new
+skin. These tests do not exercise native protected purchase actions or live game
+map rendering. No Blizzard source is packaged.
+
+Beta 2 adds action selection, exact quantities, map success/failure text, marker
+deduplication, explicit dismiss, changed task, bank/craft/mail/AH/unknown stock
+transitions and bilingual range colours. Next-step layout inspected with test data.
+
+Beta 3 verifies separate drag grips on all eight window types; right-button
+rejection; scale change, clamps, persistence and global reset; foreground icon
+layering; zero/empty icon fallback; custom slider endpoints, thumb and limits.
+Skin layout inspected using captured test frames. Actual game frame layering,
+cursor anchoring, clamping and native item image loading remain manual tests.
+
+3.4 tests cover profession/AH opening restoration, shopping closure, scan wait,
+recipe/no-profile states, auto-start delay, freshness/expiry, closed-AH deferral,
+mail-lock preservation, busy buy panel, cooldown, throttling, failure backoff,
+replicate/summary choice and scoped quantity prefill. Unknown items, excess units,
+excess cost, expired orders and vendor materials are rejected; confirmed success
+reduces remaining units and failure does not.
+
+Two additional local probes execute actual Auctionator 344 code: automatic
+InitiateScan -> complete summary scan -> shopping unlock, and the commodity
+QuantityCheckConfirmationDialog SetDetails/ConfirmPurchase methods. The latter
+shows the quantity is filled without a purchase call; only explicit confirmation
+sends it, and unrelated-item quantities remain empty. Third-party test sources are
+not bundled. Live hardware-event behaviour, server throttling and actual user
+interaction still require in-game testing.
+
+Beta 2 regression: real profession opener dispatch and visible failures; craft
+output texture/count; one native craft per click with bag and recipe revalidation;
+search/quote vs actual purchase separation; generic success without item evidence;
+partial purchase/rest quantity; bag collection; direct commodity offer loading,
+changed-price rejection, quote preparation and explicit confirmation.
+
+The actual Auctionator 344 BuyClicked, ForceStartPurchase, GetPrices, CheckPurchase
+and QuantityCheckConfirmationDialog methods were executed in a separate local
+probe. No purchase is sent while preparing; explicit confirmation emits a mocked
+synchronous COMMODITY_PURCHASED event before the API returns and correctly records
+its item/quantity. No Blizzard/Auctionator implementation is included in this ZIP.
+
+Forever generated API docs and native crafting page were inspected: OpenTradeSkill
+returns opened; CraftRecipe takes recipeSpellID/numCasts; CommodityPurchased carries
+itemID/quantity whereas CommodityPurchaseSucceeded carries no payload. Native
+recipe-page SelectRecipe takes recipeInfo rather than a raw numeric ID. These are
+source/API contract checks, not an in-game test of protected calls or server orders.
+
+A replenishment regression also verifies that collected materials consumed by
+crafting can be planned again on a later explicit click, without reusing a zero
+remaining allowance or treating the previous mail as a new purchase.
+
+Beta 3 reproduces a profession opened from the AH without a native show event:
+OpenTradeSkill succeeds, the AH remains open and the recipe reader must replace
+an invalidated cache with the current profession/skill. A late AH_SHOW preserves
+that visible native profession. Separate scenarios supply nil profile data and
+empty recipe IDs before data becomes ready, verify a visible loading task and a
+single window-opening call, then confirm automatic recovery. Native visibility
+also repairs a missed event; hidden native panels trigger zero recipe reads.
+Previous AH-only isolation/event-order cases remain passing. These are controlled
+API/frame simulations; no live game client is connected.
+
+Beta 4 adds frozen purchase batches, four repeated two-unit attempts, quote-intent
+correlation, generic-only synchronous success, event deduplication, no-result
+reservation persistence, failure release, live one-copper repricing and native
+quantity clearing. A completed craft permits a new batch; stale bag data, simple
+polls and scans do not. The original 344 dialog/BuyClicked probe now also emits
+only generic success synchronously and then a duplicate item-specific success;
+only one receipt is booked. Live-price hooks and zero native quantity are tested.
+See AUDIT_EINKAUF.md for findings and remaining in-game validation.
+
+Additional mail regression: an unrelated bag gain after the direct-delivery
+window cannot erase pending mail. Actual collection while MAIL_SHOW is active
+reduces it. A generic receipt after lost reload context stays uncertain; an
+item-specific receipt can resolve it.
+
+3.5 regressions reproduce four available crafts versus a five-craft plan, separate
+single/batch API quantities, per-cast progress, interruption and stop dispatch,
+conservative boundary counts, and a hidden Shopping parent brought forward before
+commodity loading. Log tests verify 500-entry bounds, persistence, unchanged-state
+suppression, pause/re-enable, export UI and selective forwarding of own Lua errors.
+The new Next-step button layout was rendered from captured test frames and inspected.
+This does not prove hardware-restricted cancellation or native rendering in game.
+
+## Beta 2 regression checks
+
+The mock now denies GetStringHeight on EditBox, as the Forever widget API does.
+The actual Next-step Info callback and /cdj log dispatcher open and reopen the
+export without that method. Existing pause/clear/persistence/export checks pass.
+Native quantity 4, selected recipe and reagent allocation reach one request;
+quantity clamping and setter exceptions fail without an unintended second craft.
+The default suite has 992 assertions / 79 scenarios. With CDJ_NATIVE_SOURCE set
+to the separately downloaded Forever UI directory, an opt-in test executes the
+original Create, CreateInternal and transaction:CraftRecipe functions and reaches
+1000 assertions / 80 scenarios. Primary code is not distributed in the addon.
+This is API-contract validation, not an in-game/server integration test.
+
+## Beta 3 client-confirmed regression
+
+The supplied runtime screenshot reports SetFont: missing argument 3 (flags).
+All five non-test SetFont calls now explicitly pass a string for flags. The mock
+requires it, and the regression test reproduces the missing-argument failure,
+opens the corrected log, checks direct chat error reporting and recovery, and
+checks /cdj version. 999 default assertions / 80 scenarios, or 1007 / 81 with the
+optional original native source probe. Crafting logic is unchanged from beta 2;
+the observed in-game multicraft problem remains under investigation.
+
+## Beta 4 recorded no-start path
+
+The supplied 3.5 beta 3 trace records accepted=4 and a nil native Create result,
+then completed=0 / remaining=4; input quantities remain 5/4/6. This establishes no
+observed craft start, not a server error or a proven conflict with another addon.
+New regression coverage: a UI Create callback that must never be invoked; direct
+API dispatch with all selected native arguments; four confirmed completions;
+nil API return with no start (no retry); requested-to-running start event;
+synchronous ADDON_ACTION_BLOCKED; fixed four-craft material rows during repeated
+rendering; unchanged reads and unrelated spells/addon loads excluded from log.
+1017 assertions / 83 default scenarios. Optional original native transaction
+argument comparison: 1032 / 84. Live result remains pending.
+
+## Beta 5 explicit native confirmation
+
+The new 1.60.1 trace records CraftDeja ADDON_ACTION_BLOCKED / UNKNOWN() synchronously
+with the direct craft dispatch. Consequently that production path is removed.
+Tests now distinguish preparation from a separate user/native click, reject any
+addon-issued CraftRecipe/Click/Create and stop function, preserve native handlers,
+verify exact native input 1/4 and highlighting, and track only actual cast events.
+Quantity clamping, setter errors, preparation persistence, manual edits, Back,
+profession close and relevant client block reporting are covered. The obsolete
+native-transaction dispatch probe is removed because it no longer tests the current
+production path. 1030 assertions / 83 simulated scenarios. German task layout rendered
+and inspected with synthetic data. Real server crafting remains unverified.
+
+## 3.6 next-action planning, task emphasis and native cue
+
+Six new scenario groups cover a full 15-to-73 learning route (64 estimated crafts
+rather than 5), exact missing quantities handed to Auctionator, manual mode/return
+and persistence, rank cap 75 and learning required now, pending purchase safety,
+unchanged-goal no-unlock, readable opaque mail text with background-only pulse,
+and a native cue selecting safe Create all versus a bounded prepared Create button.
+The cue never dispatches a craft or modifies native handlers. Hidden native buttons
+and unsafe all-counts hide it. Old purchase, storage, faction and profession contracts
+remain covered; their skill-target fixtures explicitly use the retained manual mode.
+1090 assertions / 89 scenarios pass. German mail/ready/shopping layout mockups were
+rendered and visually inspected; native item textures/slider motion in the test
+renderer are placeholders, not live screenshots. No new live-client claim is made.
+The user's newer trace does confirm four prepared native crafts completed and later
+two native crafts raised the profession from 19 to 21.
+
+## 3.6 beta 2 scan lock and purchase target regression
+
+The new trace reports fresh=true before the Search click; early protocol completion
+versus a changing market cannot be settled from that older trace because scan events
+were not yet logged. Its full next-action search list versus two-unit item load does
+confirm the leftover explicit shoppingPlan(shopping.points) calls. Both are removed.
+New scenarios cover disabled UI and stale callbacks during scanning, complete-but-busy
+staging, new-price release at native idle, an eight-hour wall-clock jump with unchanged
+client timer, old generation plan rejection, full next-action load quantity, raw live
+commodity updates, pending purchase receipt preservation, and AH-close pending
+completion invalidation. 1137 assertions / 95 scenarios pass. The external actual
+Auctionator 344 probe now declares a fresh scan context, matching the hardened
+contract, and its three native quote/confirmation/receipt cases pass. No in-game
+purchase or scan-completion claim is made for this version.
+
+## Gaming-PC validation — 2026-11-14
+
+CraftDeja 3.9.0-beta.9
+Windows, wowlua 0.13.14, Blizzard UI 1.60.1.70938.
+302 passed, 0 failed, 0 skipped; 198.23 seconds.
+Build passed. IconTexture generated correctly through addon.icon-texture.
+Remaining compiler warning: W1034 in src/UnifiedUI.lua.
+Automated tests do not replace complete in-game validation.

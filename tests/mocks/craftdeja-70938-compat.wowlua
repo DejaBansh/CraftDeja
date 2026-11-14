@@ -1,0 +1,69 @@
+import * as mock from "wowlua:mock"
+
+-- TEST MODEL ONLY. Ordinary paid Blacksmithing/Mining recording fixtures.
+-- Unknown recipes and missing/zero-cost schemas raise an error; no guessed
+-- success for free-crafting, waiver states, other professions or real play.
+local api: table = C_TradeSkillUI
+local supported = {
+    [2657] = true,
+    [2659] = true,
+    [2660] = true,
+    [2661] = true,
+    [2662] = true,
+    [2663] = true,
+    [2664] = true,
+    [2665] = true,
+    [2666] = true,
+    [2668] = true,
+    [2670] = true,
+    [2737] = true,
+    [2738] = true,
+    [2739] = true,
+    [3115] = true,
+    [3116] = true,
+    [3292] = true,
+    [3293] = true,
+    [3294] = true,
+    [3304] = true,
+    [3319] = true,
+    [3320] = true,
+    [3323] = true,
+    [3324] = true,
+    [3326] = true,
+    [3328] = true,
+    [3491] = true,
+    [6517] = true,
+    [7408] = true,
+    [7817] = true,
+    [7818] = true,
+    [8880] = true,
+    [9983] = true,
+    [12260] = true,
+    [19666] = true,
+    [1230161] = true,
+    [1230171] = true,
+    [1245287] = true,
+    [1252229] = true,
+    [1252230] = true,
+    [1252231] = true,
+}
+_G["CraftDejaTestUICompat"] = { installed = false, calls = 0 }
+if type(api["HasNoReagentCost"]) ~= "function" then
+    _G["CraftDejaTestUICompat"].installed = true
+    mock.setField(api,"HasNoReagentCost",function(recipeID)
+        if not supported[recipeID] then
+            error("UNVERIFIED TEST MODEL: HasNoReagentCost recipe "..tostring(recipeID))
+        end
+        local schematic=api.GetRecipeSchematic(recipeID,false)
+        if type(schematic)=="table" and type(schematic.reagentSlotSchematics)=="table" then
+            for _,slot in ipairs(schematic.reagentSlotSchematics) do
+                if slot.required~=false and type(slot.quantityRequired)=="number" and slot.quantityRequired>0
+                    and type(slot.reagents)=="table" and #slot.reagents>0 then
+                    _G["CraftDejaTestUICompat"].calls=_G["CraftDejaTestUICompat"].calls+1
+                    return false
+                end
+            end
+        end
+        error("UNVERIFIED TEST MODEL: required reagent cost not established for "..tostring(recipeID))
+    end)
+end

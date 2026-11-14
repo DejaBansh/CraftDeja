@@ -1,0 +1,20 @@
+import test from "wowlua:test"
+import * as mock from "wowlua:mock"
+local function apiModel()
+ local meta=_G["CraftDejaTestUICompat"]
+ assert(meta and meta.installed,"Fixture-specific compatibility model was not installed; reassess on newer wowlua")
+ local api: table = C_TradeSkillUI
+ assert(type(api["HasNoReagentCost"])=="function","Compatibility API missing")
+ return api
+end
+
+@test("Compatibility model returns false only for a recorded paid recipe")
+local function scenario()
+
+ local api=apiModel()
+ mock.player:openTradeSkill(2656,"Mining")
+ mock.waitUntil(function()return _G["CraftDeja"].active and not _G["CraftDeja"].professionLoading end)
+ assert(api.HasNoReagentCost(2659)==false,"Ordinary Bronze recipe incorrectly treated as free")
+ assert(_G["CraftDejaTestUICompat"].calls>0,"Model was not exercised")
+ assert(#mock.errors()==0,"Unexpected Lua error")
+end

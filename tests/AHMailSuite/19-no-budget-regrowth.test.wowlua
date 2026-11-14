@@ -1,0 +1,76 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Fixed ingredient plan and scan snapshot are explicit test inputs.
+-- No CraftDeja function is replaced. Auctionator/TSM are not loaded.
+local function setup()
+    local c={app=_G["CraftDeja"],id=2840,other=3576}
+    local app=c.app
+    mock.defineItem(c.id,{name="Copper Bar",stackCount=20})
+    mock.defineItem(c.other,{name="Tin Bar",stackCount=20})
+    mock.setBag(0,{slots=16,items={}})
+    mock.player:setMoney(10000)
+    mock.setLatency(0.1)
+    app.character.ahPurchase={sequence=0,log={}}
+    app.character.ahMail={}
+    app.ahOrder=nil
+    local s=app.shopping
+    s.open=true;s.ready=GetTime();s.readyWall=time();s.prices={[c.id]=10,[c.other]=20}
+    s.started=nil;s.pendingScan=nil;s.scanSerial=1
+    c.plan={recipe={id=2659,profession=186},from=83,target=86,
+        rows={{id=c.id,buy=5,maxUnit=12},{id=c.other,buy=2,maxUnit=24}}}
+    c.batch=app.ensurePurchaseBatch(c.plan)
+    c.dialog={QuantityInput={GetText=function()return "3"end}}
+    c.quote=function(n)
+        n=n or 3
+        c.dialog.QuantityInput.GetText=function()return tostring(n)end
+        local t=app.observeAHQuote(c.dialog,{itemID=c.id,quantity=n,total=n*10})
+        assert(t,"No valid quote registered")
+        return t
+    end
+    c.confirm=function(n)
+        local t=c.quote(n)
+        assert(app.markAHConfirm(c.dialog),"Confirmation intent rejected")
+        return t
+    end
+    c.receipt=function(n)
+        c.confirm(n)
+        mock.fireEvent("COMMODITY_PURCHASED",c.id,n or 3)
+    end
+    c.bags=function(n,other)
+        local items={}
+        if n and n>0 then items[1]={id=c.id,count=n}end
+        if other and other>0 then items[2]={id=c.other,count=other}end
+        mock.setBag(0,{slots=16,items=items})
+        mock.fireEvent("BAG_UPDATE_DELAYED")
+    end
+    c.mail=function(amount,second)
+        local box=mock.spawnUnit({name="Mailbox",distance=2})
+        local letters={{sender="Auction House",subject="Purchased materials",daysLeft=30,
+            money=0,cod=0,items={{id=c.id,count=amount}}}}
+        if second then letters[2]={sender="Auction House",subject="More materials",daysLeft=30,
+            money=0,cod=0,items={{id=c.id,count=second}}}end
+        mock.defineMailbox(box,{letters=letters,bagAfter=0.5,goneAfter=0.2})
+        mock.player:interact(box)
+        mock.waitSeconds(0.5)
+        assert(app.mailOpen,"Mailbox not recognized")
+    end
+    return c
+end
+
+@afterEach
+local function errors()
+    local captured=mock.errors()
+    assert(#captured==0,table.concat(captured,"\n"))
+end
+
+@test("Gleicher Skillauftrag erhaelt bereits gekaufte Menge nicht erneut")
+local function scenario()
+
+    local c=setup();c.receipt(3)
+    c.app.character.ahMail={}
+    c.plan.rows[1].buy=9
+    local b=c.app.ensurePurchaseBatch(c.plan)
+    assert(b==c.batch and b.rows[c.id].remaining==2,"Poll grew completed budget")
+    assert(c.app.purchaseBudget(c.plan,c.id,9)==2,"Budget cap ignored")
+end

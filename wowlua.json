@@ -1,0 +1,82 @@
+{
+    "$schema":  "https://raw.githubusercontent.com/DomenikIrrgang/wowlua/main/schema/wowlua-0.1.json",
+    "package":  {
+                    "name":  "craft-deja",
+                    "version":  "3.9.0-beta.9",
+                    "authors":  [
+                                    "Tim"
+                                ],
+                    "wowlua":  "^0.13"
+                },
+    "addon":  {
+                  "title":  "CraftDeja",
+                  "notes":  "Price-aware crafting skill adviser, recipe sources and material planning.",
+                  "notes-localized":  {
+                                          "deDE":  "Preisbewusster Berufsberater, Rezeptherkunft und Materialplanung."
+                                      },
+                  "toc-extra":  {
+                                    "X-License":  "MIT (code); see DATA_SOURCES.md for data and artwork"
+                                },
+                  "saved-variables":  [
+                                          "CraftDejaDB"
+                                      ],
+                  "icon-texture":  "Interface\\AddOns\\CraftDeja\\Art\\Logo.tga"
+              },
+    "flavors":  {
+                    "camelot":  {
+
+                                }
+                },
+    "addon-dependencies":  {
+                               "optional":  [
+                                                "Auctionator",
+                                                "TradeSkillMaster"
+                                            ]
+                           },
+    "build":  {
+                  "assets":  [
+                                 "Art/**/*.{tga,blp,png,jpg,jpeg,ogg,mp3,wav,ttf,otf}"
+                             ],
+                  "load-order":  [
+                                     "src/Start.lua",
+                                     "src/Words.lua",
+                                     "src/FlowLog.lua",
+                                     "src/Data/Catalog.lua",
+                                     "src/Data/Names_en.lua",
+                                     "src/Data/Names_de.lua",
+                                     "src/Data/FactionAccess.lua",
+                                     "src/Data/VendorReagents.lua",
+                                     "src/Data/VendorLocations.lua",
+                                     "src/Data/TrainerLocations.lua",
+                                     "src/Access.lua",
+                                     "src/Client.lua",
+                                     "src/Inventory.lua",
+                                     "src/Merchants.lua",
+                                     "src/Trainers.lua",
+                                     "src/Economy.lua",
+                                     "src/RecipeAudit.lua",
+                                     "src/PlanningGoals.lua",
+                                     "src/Skin.lua",
+                                     "src/Themes.lua",
+                                     "src/Attention.lua",
+                                     "src/Screen.lua",
+                                     "src/Shopping.lua",
+                                     "src/VendorBuy.lua",
+                                     "src/MapPins.lua",
+                                     "src/CraftActions.lua",
+                                     "src/RodPreparation.lua",
+                                     "src/NextStep.lua",
+                                     "src/PurchaseState.lua",
+                                     "src/AuctionBridge.lua",
+                                     "src/Poisons.lua",
+                                     "src/OrderProgress.lua",
+                                     "src/Run.lua",
+                                     "src/UnifiedUI.lua",
+                                     "src/SystemCheck.lua"
+                                 ]
+              },
+    "test":  {
+                 "blizzard-ui":  true,
+                 "platform":  "windows"
+             }
+}

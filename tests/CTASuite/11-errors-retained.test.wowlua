@@ -1,0 +1,30 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+-- Fixed plans/scan state isolate guide routing. Native station case below
+-- uses recorded Mining with the original Create button and real focus state.
+local function setup()
+    local a=_G["CraftDeja"]
+    a.options.language="de";a.showCentralGuide();a.shopping.open=false
+    local r={id=7753,profession=185,learned=true,complete=true,colour="orange",green=110,grey=130,yellow=90,points=1}
+    a.active={profile={id=185,skill=86,cap=150},recipes={[r.id]=r}}
+    a.decision={current={recipe=r},stop=110}
+    local plan={recipe=r,from=86,target=110,crafts=11,stockKnown=true,rows={{id=6289,name="Roher Langzahniger Matschsschnapper",total=11,owned=0,buy=11,unit=8,vendor=false,locations={bags=0,total=0,bank=0,shared=0,alts={}}}}}
+    local render=function(kind)
+        local task={kind=kind,key="cta:"..kind,recipe=r,body="Long explanation that belongs in the tooltip."}
+        a.renderNextStep(plan,true,task)
+        return a.nextStepWindow,task
+    end
+    return a,plan,render
+end
+@afterEach
+local function errors()
+    local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("CTA: 11-errors-retained")
+local function scenario()
+local a,_plan,render=setup();render("ah");a.actionNotice="Important purchase error. Do not retry blindly."
+local f=render("ah")
+assert(f.notice:IsShown() and f.notice:GetText()==a.caption("cta_issue"),"Error status missing")
+local found=false;for _,line in ipairs(f.ctaDetails)do if line==a.actionNotice then found=true end end
+assert(found,"Full error removed from tooltip")
+end

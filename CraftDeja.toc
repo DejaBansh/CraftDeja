@@ -1,0 +1,43 @@
+## Interface: 16001
+## Title: CraftDeja
+## Notes: Price-aware crafting skill adviser, recipe sources and material planning.
+## Notes-deDE: Preisbewusster Berufsberater, Rezeptherkunft und Materialplanung.
+## Author: Tim
+## Version: 3.9.0-beta.4
+## SavedVariables: CraftDejaDB
+## OptionalDeps: Auctionator, TradeSkillMaster
+## X-License: MIT (code); see DATA_SOURCES.md for data and artwork
+Start.lua
+Words.lua
+FlowLog.lua
+Data\Catalog.lua
+Data\Names_en.lua
+Data\Names_de.lua
+Data\FactionAccess.lua
+Data\VendorReagents.lua
+Data\VendorLocations.lua
+Data\TrainerLocations.lua
+Access.lua
+Client.lua
+Inventory.lua
+Merchants.lua
+Trainers.lua
+Economy.lua
+RecipeAudit.lua
+PlanningGoals.lua
+Skin.lua
+Themes.lua
+Attention.lua
+Screen.lua
+Shopping.lua
+VendorBuy.lua
+MapPins.lua
+CraftActions.lua
+NextStep.lua
+PurchaseState.lua
+AuctionBridge.lua
+Poisons.lua
+OrderProgress.lua
+Run.lua
+UnifiedUI.lua
+SystemCheck.lua

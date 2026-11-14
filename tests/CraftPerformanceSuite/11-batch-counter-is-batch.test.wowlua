@@ -1,0 +1,96 @@
+import test, config from "wowlua:test"
+import * as mock from "wowlua:mock"
+config({profile="craft-skill"})
+
+-- No CraftDeja function is replaced. Vendor prices, recorded recipes,
+-- native buttons, server timing, bags and skill-ups use the emulator.
+local function setup()
+    local c={app=_G["CraftDeja"],inputs=3}
+    local app=c.app
+    mock.defineItem(2840,{name="Copper Bar",stackCount=20})
+    mock.defineItem(3576,{name="Tin Bar",stackCount=20})
+    mock.defineItem(2841,{name="Bronze Bar",stackCount=20})
+    mock.setLatency(0.2)
+    mock.openMerchant({name="Materials",items={
+        {id=2840,price=100,stack=1,available=-1,maxStack=20,usable=true},
+        {id=3576,price=100,stack=1,available=-1,maxStack=20,usable=true}
+    }})
+    mock.waitSeconds(0.5);mock.closeMerchant()
+    mock.setBag(0,{slots=16,items={
+        [1]={id=2840,count=c.inputs},[2]={id=3576,count=c.inputs}
+    }})
+    mock.player:setSpellFocus({"Forge"})
+    mock.player:openTradeSkill(2656,"Mining")
+    mock.waitUntil(function()
+        return app.active and app.active.profile.id==186 and not app.professionLoading
+            and (app.active.confirmed or 0)>0
+    end)
+    assert(app.decision and app.decision.current.recipe.id==2659,
+        "FIXTURE: recorded Bronze recipe was not chosen from observed prices")
+    c.recipe=app.active.recipes[2659]
+    assert(c.recipe and c.recipe.learned and c.recipe.colour~="grey", "FIXTURE: Bronze recipe not skill-relevant")
+    app.setPlanningGoal("manual",3)
+    c.plan=app.materialPlan(c.recipe,app.planningTarget())
+    assert(c.plan and c.plan.stockKnown, "Material plan unavailable")
+    c.revision=app.character.craftRevision or 0
+    c.skill=app.active.profile.skill
+    mock.player:craftSkillUps(2659,{false,false,false,false,false})
+    c.count=function(id)return C_Item.GetItemCount(id,false)end
+    c.output=function()return c.count(2841)end
+    assert(c.output()==0, "FIXTURE: output stock is not empty")
+    c.prepare=function(all)
+        assert(app.craftNext(c.plan,all==true), "Native preparation failed")
+        local h=app.nativeCraftHandoff
+        assert(h and h.id==2659, "Correct native handoff missing")
+        assert(ProfessionsFrame.CraftingPage.SchematicForm:GetRecipeInfo().recipeID==2659,
+            "Wrong native recipe selected")
+        assert(ProfessionsFrame.CraftingPage.CreateMultipleInputBox:GetValue()==h.count,
+            "Native quantity differs from handoff")
+        c.prepared=h.count
+        return h
+    end
+    c.start=function(timings)
+        mock.player:craftTimings(timings or {
+            {start=0.2,success=1,bags=0.2},
+            {start=0.2,success=1,bags=0.2},
+            {start=0.2,success=1,bags=0.2}
+        })
+        mock.click(ProfessionsFrame.CraftingPage.CreateButton)
+    end
+    c.completed=function(n)
+        mock.waitUntil(function()
+            return c.output()==2*n and (app.character.craftRevision or 0)==c.revision+n
+                and not app.craftBatch and not app.nativeCraftHandoff
+        end)
+        assert(c.count(2840)==c.inputs-n, "Incorrect copper consumption")
+        assert(c.count(3576)==c.inputs-n, "Incorrect tin consumption")
+    end
+    c.unchanged=function()
+        assert(c.output()==0,"Items made without a confirmed craft")
+        assert(c.count(2840)==c.inputs and c.count(3576)==c.inputs,"Reagents consumed without craft")
+        assert((app.character.craftRevision or 0)==c.revision,"Unconfirmed craft counted")
+    end
+    c.done=function()assert(#mock.errors()==0,"Unexpected Lua error during crafting")end
+    return c
+end
+
+local function _counters(c)
+ local counts={read=0,market=0,capture=0,plan=0}
+ for key,name in pairs({read="readRecipes",market="marketView",capture="captureInventory",plan="materialPlan"})do
+  local original=c.app[name]
+  mock.stub(c.app,name,function(...)counts[key]=counts[key]+1;return original(...)end)
+ end
+ return counts
+end
+local function running(c)
+ c.start({{start=0.2,success=2,bags=0.2},{start=0.2,success=2,bags=0.2},{start=0.2,success=2,bags=0.2}})
+ mock.waitUntil(function()return c.app.craftBatch~=nil end)
+end
+@test("Craft performance: 11-batch-counter-is-batch")
+local function scenario()
+local c=setup();c.prepare(true);running(c)
+mock.waitUntil(function()return c.app.craftBatch and c.app.craftBatch.remaining==2 end)
+mock.waitSeconds(1.1);local b=c.app.craftBatch
+assert(b and b.plan.crafts==2 and b.plan.rows[1].total==2,"Batch plan/counters did not shrink")
+local v=c.app.orderOverview(b.plan,{kind="craft_queue"});assert(v.craft.n==2,"Overview substituted full skill forecast for running batch");c.done()
+end

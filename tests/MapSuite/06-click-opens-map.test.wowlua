@@ -1,0 +1,23 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+local function setup(side)
+    local app=_G["CraftDeja"]
+    app.showCentralGuide()
+    mock.stub(_G,"UnitFactionGroup",function()return side or "Horde"end)
+    mock.stub(C_Map,"GetBestMapForUnit",function()return 1454 end)
+    mock.stub(C_Map,"GetPlayerMapPosition",function()return {x=.5,y=.4,GetXY=function()return .5,.4 end}end)
+    return app,{id=7748,profession=333,learned=false,green=120,grey=140}
+end
+@afterEach
+local function errors()
+    local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("Recipe map: 06-click-opens-map")
+local function scenario()
+local a,r=setup();a.renderNextStep(nil,true,a.recipeLearningTask(r))
+mock.click(a.nextStepWindow.action)
+assert(WorldMapFrame and WorldMapFrame:IsShown(),"Map not opened")
+assert(WorldMapFrame:GetMapID()==1454,"Wrong target map")
+a.updateMerchantMarker(1)
+assert(a.mapPin and a.mapPin:IsShown() and a.mapPin.target.npc==11066,"Custom map marker absent")
+end

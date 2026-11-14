@@ -1,0 +1,6 @@
+
+/dist/
+/.wowlua/
+/.env
+/.env.*
+/*.log

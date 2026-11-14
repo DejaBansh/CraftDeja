@@ -1,0 +1,84 @@
+import test from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Real recorded profession data and real CraftDeja refresh/render logic.
+-- Route-only cases below explicitly supply their material-plan input.
+local function setup()
+    local c={app=_G["CraftDeja"]}
+    c.guide=function()
+        local g=c.app.nextStepWindow
+        assert(g and g:IsVisible(), "Central guide is not visible")
+        assert(not c.app.main or not c.app.main:IsVisible(), "Legacy main window is visible")
+        return g
+    end
+    c.open=function(name,spell,id)
+        mock.player:openTradeSkill(spell,name)
+        mock.waitUntil(function()
+            local a=c.app.active
+            return a and a.profile.id==id and not c.app.professionLoading and (a.confirmed or 0)>0
+        end)
+        assert(ProfessionsFrame and ProfessionsFrame:IsVisible(), "Native profession window missing")
+        assert(c.app.professionOpen, "Profession not marked open")
+        c.guide()
+        return c.app.active
+    end
+    c.close=function()
+        assert(ProfessionsFrame and ProfessionsFrame.CloseButton, "FIXTURE: native close button missing")
+        mock.click(ProfessionsFrame.CloseButton)
+        mock.waitFrames(3)
+        assert(not ProfessionsFrame:IsVisible(), "Native profession window did not close")
+        assert(not c.app.professionOpen, "Profession remains marked open")
+    end
+    c.single=function()
+        local g=c.guide()
+        for _,f in ipairs(c.app.themedWindows)do
+            assert(f==g or not f:IsVisible(), "Extra CraftDeja page/window remains visible")
+        end
+    end
+    c.done=function()
+        assert(#mock.errors()==0, "Unexpected Lua error in profession/guide flow")
+    end
+    c.routePlan=function()
+        c.open("Mining",2656,186)
+        local r=c.app.active.recipes[2659]
+        assert(r and r.learned and r.complete and r.colour~="grey", "FIXTURE: skill-relevant Smelt Bronze recipe missing")
+        mock.defineItem(2840,{name="Copper Bar",stackCount=20})
+        mock.defineItem(3576,{name="Tin Bar",stackCount=20})
+        mock.setBag(0,{slots=16,items={}})
+        return {
+            recipe=r, from=c.app.active.profile.skill,
+            target=c.app.active.profile.skill+5,crafts=5,
+            stockKnown=true,priceKnown=true,estimated=false,
+            rows={
+                {id=2840,name="Copper Bar",total=5,owned=0,buy=5,unit=100,vendor=false,
+                    locations={bags=0,bank=0,shared=0,total=0,alts={},deductibleAlts=0}},
+                {id=3576,name="Tin Bar",total=5,owned=0,buy=5,unit=100,vendor=false,
+                    locations={bags=0,bank=0,shared=0,total=0,alts={},deductibleAlts=0}}
+            }
+        }
+    end
+    c.renderRoute=function(plan,kind)
+        -- No task override: the real nextStep(plan) chooses the task.
+        c.app.renderNextStep(plan,true)
+        local g=c.guide()
+        assert(g.task and g.task.kind==kind,
+            "Expected route "..kind..", observed "..tostring(g.task and g.task.kind))
+        assert(g.body:IsVisible(), "Task body missing")
+        assert(g.orderBar:IsVisible(), "Order progress missing")
+        return g
+    end
+    return c
+end
+
+@test("An irrelevant bag update does not reopen a dismissed guide")
+local function scenario()
+
+ local c=setup();c.open("Blacksmithing",3100,164)
+ local g=c.guide();mock.click(g.close)
+ assert(not g:IsVisible(),"Guide did not close")
+ mock.defineItem(3371,{name="Empty Vial",stackCount=20})
+ mock.setBag(0,{slots=16,items={[1]={id=3371,count=1}}})
+ mock.waitFrames(5)
+ assert(not g:IsVisible(),"Irrelevant bag update reopened dismissed guide")
+ mock.slash("/cdj auftrag");c.guide();c.done()
+end

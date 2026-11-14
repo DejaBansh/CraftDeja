@@ -1,0 +1,51 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+-- Controlled Enchanting client metadata. Native Enchanting is not recorded
+-- by this emulator; no guessed server ingredients or skill ranges are tested.
+local function setup()
+ local a=_G["CraftDeja"];a.options.language="de";a.showCentralGuide()
+ local function recipe(id,name,item)
+  return {id=id,profession=333,learned=true,confirmed=true,complete=true,materialsFromClient=true,liveName=name,
+   outputItemID=item,outputMin=1,outputMax=1,isEnchantingRecipe=false,colour="grey",noSkill=true,
+   groups={{amount=2,choices={10940}},{amount=1,choices={6217}}}}
+ end
+ local lower=recipe(7421,"Runenverzierte Kupferrute",6218)
+ local rod=recipe(7795,"Runenverzierte Silberrute",6339)
+ local root=recipe(900001,"Armschiene - Test",nil);root.colour="orange";root.noSkill=false
+ root.yellow=110;root.green=120;root.grey=130;root.skill=1;root.points=1
+ local requirements={[root.id]={{name=rod.liveName,type=Enum.RecipeRequirementType.Totem,met=false}},[rod.id]={},[lower.id]={}}
+ local stock={};local prices={[10940]=10,[6217]=5,[6218]=20}
+ a.active={profile={id=333,skill=100,cap=150},recipes={[root.id]=root,[rod.id]=rod,[lower.id]=lower}}
+ a.sessions[333]=a.active;a.professionOpen=true;a.shopping.open=false;a.shopping.goal="next"
+ a.shopping.prices=prices;a.shopping.livePrices={};a.shopping.tolerance=10
+ a.decision={current={recipe=root},stop=110};a.character.rodPreparation=nil
+ mock.stub(a,"nativeProfessionVisible",function()return true end)
+ mock.stub(C_TradeSkillUI,"GetRecipeRequirements",function(id)return requirements[id] end)
+ mock.stub(a,"refresh",function()end)
+ mock.stub(a,"unitPrice",function(id)return prices[id],"fixture"end)
+ mock.stub(a,"inventoryFor",function(id)local n=stock[id] or 0;return {bags=n,total=n,bank=0,shared=0,alts={}}end)
+ mock.stub(C_Item,"GetItemCount",function(id)return stock[id] or 0 end)
+ mock.stub(a,"vendorPrice",function()return nil end)
+ local c={a=a,root=root,rod=rod,lower=lower,requirements=requirements,stock=stock,prices=prices}
+ c.ready=function()stock[10940]=20;stock[6217]=10 end
+ c.plan=function()local p,t,active=a.rodPreparationPlan();return p,t,active end
+ c.native=function()
+  local input={value=0};function input:SetValue(n)self.value=n end;function input:GetValue()return self.value end
+  local form={};function form:GetRecipeInfo()return {recipeID=form.id}end
+  local button=CreateFrame("Button",nil,UIParent);button:Show();button:Enable()
+  local page={SchematicForm=form,CreateMultipleInputBox=input,CreateButton=button}
+  _G["ProfessionsFrame"]={CraftingPage=page}
+  mock.stub(a,"selectNativeRecipe",function(id)form.id=id;return true end)
+  return page
+ end
+ return c
+end
+@afterEach
+local function errors()
+ local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("RodSuite: 08-single-output-proof")
+local function scenario()
+local c=setup();c.rod.outputMax=2
+local p,t=c.plan();assert(not p and t.kind=="tool","Uncertain output used as single rod")
+end

@@ -1,0 +1,101 @@
+import test from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Each file gets a fresh client. Only recipe planning and guide routing
+-- are fixtures; merchant APIs, buttons, money, bags and replies are real
+-- wowlua models unless a test explicitly injects a faulty API answer.
+local function setup(options)
+    local c = options or {}
+    c.app = _G["CraftDeja"]
+    c.item = 3371
+    c.before = c.before or 2
+    c.goal = c.goal or 5
+    c.bundle = c.bundle or 1
+    c.price = c.price or 10
+    c.available = c.available or -1
+    c.maxStack = c.maxStack or 20
+    c.money = c.money or 10000
+    c.latency = c.latency or 1
+    local app = c.app
+    mock.defineItem(c.item, { name = "Empty Vial", stackCount = 20 })
+    mock.defineItem(6947, { name = "Bag filler", stackCount = 20 })
+    mock.setBag(0, { slots = 16, items = {
+        [1] = { id = c.item, count = c.before }
+    } })
+    mock.stub(app, "refresh", function() end)
+    mock.stub(app, "refreshNextStep", function() end)
+    mock.stub(app, "planningTarget", function() return c.goal end)
+    mock.stub(app, "materialPlan", function()
+        local owned = C_Item.GetItemCount(c.item, false)
+        return {
+            stockKnown = type(owned) == "number",
+            from = 0, target = c.goal, crafts = c.goal,
+            rows = {{ id = c.item, total = c.goal,
+                buy = math.max(0, c.goal - (owned or 0)),
+                unit = c.price / c.bundle,
+                locations = { bags = owned, total = owned, alts = {} }
+            }}
+        }
+    end)
+    local recipe = { id = 900002, learned = true }
+    app.active = { profile = { id = 164, skill = 100, cap = 100 },
+        recipes = { [recipe.id] = recipe } }
+    app.decision = { current = { recipe = recipe } }
+    mock.player:setMoney(c.money)
+    mock.setLatency(c.latency)
+    c.count = function() return C_Item.GetItemCount(c.item, false) end
+    c.open = function()
+        mock.openMerchant({ name = "CraftDeja test vendor", items = {{
+            id = c.item, price = c.price, stack = c.bundle,
+            available = c.available, maxStack = c.maxStack, usable = true
+        }} })
+        mock.waitSeconds(c.latency + 0.2)
+    end
+    c.show = function()
+        app.offerVendorPurchase()
+        local row = app.vendorPurchase.plan and app.vendorPurchase.plan.rows[1]
+        assert(row, "FIXTURE: no offered ingredient")
+        app.renderNextStep(nil, true, { kind = "vendor", key = "suite-vial",
+            id = c.item, atVendor = true, body = "Buy missing vials" })
+        local guide = app.nextStepWindow
+        assert(guide and guide:IsVisible(), "Guide is not visible")
+        assert(guide.vendorOffer, "Guide has no displayed offer")
+        assert(guide.action:IsEnabled(), "Guide purchase button is disabled")
+        c.guide = guide
+        return row
+    end
+    c.click = function() mock.click(c.guide.action) end
+    c.settle = function(expected)
+        mock.waitUntil(function()
+            return c.count() == expected and not app.vendorPurchase.pending
+        end)
+    end
+    c.noPurchase = function()
+        mock.waitSeconds(c.latency + 0.2)
+        assert(c.count() == c.before, "Unexpected item purchase")
+        assert(GetMoney() == c.money, "Unexpected money deduction")
+        assert(not app.vendorPurchase.pending, "Unexpected pending purchase")
+    end
+    c.done = function()
+        mock.closeMerchant()
+        assert(#mock.errors() == 0, "Unexpected Lua error")
+    end
+    return c
+end
+
+@test("Guide buys only the deficit after explicit click")
+local function scenario()
+
+    local c=setup({})
+    c.open()
+    local row=c.show()
+    assert(row.quantity==3 and row.cost==30, "Incorrect displayed quantity/price")
+    c.noPurchase()
+    c.click()
+    assert(c.app.vendorPurchase.pending, "No pending confirmation")
+    assert(c.count()==2, "Count changed before server response")
+    c.settle(5)
+    assert(GetMoney()==9970, "Incorrect charge")
+    assert(#c.app.vendorPurchasePlan().rows==0, "Purchased material offered twice")
+    c.done()
+end

@@ -1,0 +1,31 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+local function setup()
+    local a=_G["CraftDeja"]
+    a.showCentralGuide();a.shopping.goal="next";a.options.green=true
+    mock.stub(a,"canRecommend",function()return true,"known"end)
+    mock.stub(a,"quote",function(r)return {cost=r.cost or 10,inputs={{item=2840,amount=1,unit=r.cost or 10}}}end)
+    mock.stub(a,"inventoryFor",function()return {bags=0,total=0,bank=0,shared=0,alts={}}end)
+    local function recipe(id,cost,yellow,green,grey)
+        return {id=id,profession=186,cost=cost,yellow=yellow,green=green,grey=grey,skill=1,
+            learned=true,confirmed=true,complete=true,colour="orange",points=1,groups={{choices={2840},amount=1}}}
+    end
+    local r=recipe(1,10,90,110,130)
+    local profile={id=186,skill=76,cap=150}
+    a.active={profile=profile,recipes={[r.id]=r}}
+    local snapshot=function()
+        local s={profile=profile,recipes=a.active.recipes,quotes={}}
+        for id,v in pairs(s.recipes)do s.quotes[id]=a.quote(v)end
+        return s
+    end
+    return a,r,profile,recipe,snapshot
+end
+@afterEach
+local function errors()
+    local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("Auto skill: 17-gray-never-skills")
+local function scenario()
+local a,r,p,_make,s=setup();p.skill=130;r.colour="grey"
+assert(not a.decide(s()),"Gray recipe used for skilling")
+end

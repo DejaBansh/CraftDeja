@@ -1,0 +1,19 @@
+## CraftDeja 3.7.0 Beta 1
+**Recipe observations and visible data status**
+
+- Detect unknown recipes, complete ingredient differences and difficulty discrepancies when opening your profession.
+- View the bundled data-package date and report count in the adviser.
+- Open **Recipe check** or use `/cdj data` to copy the observation report.
+- Keep reports across sessions, merge duplicates and limit storage to 200 observations per character.
+- Ignore incomplete ingredient data; do not automatically change the shared reference catalogue.
+- Include up to 20 recent recipe observations in `/cdj log`.
+
+### Help test CraftDeja
+
+Please post bugs in the CurseForge comments with your version, profession and steps to reproduce. Copy `/cdj log` with **Ctrl+C**; for recipe differences, also copy `/cdj data`.
+
+Reports are **unverified observations**, not confirmed recipe changes. No automatic report upload takes place. The package date identifies the snapshot and does not mean every recipe was revalidated on that date.
+
+Requires Auctionator or TSM price data; AH shopping requires Auctionator. All existing shopping, mail, vendor and trainer features remain included.
+
+**Beta:** the new recipe-observation workflow still needs live in-game testing.

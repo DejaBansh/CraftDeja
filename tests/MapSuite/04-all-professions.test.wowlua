@@ -1,0 +1,35 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+local function setup(side)
+    local app=_G["CraftDeja"]
+    app.showCentralGuide()
+    mock.stub(_G,"UnitFactionGroup",function()return side or "Horde"end)
+    mock.stub(C_Map,"GetBestMapForUnit",function()return 1454 end)
+    mock.stub(C_Map,"GetPlayerMapPosition",function()return {x=.5,y=.4,GetXY=function()return .5,.4 end}end)
+    return app,{id=7748,profession=333,learned=false,green=120,grey=140}
+end
+@afterEach
+local function errors()
+    local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("Recipe map: 04-all-professions")
+local function scenario()
+local a=setup()
+local seen=0
+for profession,recipes in pairs(a.catalog)do
+ local example
+ for id in pairs(recipes)do
+  local r={id=id,profession=profession};if a.recipeSourceTarget(r)then example=r;break end
+ end
+ if example then
+  local task=a.recipeLearningTask(example)
+  a.renderNextStep(nil,true,task)
+  assert(a.mapTarget and a.mapTarget.npc==task.sourceTarget.npc,"Profession marker mismatch: "..profession)
+  seen=seen+1
+ else
+  local id=next(recipes)
+  if id then assert(not a.recipeLearningTask({id=id,profession=profession}).sourceTarget,"Invented coordinates")end
+ end
+end
+assert(seen>=8,"Too few professions with real mapped recipe sources: "..seen)
+end

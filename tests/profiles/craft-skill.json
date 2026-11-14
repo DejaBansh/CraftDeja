@@ -1,0 +1,32 @@
+{
+  "character": {
+    "name": "CraftTest",
+    "class": "PALADIN",
+    "race": "Human",
+    "level": 21
+  },
+  "stats": {
+    "skillLine": [
+      [
+        {
+          "costType": 0,
+          "description": "",
+          "isAbandonable": true,
+          "isCollapsed": false,
+          "isHeader": false,
+          "maxRank": 150,
+          "minLevel": 0,
+          "modifier": 0,
+          "name": "Mining",
+          "parentSkillLineID": 0,
+          "rank": 83,
+          "rankCost": 0,
+          "skillID": 186,
+          "skillLineCategoryID": 11,
+          "stepCost": 0,
+          "tempPoints": 0
+        }
+      ]
+    ]
+  }
+}

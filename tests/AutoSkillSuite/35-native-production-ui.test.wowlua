@@ -1,0 +1,33 @@
+import test, config, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+config({profile="production-300"})
+-- Recorded Mining APIs, real emulator bags and native Create button.
+local function setup()
+    local a=_G["CraftDeja"]
+    a.showCentralGuide()
+    for id,name in pairs({[2840]="Copper Bar",[3576]="Tin Bar",[2841]="Bronze Bar"})do mock.defineItem(id,{name=name,stackCount=20})end
+    mock.openMerchant({name="Materials",items={{id=2840,price=100,stack=1,available=-1,maxStack=20,usable=true},{id=3576,price=100,stack=1,available=-1,maxStack=20,usable=true}}})
+    mock.waitSeconds(1);mock.closeMerchant()
+    mock.setBag(0,{slots=16,items={[1]={id=2840,count=3},[2]={id=3576,count=3}}})
+    mock.player:setSpellFocus({"Forge"})
+    mock.player:openTradeSkill(2656,"Mining")
+    mock.waitUntil(function()return a.active and a.active.profile.id==186 and not a.professionLoading end)
+    assert(a.active.profile.skill==300,"Native profile not at skill 300")
+    a.showCentralGuide();a.selectNativeRecipe(2659)
+    local r=a.active.recipes[2659]
+    assert(r and r.learned,"Recorded Bronze recipe missing")
+    mock.player:craftSkillUps(2659,{false,false,false})
+    return a,r
+end
+@afterEach
+local function errors()
+ local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("Auto skill native: 35-native-production-ui")
+local function scenario()
+local a,_r=setup();a.editUnifiedOrder();local v=a.skillOrderView
+assert(v.quantity:IsVisible(),"Quantity hidden at 300")
+v.quantity:SetText("2");mock.click(v.apply)
+assert(a.productionJob() and a.productionJob().remaining==2,"UI quantity not applied")
+assert(not v:IsVisible(),"Production page did not close")
+end

@@ -1,0 +1,18 @@
+import test from "wowlua:test"
+import * as mock from "wowlua:mock"
+local function apiModel()
+ local meta=_G["CraftDejaTestUICompat"]
+ assert(meta and meta.installed,"Fixture-specific compatibility model was not installed; reassess on newer wowlua")
+ local api: table = C_TradeSkillUI
+ assert(type(api["HasNoReagentCost"])=="function","Compatibility API missing")
+ return api
+end
+
+@test("Compatibility model rejects unknown recipes instead of guessing")
+local function scenario()
+
+ local api=apiModel()
+ local ok,message=pcall(api.HasNoReagentCost,999999999)
+ assert(not ok and tostring(message):find("UNVERIFIED TEST MODEL",1,true),"Unknown recipe was silently accepted")
+ assert(#mock.errors()==0,"Unexpected Lua error")
+end
