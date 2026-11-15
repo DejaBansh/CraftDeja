@@ -33,3 +33,6 @@
 | Preis-Bursts pro Frame zusammenführen | Preise sofort speichern, nur finale Neuentscheidung einmal; explizite Aktionen synchron prüfen | beta.16; keine neue Zeitdrossel, keine Änderungen an manuellen Mengen |
 | CPU-Diagnose nur auf ausdrücklichen Befehl | Bounded 30s, Originalhandler wiederherstellen, keine Nutzerdaten/Argumente | /cdj perf start / stop / show, standardmäßig aus |
 | Performanceauftrag ohne Installation | Aktuelle ausdrückliche Nutzeranweisung hat Vorrang vor allgemeinem Auto-Installwunsch | beta.16 nur Quellbranch; beta.15 im Spiel unverändert |
+
+| Unmögliche Kandidaten vor Wahrscheinlichkeit prüfen | Gleiche Auswahl, weniger unnötige Live-/Lookahead-Auswertungen; ungeprüfte Quellen getrennt erhalten | beta.17, 480 differenzielle Vergleiche und 520/0/0 |
+| Metadateninteresse je Rezepttabelle indizieren | Keine wiederholte Vollsuche für jedes Gegenstandsereignis; bei readRecipes invalidieren | beta.17; Event-/Sitzungswechselregression bestanden |

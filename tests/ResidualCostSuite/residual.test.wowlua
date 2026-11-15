@@ -1,0 +1,131 @@
+import test, afterEach, bench from "wowlua:test"
+import * as mock from "wowlua:mock"
+-- Frozen beta.16 selector for differential correctness checks.
+local a=_G['CraftDeja']
+local app=a
+local function prefer(left,right)
+    if not right then return true end
+    local difference=left.unitSkill-right.unitSkill
+    if math.abs(difference)>0.000001 then return difference<0 end
+    if left.chance~=right.chance then return left.chance>right.chance end
+    return left.recipe.id<right.recipe.id
+end
+
+local function referenceAt(snapshot,level,actual)
+    local known,unknown,safe=nil,nil,nil
+    local missing,unchecked=0,0
+    for id,recipe in pairs(snapshot.recipes)do
+        local probability,colour,estimated=app.probability(recipe,level,actual)
+        local greenOK=colour~="green"or (app.options.green and recipe.green and not recipe.rangeConflict and level<(recipe.grey or recipe.green))
+        local futureOK=actual or not recipe.rangeConflict
+        local rankOK=recipe.learned or (not recipe.referenceHidden and recipe.skill and level>=recipe.skill)
+        local cached=snapshot.eligibility and snapshot.eligibility[id]
+        local allowed,accessReason
+        if cached then allowed,accessReason=cached.allowed,cached.reason else allowed,accessReason=app.canRecommend(recipe)end
+        if recipe.confirmed and not recipe.learned and rankOK and probability>0 and accessReason=='access_unknown'then unchecked=unchecked+1 end
+        if allowed and recipe.confirmed and not recipe.disabled and not recipe.cooldown and recipe.craftLimit~=0 and not recipe.noSkill and futureOK and rankOK and probability>0 and greenOK then
+            local quote=snapshot.quotes[id]
+            if quote then
+                local gain=probability*math.min(recipe.points or 1,math.max(1,snapshot.profile.cap-level))
+                local candidate={recipe=recipe,quote=quote,chance=probability,colour=colour,estimated=estimated,unitSkill=(quote.netCost or quote.cost)/gain}
+                if recipe.learned then
+                    if prefer(candidate,known)then known=candidate end
+                    if colour~="green"and prefer(candidate,safe)then safe=candidate end
+                else
+                    local assessment=app.learningAssessment and app.learningAssessment(snapshot,recipe,level)
+                    candidate.acquisition=assessment
+                    candidate.needsCostCheck=assessment and not assessment.known or false
+                    if (not assessment or not assessment.known or assessment.worth)and prefer(candidate,unknown)then unknown=candidate end
+                end
+            elseif recipe.learned then missing=missing+1 end
+        end
+    end
+    if known and known.colour=="green"and safe and known.unitSkill>=safe.unitSkill then known=safe end
+    if known and known.colour=="green"then
+        known.greenExtra=true
+        known.saving=safe and safe.unitSkill>0 and (1-known.unitSkill/safe.unitSkill)or nil
+    end
+    return known,unknown,missing,unchecked
+end
+
+@afterEach
+local function clean()
+ assert(#mock.errors()==0,'Unexpected emulator error')
+end
+
+@test('Residual CPU: selector matches beta16 across access, rank, colour and restrictions')
+local function differential()
+ mock.stub(a,'learningAssessment',function(_,r)return {known=r.id%3==0,worth=r.id%5==0}end)
+ for case=1,60 do
+  mock.setField(a.options,'green',case%2==0)
+  local s={profile={skill=117,cap=150},recipes={},quotes={},eligibility={}}
+  for i=1,60 do
+   local n=i+case
+   s.recipes[i]={id=i,learned=n%3==0,confirmed=n%7~=0,disabled=n%11==0,cooldown=n%13==0,
+    noSkill=n%17==0,craftLimit=n%19==0 and 0 or nil,rangeConflict=n%23==0,
+    referenceHidden=n%29==0,skill=110+n%20,yellow=120,green=130,grey=150,
+    colour=({'orange','yellow','green','grey'})[n%4+1],points=n%3+1}
+   s.eligibility[i]={allowed=n%5~=0,reason=n%5==0 and 'access_unknown'or 'known'}
+   if n%9~=0 then s.quotes[i]={cost=100+n,netCost=n%4==0 and -n or 100+n}end
+  end
+  for _,level in ipairs({117,120,130,150})do for _,actual in ipairs({true,false})do
+   local x,u,m,v=referenceAt(s,level,actual);local y,w,p,q=a.selectionAt(s,level,actual)
+   assert(m==p and v==q,'Missing/unverified counts changed')
+   for _,pair in ipairs({{x,y},{u,w}})do
+    local l,r=pair[1],pair[2]
+    assert((l==nil)==(r==nil),'Candidate presence changed')
+    if l then
+     assert(l.recipe.id==r.recipe.id and l.chance==r.chance and l.colour==r.colour and l.unitSkill==r.unitSkill)
+     assert(l.greenExtra==r.greenExtra and l.saving==r.saving and l.needsCostCheck==r.needsCostCheck)
+    end
+   end
+  end end
+ end
+end
+
+-- Synthetic mixed catalogue: its size/skill follow the live log, not its
+-- exact recipe membership. 32 eligible + 230 unlearned high-rank entries.
+local function workload()
+ local c={calls=0};local s={profile={skill=117,cap=150},recipes={},quotes={},eligibility={}}
+ mock.setField(a.options,'green',true)
+ for i=1,262 do
+  local r={id=970000+i,learned=i<=32,confirmed=true,skill=i<=32 and 1 or 200,
+   yellow=150,green=150,grey=150,colour='orange',points=1,complete=true}
+  s.recipes[r.id]=r;s.quotes[r.id]={cost=100+i,netCost=100+i};s.eligibility[r.id]={allowed=true}
+ end
+ local probability=a.probability
+ mock.stub(a,'probability',function(...)c.calls=c.calls+1;return probability(...)end)
+ c.run=function()return a.decide(s)end
+ return c
+end
+
+@test('Residual CPU: high-rank recipes do not evaluate probability at impossible levels')
+local function counts()
+ local c=workload();local d=c.run()
+ assert(d and d.current.recipe.id==970001 and d.stop==150)
+ assert(c.calls==1088,'PERF mixed probability='..c.calls..' expected=1088')
+end
+
+@test('Residual CPU: item interest index is shared across metadata bursts and replaced with the session')
+local function itemIndex()
+ local session={profile={id=333,skill=117,cap=150},recipes={}}
+ for i=1,262 do session.recipes[i]={id=i,outputItemID=800000+i,groups={{choices={700000+i},amount=1}}}end
+ mock.setField(a,'active',session);mock.setField(a,'decision',nil)
+ mock.setField(a,'itemInterestRecipes',nil);mock.setField(a,'itemInterest',nil)
+ local event=a.events:GetScript('OnEvent')
+ event(a.events,'GET_ITEM_INFO_RECEIVED',999999,true)
+ local index=a.itemInterest
+ assert(index and index[700001] and index[800262] and not index[999999])
+ for i=1,363 do event(a.events,'GET_ITEM_INFO_RECEIVED',900000+i,true);assert(a.itemInterest==index)end
+ mock.setField(a,'active',{profile=session.profile,recipes={[1]={id=1,groups={{choices={600001},amount=1}}}}})
+ event(a.events,'GET_ITEM_INFO_RECEIVED',999999,true)
+ assert(a.itemInterest~=index and a.itemInterest[600001] and not a.itemInterest[700001])
+end
+
+local context
+@bench('262 mixed-rank recipes / one decision to skill cap')
+local function mixedBenchmark()
+ if not context then context=workload()end
+ return context.run()
+end
+

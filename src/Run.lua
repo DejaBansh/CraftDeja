@@ -33,6 +33,7 @@ function app.refresh(rescan)
         local profile=app.readProfession()
         if profile and (not app.expectedProfession or profile.id==app.expectedProfession)then
             local session=app.readRecipes(profile)
+            app.itemInterestRecipes=nil
             app.traceProfessionRead(profile,session.confirmed)
             if session.confirmed>0 then
                 if profile.id==40 and (not app.active or app.active.profile.id~=40)and app.professionOpen then app.poisonShowOnRead=true end
@@ -84,11 +85,15 @@ local function relevantItem(id)
     if type(id)~='number'or not app.active then return false end
     local snapshot=app.decision and app.decision.snapshot
     if snapshot and (snapshot.prices[id]~=nil or snapshot.sellPrices and snapshot.sellPrices[id]~=nil)then return true end
-    for _,r in pairs(app.active.recipes)do
-        if r.outputItemID==id then return true end
-        for _,g in ipairs(r.groups or {})do for _,item in ipairs(g.choices)do if item==id then return true end end end
+    if app.itemInterestRecipes~=app.active.recipes then
+        local items={}
+        for _,r in pairs(app.active.recipes)do
+            if r.outputItemID then items[r.outputItemID]=true end
+            for _,g in ipairs(r.groups or {})do for _,item in ipairs(g.choices)do items[item]=true end end
+        end
+        app.itemInterestRecipes=app.active.recipes;app.itemInterest=items
     end
-    return false
+    return app.itemInterest[id]==true
 end
 local events=CreateFrame('Frame');app.events=events
 for _,event in ipairs({'ADDON_LOADED','AUCTION_HOUSE_SHOW','AUCTION_HOUSE_CLOSED','TRADE_SKILL_SHOW','TRADE_SKILL_CLOSE','TRADE_SKILL_LIST_UPDATE','TRADE_SKILL_DATA_SOURCE_CHANGED','TRADE_SKILL_DETAILS_UPDATE','SKILL_LINES_CHANGED','UNIT_SPELLCAST_SUCCEEDED','BAG_UPDATE_DELAYED','GET_ITEM_INFO_RECEIVED','MERCHANT_SHOW','MERCHANT_UPDATE','MERCHANT_CLOSED','NEUTRAL_FACTION_SELECT_RESULT','PLAYER_ENTERING_WORLD','PLAYER_LEVEL_UP','BANKFRAME_OPENED','BANKFRAME_CLOSED','PLAYERBANKSLOTS_CHANGED','PLAYERREAGENTBANKSLOTS_CHANGED','BANK_TABS_CHANGED','PLAYER_LOGOUT','COMMODITY_PURCHASE_SUCCEEDED','COMMODITY_PURCHASE_FAILED','COMMODITY_PURCHASED','MAIL_SHOW','MAIL_CLOSED','UNIT_SPELLCAST_FAILED','UNIT_SPELLCAST_INTERRUPTED','UI_ERROR_MESSAGE','UNIT_SPELLCAST_START','UNIT_SPELLCAST_CHANNEL_START','ADDON_ACTION_BLOCKED','ADDON_ACTION_FORBIDDEN','COMMODITY_SEARCH_RESULTS_UPDATED'})do app.try(events.RegisterEvent,events,event)end

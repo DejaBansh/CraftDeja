@@ -80,13 +80,17 @@ function app.selectionAt(snapshot,level,actual)
     local known,unknown,safe=nil,nil,nil
     local missing,unchecked=0,0
     for id,recipe in pairs(snapshot.recipes)do
-        local probability,colour,estimated=app.probability(recipe,level,actual)
-        local greenOK=colour~="green"or (app.options.green and recipe.green and not recipe.rangeConflict and level<(recipe.grey or recipe.green))
         local futureOK=actual or not recipe.rangeConflict
         local rankOK=recipe.learned or (not recipe.referenceHidden and recipe.skill and level>=recipe.skill)
         local cached=snapshot.eligibility and snapshot.eligibility[id]
         local allowed,accessReason
         if cached then allowed,accessReason=cached.allowed,cached.reason else allowed,accessReason=app.canRecommend(recipe)end
+        -- Reject impossible entries before evaluating probabilities. Unknown
+        -- access still participates in the separate unverified-source count.
+        if recipe.confirmed and rankOK and (not recipe.learned and accessReason=='access_unknown'
+            or allowed and not recipe.disabled and not recipe.cooldown and recipe.craftLimit~=0 and not recipe.noSkill and futureOK)then
+        local probability,colour,estimated=app.probability(recipe,level,actual)
+        local greenOK=colour~="green"or (app.options.green and recipe.green and not recipe.rangeConflict and level<(recipe.grey or recipe.green))
         if recipe.confirmed and not recipe.learned and rankOK and probability>0 and accessReason=='access_unknown'then unchecked=unchecked+1 end
         if allowed and recipe.confirmed and not recipe.disabled and not recipe.cooldown and recipe.craftLimit~=0 and not recipe.noSkill and futureOK and rankOK and probability>0 and greenOK then
             local quote=snapshot.quotes[id]
@@ -103,6 +107,7 @@ function app.selectionAt(snapshot,level,actual)
                     if (not assessment or not assessment.known or assessment.worth)and prefer(candidate,unknown)then unknown=candidate end
                 end
             elseif recipe.learned then missing=missing+1 end
+        end
         end
     end
     if known and known.colour=="green"and safe and known.unitSkill>=safe.unitSkill then known=safe end
