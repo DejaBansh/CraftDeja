@@ -50,3 +50,5 @@ Die 302 Tests sind ein dokumentierter automatisierter Lauf des Nutzers mit wowlu
 ## Trainer fee identity — beta.14
 
 Beta.14 adds a guarded nil-link fee observation for the specifically reported Mot Dawnstrider offer (NPC 11071 / recipe 7771 / recipe item 6345): exact client name and rank, verified NPC/catalog relationship, and no duplicate service or spell identity. All other unsupported nil-link offers remain unknown. This is not fuzzy name matching or complete trainer coverage. See [ACQUISITION_COSTS.md](ACQUISITION_COSTS.md).
+
+Beta.15 normalizes the observed Forever name/status/icon service layout as well as legacy name/rank/status. Rankless spell identity prefers C_Spell.GetSpellInfo; same-name ambiguity cannot be resolved by a rank that the service did not supply. Full Windows regression: 505/0/0; actual Mot capture remains pending after installation.

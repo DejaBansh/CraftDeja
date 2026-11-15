@@ -1,4 +1,4 @@
-# One-time recipe costs / Einmalige Rezeptkosten — beta.14
+# One-time recipe costs / Einmalige Rezeptkosten — beta.15
 
 ## Implemented / Implementiert
 
@@ -16,7 +16,37 @@
   unknown recipe remains a provisional source-check suggestion; the CTA says
   `Check learning cost` / `Lernkosten prüfen`. It is not a verified cheaper route.
 
-## Beta.14 nil-link trainer identity / Trainerzuordnung ohne Link
+## Beta.15 — actual Forever trainer API / beobachtete Client-API
+
+User output on 1.60.1/70938: `1 Umhang - Schwacher Schutz available 135913 200 nil`.
+This proves that this client returns name/status/icon, without a rank slot.
+Beta.14 incorrectly treated available as a rank and the numeric icon as status,
+then rejected the offer. Previous automated fixtures used the older name/rank/status
+shape and did not validate the actual Forever return layout. The first diagnostic
+command produced no output; missing global GetSpellInfo is a hypothesis, not yet
+independently proven by client output.
+
+Beta.15 recognizes BOTH layouts by known status values and value types; unknown
+layouts fail closed. For rankless services it prefers C_Spell.GetSpellInfo's table
+(name/spellID), with guarded legacy fallback. Legacy ranked services retain exact
+rank matching. If the service supplies no rank, duplicate spell names are ambiguous
+even when a legacy spell API supplies different ranks. Duplicate trainer rows also
+remain rejected if either row lacks a rank. Unexpected spell override IDs fail closed.
+
+The verified Mot NPC/recipe/item relationship, exact name matching, fee validation,
+exact-link precedence and native craft busy guard remain required. No name similarity,
+fixed fee, polling, source-list expansion or automatic training was added.
+Twenty new scenarios cover the real return tuple, missing/throwing legacy APIs,
+C_Spell tables, modern/legacy fallback, rankless ambiguity, exact links and busy guards.
+A successful test does not prove live capture; beta.14 remains installed until a
+separate authorized installation of beta.15 with WoW closed.
+
+Primary generated API contract for C_Spell.GetSpellInfo:
+https://github.com/Gethe/wow-ui-source/blob/classic_era/Interface/AddOns/Blizzard_APIDocumentationGenerated/SpellDocumentation.lua
+This supports the spell-info table contract, not the exact Forever trainer tuple;
+the latter is directly supported by the user's screenshot.
+
+## Beta.14 nil-link trainer identity / Trainerzuordnung ohne Link (historical)
 
 The reported case is Mot Dawnstrider (NPC 11071), recipe spell 7771,
 recipe item 6345, nil service link and 200 copper. Beta.13 read the fee but
@@ -169,3 +199,14 @@ Metadata identifies parent commit 3ca5bbc plus then-uncommitted beta.14 source;
 recorded hashes bind the tested source to this correction. Existing W1034 remains.
 No game installation, main merge or addon release. Successful live observation
 at Mot is still pending after a separately authorized installation/retest.
+
+## Beta.15 — bestätigter API-Unterschied und Korrektur, 15.11.2026
+
+- Neue Nutzer-Chatdiagnose: `1 Umhang - Schwacher Schutz available 135913 200 nil`. Bei der verwendeten Ausgabe bedeutet dies Serviceindex, Name, Status, Icon-ID, 200 Kupfer, nil-Link. Der aktuelle Client liefert kein Rangfeld zwischen Name und Status.
+- Konkrete beta.14-Ursache: Acquisition.lua interpretierte available als Rang und 135913 als Status; der Fallback lehnte deshalb ab. Die bisherigen Tests benutzten nur die ältere name/rank/status-Form. Ausbleibende Ausgabe des alten GetSpellInfo-Befehls deutet zusätzlich auf fehlende globale API; das ist nicht separat live bewiesen.
+- Beta.15 erkennt beide Layouts anhand bekannter Statuswerte und Typen. Bei ranglosen Angeboten wird C_Spell.GetSpellInfo mit name/spellID bevorzugt, Legacy bleibt abgesichert verfügbar. Keine erfundenen Ränge; gleiche Namen sind ohne Rangfeld mehrdeutig, auch bei verschiedenen Legacy-Rängen. Abweichende Spell-IDs/Overrides, doppelte Angebote und unklare Daten werden abgelehnt.
+- NPC/Rezept/Gegenstand-Beziehung, aktuelle Gebühr, exakte Namen, vorrangige Links und native Craft-Sperre bleiben unverändert. Keine zusätzlichen Timer, Käufe oder Quellenlistenänderungen.
+- 20 neue Forever-API-Regressionen. Mit beta.14-Code 70 bestanden / 8 fehlgeschlagen / 0 übersprungen (3 Dateien, 7.14s): reports/tests/20261115-184454-006099.zip. Mit Korrektur fokussiert 78/0/0 (6.77s): 20261115-184533-2afad6.zip.
+- Finaler beta.15-Windows/Camelot-Lauf mit Blizzard-UI, wowlua 0.13.14: Build erfolgreich, 505 bestanden, 0 fehlgeschlagen, 0 übersprungen (309 Dateien), 213.08s. ZIP: reports/tests/20261115-184607-d24132.zip. ZIP-Protokoll geprüft; alle 18 aufgezeichneten Quellprüfsummen stimmen exakt. W1034 bleibt bekannt.
+- Entwicklungsversion src/Start.lua und wowlua.json: 3.9.0-beta.15. Ausgangscommit 1186209b0f3caa66265d627a1aee4aa9db6b5f78 auf feature/acquisition-costs; vorhandene vier lokale Übergabeänderungen aus der Installations-/Live-Runde vollständig erhalten und mitgeführt.
+- Im Spiel bleibt beta.14 installiert. Beta.15 wurde in dieser Runde NICHT installiert; kein Merge nach main, kein Addon-Release. Live-Erfassung bei Mot weiterhin offen. Nächster Schritt: beta.15 separat bei geschlossenem WoW mit Backup installieren und den frischen Beleg für Rezept 7771 prüfen. Keine weiteren alten GetSpellInfo-Diagnosen nötig.

@@ -22,7 +22,9 @@
 
 | Erwerbsgebühr einmalig gegen begrenzte Route prüfen | Billiger pro Craft rechtfertigt nicht jede Lerngebühr | beta.13-Entwicklung; ein Kandidat plus bekannte Alternativen |
 | Fehlende Gebühren nicht als Null speichern | Quelle/Kosten erst prüfen; keine belegte Billiger-Aussage | beta.13-CTA Lernkosten prüfen |
-| Keine Rezeptzuordnung über Namensähnlichkeit | Exakte Links bevorzugen; nil-Link nur mit belegter NPC/Rezept/Gegenstand-Beziehung, exaktem Clientnamen/Rang und ohne Mehrdeutigkeit | beta.14: begrenzter Mot-Fallback für 11071 / 7771 / 6345; sonst unbekannt |
+| Keine Rezeptzuordnung über Namensähnlichkeit | Exakte Links bevorzugen; nil-Link nur mit belegter NPC/Rezept/Gegenstand-Beziehung, exakter Clientidentität und ohne Mehrdeutigkeit; Rang nur bei API mit Rangfeld | beta.15: beide Trainer-API-Layouts, C_Spell-Unterstützung; begrenzter Mot-Fallback 11071 / 7771 / 6345 |
 
 | Mot-Nil-Link nur abgesichert zuordnen | NPC-GUID, Katalogbeziehung und Clientidentität müssen passen; doppelte Angebote/Spellidentitäten ablehnen, Livegebühr statt Festwert | beta.14 implementiert; echte erfolgreiche Clientbeobachtung noch offen, keine Spielinstallation |
 | Übergabe am tatsächlichen Git-/Teststand ausrichten | Branch, Commit, offene Änderungen und CONTINUE.md bei Beginn prüfen; Abschluss mit Änderungen, Nachweisen, Fehlern und nächstem Schritt | verbindlich in AGENTS.md |
+
+| Fehlende Rangfelder nicht erfinden | Forever liefert name/status/icon; bei ranglosen Angeboten sind gleiche Spellnamen immer mehrdeutig | beta.15 erkennt Status per Typ/Wert, C_Spell-Tabellen mit geprüfter Spell-ID; Legacy bleibt unterstützt |

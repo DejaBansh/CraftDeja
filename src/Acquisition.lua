@@ -18,6 +18,26 @@ local function serviceKey(name,rank)
     if type(name)~='string'or name==''or rank~=nil and type(rank)~='string'then return end
     return name..'\001'..(rank or '')
 end
+local serviceKinds={available=true,unavailable=true,used=true,header=true}
+local function trainerIdentity(index)
+    local name,second,third=app.try(GetTrainerServiceInfo,index)
+    -- Legacy: name, rank, status. Forever 1.60.1: name, status, iconID.
+    if serviceKinds[third]and (second==nil or type(second)=='string')then return name,second,third,true end
+    if serviceKinds[second]and (third==nil or type(third)=='number')then return name,nil,second,false end
+    return name,nil,nil,false
+end
+local function modernSpellIdentity(info,id)
+    if type(info)=='table'and type(info.name)=='string'and info.name~=''and (info.spellID==nil or info.spellID==id)then return info.name end
+end
+local function spellIdentity(id,ranked)
+    if not ranked then
+        local info=app.try(C_Spell and C_Spell.GetSpellInfo,id)
+        if info~=nil then return modernSpellIdentity(info,id)end
+    end
+    local name,rank=app.try(GetSpellInfo,id)
+    if type(name)=='string'and name~=''and (not ranked or rank==nil or type(rank)=='string')then return name,ranked and rank or nil end
+    if ranked then return modernSpellIdentity(app.try(C_Spell and C_Spell.GetSpellInfo,id),id)end
+end
 local function linklessRecipe(row,rows)
     if row.link~=nil or row.kind~='available'and row.kind~='unavailable'then return end
     local guid=app.try(UnitGUID,'npc')
@@ -27,12 +47,12 @@ local function linklessRecipe(row,rows)
     if not offers or not key then return end
     -- Even identical duplicate rows are ambiguous. Never select the first one.
     for _,other in ipairs(rows)do
-        if other~=row and serviceKey(other.name,other.rank)==key then return end
+        if other~=row and other.name==row.name and (not row.ranked or not other.ranked or serviceKey(other.name,other.rank)==key)then return end
     end
     local matched
     for id,item in pairs(offers)do
         local recipe=(app.catalog[333]or {})[id]
-        local name,rank=app.try(GetSpellInfo,id)
+        local name,rank=spellIdentity(id,row.ranked)
         if recipe and recipe.scroll==item and serviceKey(name,rank)==key then
             if matched then return end
             matched=id
@@ -45,7 +65,7 @@ local function linklessRecipe(row,rows)
     for _,recipes in pairs(app.catalog)do for id,recipe in pairs(recipes)do
         if id~=matched and not seen[id]then
             seen[id]=true
-            local name,rank=app.try(GetSpellInfo,id)
+            local name,rank=spellIdentity(id,row.ranked)
             if serviceKey(name,rank)==key or not name and names[id]==row.name then return end
         end
     end end
@@ -59,9 +79,9 @@ function app.observeTrainerCosts()
     local rows={}
     for i=1,count do
         local link=app.try(GetTrainerServiceItemLink,i)
-        local name,rank,kind=app.try(GetTrainerServiceInfo,i)
+        local name,rank,kind,ranked=trainerIdentity(i)
         local cost=app.try(GetTrainerServiceCost,i)
-        rows[#rows+1]={link=link,name=name,rank=rank,kind=kind,cost=cost}
+        rows[#rows+1]={link=link,name=name,rank=rank,kind=kind,ranked=ranked,cost=cost}
     end
     for _,row in ipairs(rows)do
         local id=type(row.link)=='string'and tonumber(row.link:match('spell:(%d+)')or row.link:match('enchant:(%d+)'))

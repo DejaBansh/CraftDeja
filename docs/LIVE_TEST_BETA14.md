@@ -1,7 +1,18 @@
-# Beta.14 — vorbereitete Installation und kurzer Mot-Live-Test
+# Beta.14 — bestätigte Installation und kurzer Mot-Live-Test
 
-Vorbereitet am 15.11.2026, **nicht ausgeführt**. Automatisierte Prüfung bestanden;
+Vorbereitet und auf ausdrücklichen Nutzerauftrag am 15.11.2026 **installiert und geprüft**. Automatisierte Prüfung bestanden;
 Live-Prüfung der Lerngebühr bei Mot Dawnstrider noch offen.
+
+## Installation bestätigt — 15.11.2026
+
+- Auf ausdrücklichen Nutzerauftrag installiert; WoW vor und nach der Installation beendet. WowUp-CF als Addonmanager von Spielprozessen unterschieden; kein Spiel gestartet oder beendet.
+- Quellstand: 1186209b0f3caa66265d627a1aee4aa9db6b5f78 auf feature/acquisition-costs. Installierte TOC: 3.9.0-beta.14-dev+1186209; app.release: 3.9.0-beta.14.
+- Backup reports/install/beta14-20261115-150654/CraftDeja-before-beta14.zip: alle 116 ursprünglichen Dateien per SHA256 im Archiv geprüft. Ursprünglicher Testbuild zusätzlich separat gesichert.
+- Dokumentierter wowlua-install-Befehl erfolgreich (Exit 0), ausschließlich _forever_/Interface/AddOns/CraftDeja. Alle 116 Payload-Dateien bytegenau identisch mit neuem Build; zusätzliche .wowlua-install ist die geprüfte wowlua-Verwaltungsdatei.
+- Gegen den gesicherten Testbuild unterscheiden sich nur generierte Commit-/Buildkennungen in CraftDeja.toc und wowlua/runtime.lua. Nach Entfernen genau dieser Metadatenzeilen ebenfalls identisch. Code und Assets unverändert; alle 18 Quellprüfsummen aus dem 485/0/0-Windowsbericht stimmen weiterhin.
+- Automatischer teilbarer Installationsbericht: reports/install/beta14-20261115-150654-bericht.zip (Bericht, vollständiges Protokoll, Metadaten und Dateiprüfsummen). Ergebnis installed_verified. Backup und Berichte bleiben lokal.
+- Main unverändert. Kein Merge, kein Release/Upload. Kein neuer Testlauf: unveränderter getesteter Laufzeitcode. Bekannte W1034 bleibt.
+- Automatisierte Prüfung und Installation bestanden; Live-Prüfung der Lerngebühr bei Mot Dawnstrider noch offen. Nächster Schritt: im Spiel beta.14 bestätigen, bei Mot das ungelernte Angebot 7771 öffnen und einen frischen learningCosts[7771]-Beleg (200 Kupfer / trainer / aktueller Zeitstempel) prüfen. Nichts kaufen oder lernen erforderlich.
 
 ## Geprüfte Ausgangslage
 
@@ -14,7 +25,7 @@ Live-Prüfung der Lerngebühr bei Mot Dawnstrider noch offen.
   Installationsskript im Projekt. `wowlua --help` und `wowlua install --help`
   bestätigen `install`, `--flavor`, `--client`, `--wow` und `--force`.
 
-## Nächster Installationsschritt — erst nach eigenem Auftrag ausführen
+## Ausgeführter Installationsschritt — Befehle als Referenz, nicht erneut nötig
 
 WoW zuvor vollständig beenden. PowerShell benötigt Schreibrechte für den
 angegebenen AddOns-Ordner. Diese Befehle sichern zuerst die bestehende Installation
@@ -82,3 +93,15 @@ if ($LASTEXITCODE -ne 0) { throw 'Tests fehlgeschlagen; nicht installieren.' }
 Erst die tatsächliche Erfassung für Rezept 7771 bestätigt den Live-Test.
 Bis dahin lautet der Status: **automatisierte Prüfung bestanden, Live-Prüfung
 der Lerngebühr bei Mot Dawnstrider noch offen**.
+
+## Update nach Live-Rückmeldung — beta.15 automatisiert geprüft, noch nicht installiert
+
+Der beobachtete Rückgabewert lautet Name / Status / Icon; beta.14 interpretiert ihn falsch. Korrektur und neue Regressionen für beta.15 siehe docs/ACQUISITION_COSTS.md. Im Spiel bleibt beta.14 installiert; erneute Installation erst separat mit beendetem WoW. Erfolgreiche Live-Erfassung bleibt offen.
+
+Der frühere GetSpellInfo-Diagnosebefehl kann mangels globaler API vor der Ausgabe abbrechen. NPC und moderne Spell-Info lassen sich getrennt davon lesend prüfen:
+
+```text
+/run print("NPC",UnitGUID("npc")); local f=C_Spell and C_Spell.GetSpellInfo; local s=f and f(7771); print("7771",s and s.name)
+```
+
+Finaler beta.15-Nachweis: reports/tests/20261115-184607-d24132.zip, Build erfolgreich, 505/0/0, 213.08s; 18 Quellhashes exakt geprüft. Der nachgewiesene Name/Status/Icon-Unterschied ist im Code korrigiert; erfolgreiche Live-Erfassung bleibt offen. Bei erneutem Installationsauftrag ein neues Backup erstellen; der alte lokale beta.14-Installationsreporter ist auf Version/Commit beta.14 festgelegt und darf nicht unverändert für beta.15 verwendet werden.

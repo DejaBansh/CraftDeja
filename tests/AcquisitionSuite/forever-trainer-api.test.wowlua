@@ -1,0 +1,109 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- User's actual 1.60.1/70938 result: name, available, 135913; cost 200;
+-- link nil. Legacy GetSpellInfo may be absent; names come from C_Spell.
+local function setup()
+ local a=_G["CraftDeja"]
+ mock.setField(a.character,"learningCosts",{})
+ mock.setField(a,"craftBatch",nil);mock.setField(a,"craftQuietUntil",0)
+ local c={a=a,name=a.names.de[7771],refreshes=0,spellReads=0}
+ c.rows={{name=c.name,kind="available",icon=135913,cost=200}}
+ c.spells={[7771]={name=c.name,spellID=7771,iconID=135913}}
+ mock.setField(_G,"GetSpellInfo",nil)
+ mock.setField(_G,"C_Spell",{GetSpellInfo=function(id)c.spellReads=c.spellReads+1;return c.spells[id]end})
+ mock.stub(_G,"UnitGUID",function()return "Creature-0-1-1-1-11071-00000001"end)
+ mock.stub(_G,"GetLocale",function()return "deDE"end)
+ mock.stub(_G,"GetNumTrainerServices",function()return #c.rows end)
+ mock.stub(_G,"GetTrainerServiceItemLink",function(i)return c.rows[i].link end)
+ mock.stub(_G,"GetTrainerServiceInfo",function(i)local r=c.rows[i];return r.name,r.kind,r.icon end)
+ mock.stub(_G,"GetTrainerServiceCost",function(i)return c.rows[i].cost end)
+ mock.stub(a,"refresh",function()c.refreshes=c.refreshes+1 end)
+ c.observe=function()return a.observeTrainerCosts()end
+ c.saved=function()return a.character.learningCosts[7771]end
+ return c
+end
+@afterEach
+local function errors()
+ local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("Forever trainer 01: actual name-status-icon tuple captures 200c without legacy API")
+local function case01()
+ local c=setup();assert(c.observe());assert(c.saved().cost==200 and c.saved().source=="trainer" and c.refreshes==1)
+end
+@test("Forever trainer 02: modern spell API is preferred for rankless services")
+local function case02()
+ local c=setup();mock.setField(_G,"GetSpellInfo",function()error("obsolete API called")end);assert(c.observe())
+end
+@test("Forever trainer 03: modern unavailable offers still supply fee")
+local function case03()
+ local c=setup();c.rows[1].kind="unavailable";assert(c.observe() and c.saved().cost==200)
+end
+@test("Forever trainer 04: used and header rows do not supply nil-link fees")
+local function case04()
+ local c=setup();c.rows[1].kind="used";assert(not c.observe());c.rows[1].kind="header";assert(not c.observe())
+end
+@test("Forever trainer 05: unknown service shape stays unknown")
+local function case05()
+ local c=setup();c.rows[1].kind="not-a-status";assert(not c.observe() and not c.saved())
+end
+@test("Forever trainer 06: icon ID is not a rank or a recipe ID")
+local function case06()
+ local c=setup();c.rows[1].icon=7776;assert(c.observe());assert(not c.a.character.learningCosts[7776])
+end
+@test("Forever trainer 07: missing icon is allowed when status is explicit")
+local function case07()
+ local c=setup();c.rows[1].icon=nil;assert(c.observe())
+end
+@test("Forever trainer 08: duplicate modern offers with same price rejected")
+local function case08()
+ local c=setup();c.rows[2]={name=c.name,kind="available",icon=135913,cost=200};assert(not c.observe() and not c.saved())
+end
+@test("Forever trainer 09: duplicate modern offers with different prices rejected")
+local function case09()
+ local c=setup();c.rows[2]={name=c.name,kind="unavailable",icon=135913,cost=350};assert(not c.observe())
+end
+@test("Forever trainer 10: same modern spell name on another ID is ambiguous")
+local function case10()
+ local c=setup();mock.setField(c.a.catalog[333],990778,{});c.spells[990778]={name=c.name,spellID=990778,iconID=135913};assert(not c.observe())
+end
+@test("Forever trainer 11: modern spell override ID is rejected")
+local function case11()
+ local c=setup();c.spells[7771].spellID=7776;assert(not c.observe() and not c.saved())
+end
+@test("Forever trainer 12: missing modern and legacy spell data stays unknown")
+local function case12()
+ local c=setup();c.spells[7771]=nil;assert(not c.observe())
+end
+@test("Forever trainer 13: malformed modern spell name rejected")
+local function case13()
+ local c=setup();c.spells[7771].name="";assert(not c.observe())
+end
+@test("Forever trainer 14: modern service can use legacy spell API as fallback")
+local function case14()
+ local c=setup();mock.setField(_G,"C_Spell",nil);mock.setField(_G,"GetSpellInfo",function(id)if id==7771 then return c.name,"Rank 1"end end);assert(c.observe())
+end
+@test("Forever trainer 15: rankless service rejects same-name legacy spells even with different ranks")
+local function case15()
+ local c=setup();mock.setField(_G,"C_Spell",nil);mock.setField(c.a.catalog[333],990778,{});mock.setField(_G,"GetSpellInfo",function(id)if id==7771 then return c.name,"Rank 1"elseif id==990778 then return c.name,"Rank 2"end end);assert(not c.observe())
+end
+@test("Forever trainer 16: English modern client names work")
+local function case16()
+ local c=setup();mock.stub(_G,"GetLocale",function()return "enUS"end);c.rows[1].name=c.a.names.en[7771];c.spells[7771].name=c.rows[1].name;assert(c.observe())
+end
+@test("Forever trainer 17: modern APIs are never read during native crafting")
+local function case17()
+ local c=setup();mock.setField(c.a,"craftBatch",{id=7771});assert(not c.observe() and c.spellReads==0)
+end
+@test("Forever trainer 18: changed live fee is used instead of fixed 200c")
+local function case18()
+ local c=setup();c.rows[1].cost=180;assert(c.observe() and c.saved().cost==180)
+end
+@test("Forever trainer 19: exact spell links still work without any spell-name APIs")
+local function case19()
+ local c=setup();mock.setField(_G,"C_Spell",nil);c.rows[1].link="|Hspell:7771|h[Test]|h";assert(c.observe() and c.saved().cost==200)
+end
+@test("Forever trainer 20: legacy ranked service is not matched using rankless modern name")
+local function case20()
+ local c=setup();mock.stub(_G,"GetTrainerServiceInfo",function()return c.name,"Rank 2","available"end);assert(not c.observe())
+end
