@@ -46,3 +46,7 @@ Die 302 Tests sind ein dokumentierter automatisierter Lauf des Nutzers mit wowlu
 ## Development validation — beta.10
 
 [Net-cost implementation and limitations](NET_COSTS.md): 50 new cases plus 37 existing economic cases passed in focused module validation. Full Windows/Blizzard-UI regression execution passed all 372 cases (0 failures/skips) in 195.46s with wowlua 0.13.14 on 14 Nov 2026. [Windows record](evidence/net-costs-windows-2026-11-14.txt). The beta.9 results above remain historical.
+
+## Trainer fee identity — beta.14
+
+Beta.14 adds a guarded nil-link fee observation for the specifically reported Mot Dawnstrider offer (NPC 11071 / recipe 7771 / recipe item 6345): exact client name and rank, verified NPC/catalog relationship, and no duplicate service or spell identity. All other unsupported nil-link offers remain unknown. This is not fuzzy name matching or complete trainer coverage. See [ACQUISITION_COSTS.md](ACQUISITION_COSTS.md).

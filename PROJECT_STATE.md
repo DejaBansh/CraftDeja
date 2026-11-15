@@ -3,7 +3,16 @@
 Stand: 15.11.2026. Dies ist ein Arbeitsstand aus Dateien und sichtbarem Gespräch, kein vollständiges Chat-Transkript.
 Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis ersetzt Versionskontrolle.
 
-## Aktueller Fortsetzungspunkt — beta.13, 15.11.2026
+## Aktueller Fortsetzungspunkt — beta.14, 15.11.2026
+
+- feature/acquisition-costs, Ausgangscommit 3ca5bbcc2aee639f91575f4b58a2eaf666a004ee; Arbeitsbaum zu Beginn sauber. app.release und wowlua.json: 3.9.0-beta.14. Aktuellen Sicherungscommit mit Git bestimmen.
+- Ursache Mot-Fall: beta.13 benötigt Spell-/Enchant-Link zur Rezept-ID und verwirft Gebühr bei nil. Gemeldet: NPC 11071, Rezept 7771, Rezeptgegenstand 6345, 200 Kupfer.
+- Implementiert: enger, belegter NPC/Rezept/Gegenstand-Fallback mit exaktem Clientnamen/Rang und Ambiguitätssperren (doppelte Angebote/Spellidentitäten, fehlende Daten). Aktuelle Gebühr statt Festwert, exakte Links vorrangig; andere unbelegte Nil-Link-Fälle unbekannt. Siehe docs/ACQUISITION_COSTS.md.
+- Finaler Windows/Camelot-Gesamtlauf mit Blizzard-UI und wowlua 0.13.14: Build bestanden, 485/0/0, 308 Dateien, 204.91s. Bericht reports/tests/20261115-140332-96c718.zip; alle 18 aufgezeichneten Quellhashes stimmen exakt mit finalem Code überein. 24 neue Regressionen. W1034 bleibt bekannt.
+- Noch offen: tatsächliche erfolgreiche Gebührenzuordnung im Mot-Trainerfenster nach separat beauftragter Installation bestätigen. Automatisierte Fixtures beweisen keine Live-Erfassung. Keine Spielinstallation, kein Addon-Release und kein Merge nach main in dieser Runde.
+- Nächster Schritt: gezielter Live-Retest dieses Angebots; weitere Nil-Link-Angebote nur anhand eigener Belege ergänzen. CONTINUE.md enthält die aktuelle Übergabe; darunter sind frühere Stände als Historie erhalten.
+
+## Vorheriger Fortsetzungspunkt — beta.13 (historisch), 15.11.2026
 
 - Tatsächlicher Arbeitsordner C:\Users\Tim\Projects\CraftDeja; Branch feature/acquisition-costs, Ausgangscommit f26799d1a383d3c4e6280bc9c36aa3fb32c34001. Version in Start.lua und wowlua.json: 3.9.0-beta.13. Aktuellen Sicherungscommit immer mit Git bestimmen.
 - Vorhandener Windowsbericht reports/tests/20261115-010908-b537ed.zip geprüft: Build bestanden, 461/0/0, 307 Dateien, 212.88s, wowlua 0.13.14 mit Blizzard-UI. Alle 18 aufgezeichneten Quellprüfsummen stimmen exakt überein. Kein neuer Lauf für diese Dokumentations-/Sicherungsrunde erforderlich.

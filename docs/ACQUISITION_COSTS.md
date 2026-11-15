@@ -1,12 +1,12 @@
-# One-time recipe costs / Einmalige Rezeptkosten — beta.13
+# One-time recipe costs / Einmalige Rezeptkosten — beta.14
 
 ## Implemented / Implementiert
 
 - A learned recipe has no NEW learning payment. A recipe item already owned
   likewise needs no additional purchase (collection/travel are separate).
-- Observe a trainer fee only through an exact `spell:` or `enchant:` service
-  link plus a valid nonnegative integer cost. Never guess by translated name,
-  output item, or list index. A nil link remains unverified.
+- Exact `spell:` / `enchant:` links retain priority. Beta.14 additionally supports
+  the narrowly verified nil-link Mot offer described below. All other nil-link
+  services remain unknown; no fuzzy, output-item or row-index matching.
 - Fees are character-local observations, expire after seven days, and are
   refreshed by trainer events. No trainer enumeration during native crafting.
 - For an identified recipe item, use the cheaper of its current available unit
@@ -15,6 +15,37 @@
 - Unknown acquisition cost is NOT stored as zero. An otherwise promising
   unknown recipe remains a provisional source-check suggestion; the CTA says
   `Check learning cost` / `Lernkosten prüfen`. It is not a verified cheaper route.
+
+## Beta.14 nil-link trainer identity / Trainerzuordnung ohne Link
+
+The reported case is Mot Dawnstrider (NPC 11071), recipe spell 7771,
+recipe item 6345, nil service link and 200 copper. Beta.13 read the fee but
+discarded it because it derived identity exclusively from the service link.
+
+Beta.14 keeps an explicit, deliberately narrow observed relationship for this
+NPC/spell/item triple. It additionally requires a Creature GUID for that NPC,
+the unchanged catalog spell-to-recipe-item relationship, an available or
+unavailable service, and an exact name AND rank match against client GetSpellInfo.
+The addon UI language and an open profession are not identity evidence.
+
+Duplicate service rows are rejected, even with equal prices. A second catalog
+spell with the same client name and rank is rejected across all professions.
+An unresolved catalog spell with the same localized reference name also blocks
+assignment. Missing client spell data cannot be replaced by a dictionary guess.
+An existing non-spell link never activates the nil-link fallback. Exact links
+retain their existing precedence. No substring, case folding, row-index matching,
+output-item inference or hardcoded fee is used; 180c/0c would be observed as such.
+
+Other nil-link trainer offerings remain unknown until supported by their own
+concrete relationship evidence. This is not a generic name resolver or a claim
+of complete trainer coverage. Repeated trainer events reread current offers;
+no timer or polling was added. Catalog identity checks run only for a matching
+verified nil-link offer, outside native crafting (the existing busy guard remains).
+No trainer filters are changed, no spell is learned and nothing is purchased.
+
+The 24 new regression scenarios simulate the reported API contract and its
+ambiguity/failure paths with the real catalog relationship. Successful capture
+in Mot's real client window still requires a separate in-game retest.
 
 ## Economic comparison / Wirtschaftlicher Vergleich
 
@@ -100,3 +131,41 @@ trainer link nil, learning fee 200 copper. beta.13 requires an exact spell/encha
 link and cannot associate this nil-link fee. This is an unresolved trainer bug,
 not proof of successful fee capture. Fix follows separately. Beta.14 has not
 been delivered or installed. This handoff does not change main or the game installation.
+
+## Beta.14 guarded Mot nil-link fix — 2026-11-15
+
+Base 3ca5bbcc2aee639f91575f4b58a2eaf666a004ee, feature/acquisition-costs,
+clean initial working tree. beta.13 derived recipe identity only from an exact
+spell/enchant service link and therefore discarded the reported 200c fee when
+Mot Dawnstrider's link was nil (NPC 11071 / recipe 7771 / recipe item 6345).
+The fix uses that explicitly observed relationship plus exact client spell name
+and rank, NPC GUID, catalog item relationship and ambiguity rejection. No fuzzy
+matching or hardcoded fee; other unsupported nil-link offers stay unknown.
+
+24 new tests cover successful fee capture/quote/refresh, wrong or missing NPC,
+duplicate equal/conflicting offers, same-name/rank spell collisions across
+professions, rank differences, missing/malformed client data, changed item
+relationship, live fee changes/zero/invalid fees, exact-link precedence,
+row movement, DE/EN and zero trainer/spell reads during native crafting.
+All NPC/service/spell values are controlled API fixtures with the real catalog
+7771 -> 6345 relationship. This does not prove successful live trainer capture.
+
+All runs used tools/Test-CraftDeja.ps1 with automatic ZIP, full log and metadata:
+
+- First focused attempt 20261115-135846-dc5d9d: new file failed compilation on
+  two fixture type declarations; 34 existing tests passed but exit code was 1.
+  Fixed fixture declarations; this is NOT a successful 34-case full scope.
+- Focused intermediate 20261115-135934-962010: build passed, 58/0/0, 2 files, 6.15s.
+- First full intermediate 20261115-135958-d95b4e: build passed, 485/0/0,
+  308 files, 201.24s. Then the saved fee origin was standardized to existing
+  source=trainer (avoids an internal identifier in recipe details).
+- FINAL 20261115-140332-96c718: build passed; 485 passed, 0 failed, 0 skipped,
+  308 files, 204.91s. Windows host, wowlua 0.13.14, Camelot, configured Blizzard UI,
+  no filters. All 18 recorded SHA256 source hashes match the FINAL source exactly.
+  ZIP summary/metadata/log inspected. This final run supersedes intermediates.
+
+Shareable report: reports/tests/20261115-140332-96c718.zip (kept local, not uploaded).
+Metadata identifies parent commit 3ca5bbc plus then-uncommitted beta.14 source;
+recorded hashes bind the tested source to this correction. Existing W1034 remains.
+No game installation, main merge or addon release. Successful live observation
+at Mot is still pending after a separately authorized installation/retest.

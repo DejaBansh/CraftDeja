@@ -101,12 +101,23 @@ Sichtbarkeit messen an echten Rückmeldungen und Nutzung, nicht nur einer KI-Ran
 - [x] Windows-Gesamtlauf anhand 20261115-010908-b537ed.zip geprüft: 461/0/0, 212.88s; alle 18 Quellprüfsummen identisch.
 - [ ] Beta.13-Installation mit Backup gesondert belegen; diese Übergaberunde verändert die Spielinstallation nicht.
 - [x] Nutzer-Livefall dokumentiert: Mot Dawnstrider, Rezept 7771, Rezeptgegenstand 6345, Trainerlink nil, Lerngebühr 200 Kupfer.
-- [ ] Trainerfehler separat korrigieren: beta.13 kann bei nil-Link die Gebühr nicht zuordnen; reale erfolgreiche Zuordnung noch offen.
+- [x] Mot-Nil-Link-Fehler in beta.14 abgesichert korrigiert; finaler Windows/Camelot-Lauf 485/485, siehe unten.
+- [ ] Reale erfolgreiche Zuordnung bei Mot nach separat beauftragter Installation bestätigen.
 - [ ] Werkzeug-/Reise-/Ranggebühren und mehrere unbekannte Rezepte gemeinsam modellieren.
 
-## Aktuelle Übergabe
+## Übergabe beta.13 (historisch)
 
 - [x] Vorhandenen Windowsbericht und alle 18 aufgezeichneten Quellhashes geprüft; lokales Backup mit geprüftem Git-Bundle erstellt.
 - [x] CONTINUE.md und AGENTS.md für gemeinsame Weiterarbeit aktualisiert.
 - Beta.14 wurde noch nicht ausgeliefert oder installiert. Main und Spielinstallation bleiben unverändert. Frühere Sicherungsaufgaben oben sind historische Einträge; aktueller Branch feature/acquisition-costs.
 - Commit/Push und Remote-Gleichheit erst anhand der tatsächlichen Git-Ausgabe bestätigen; aktueller Sicherungscommit über git log -1.
+
+## Beta.14 — abgesicherte Mot-Nil-Link-Zuordnung
+
+- [x] Link-only-Ursache im aktuellen Acquisition.lua bestätigt; belegte Beziehung NPC 11071 / Rezept 7771 / Gegenstand 6345 abgesichert ergänzt.
+- [x] Exakte Clientnamen/Ränge, NPC-GUID und Katalogbeziehung prüfen; doppelte Angebote und Spellidentitäten ablehnen. Keine Namensähnlichkeit oder festgeschriebene Gebühr.
+- [x] 24 neue Regressionen für Erfolg, Mehrdeutigkeit, fehlende Daten, DE/EN und native Craft-Sperre.
+- [x] Finaler Build und Windows/Camelot-Gesamtlauf mit Blizzard-UI: 485/0/0, 308 Dateien, 204.91s. ZIP 20261115-140332-96c718; alle 18 aufgezeichneten Quellhashes exakt geprüft.
+- [x] CONTINUE.md, PROJECT_STATE.md, DECISIONS.md und TEST_RESULTS.md aktualisiert.
+- [ ] Live-Erfassung der gemeldeten 200 Kupfer bei Mot bestätigen; keine Installation in dieser Runde.
+- Weitere Trainer erst nach eigenen Belegen; main und Spielinstallation bleiben unverändert, kein Addon-Release. Commit/Remote-Gleichheit anhand Git prüfen.

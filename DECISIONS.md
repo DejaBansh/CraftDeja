@@ -22,7 +22,7 @@
 
 | Erwerbsgebühr einmalig gegen begrenzte Route prüfen | Billiger pro Craft rechtfertigt nicht jede Lerngebühr | beta.13-Entwicklung; ein Kandidat plus bekannte Alternativen |
 | Fehlende Gebühren nicht als Null speichern | Quelle/Kosten erst prüfen; keine belegte Billiger-Aussage | beta.13-CTA Lernkosten prüfen |
-| Keine Rezeptzuordnung über Namensähnlichkeit | Trainerlink muss exakte Spell-/Enchant-ID liefern | beta.13-Beobachtung; fehlende Links bleiben unbekannt |
+| Keine Rezeptzuordnung über Namensähnlichkeit | Exakte Links bevorzugen; nil-Link nur mit belegter NPC/Rezept/Gegenstand-Beziehung, exaktem Clientnamen/Rang und ohne Mehrdeutigkeit | beta.14: begrenzter Mot-Fallback für 11071 / 7771 / 6345; sonst unbekannt |
 
-| Nil-Trainerlink als offenen Fehler erhalten | Mot Dawnstrider: Rezept 7771 / Gegenstand 6345, Link nil, gemeldete Gebühr 200 Kupfer; kein exakter Zuordnungsbeleg | separate Korrekturaufgabe; beta.14 noch nicht ausgeliefert oder installiert |
+| Mot-Nil-Link nur abgesichert zuordnen | NPC-GUID, Katalogbeziehung und Clientidentität müssen passen; doppelte Angebote/Spellidentitäten ablehnen, Livegebühr statt Festwert | beta.14 implementiert; echte erfolgreiche Clientbeobachtung noch offen, keine Spielinstallation |
 | Übergabe am tatsächlichen Git-/Teststand ausrichten | Branch, Commit, offene Änderungen und CONTINUE.md bei Beginn prüfen; Abschluss mit Änderungen, Nachweisen, Fehlern und nächstem Schritt | verbindlich in AGENTS.md |

@@ -593,3 +593,41 @@ trainer link nil, learning fee 200 copper. beta.13 requires an exact spell/encha
 link and cannot associate this nil-link fee. This is an unresolved trainer bug,
 not proof of successful fee capture. Fix follows separately. Beta.14 has not
 been delivered or installed. This handoff does not change main or the game installation.
+
+## Beta.14 guarded Mot nil-link fix — 2026-11-15
+
+Base 3ca5bbcc2aee639f91575f4b58a2eaf666a004ee, feature/acquisition-costs,
+clean initial working tree. beta.13 derived recipe identity only from an exact
+spell/enchant service link and therefore discarded the reported 200c fee when
+Mot Dawnstrider's link was nil (NPC 11071 / recipe 7771 / recipe item 6345).
+The fix uses that explicitly observed relationship plus exact client spell name
+and rank, NPC GUID, catalog item relationship and ambiguity rejection. No fuzzy
+matching or hardcoded fee; other unsupported nil-link offers stay unknown.
+
+24 new tests cover successful fee capture/quote/refresh, wrong or missing NPC,
+duplicate equal/conflicting offers, same-name/rank spell collisions across
+professions, rank differences, missing/malformed client data, changed item
+relationship, live fee changes/zero/invalid fees, exact-link precedence,
+row movement, DE/EN and zero trainer/spell reads during native crafting.
+All NPC/service/spell values are controlled API fixtures with the real catalog
+7771 -> 6345 relationship. This does not prove successful live trainer capture.
+
+All runs used tools/Test-CraftDeja.ps1 with automatic ZIP, full log and metadata:
+
+- First focused attempt 20261115-135846-dc5d9d: new file failed compilation on
+  two fixture type declarations; 34 existing tests passed but exit code was 1.
+  Fixed fixture declarations; this is NOT a successful 34-case full scope.
+- Focused intermediate 20261115-135934-962010: build passed, 58/0/0, 2 files, 6.15s.
+- First full intermediate 20261115-135958-d95b4e: build passed, 485/0/0,
+  308 files, 201.24s. Then the saved fee origin was standardized to existing
+  source=trainer (avoids an internal identifier in recipe details).
+- FINAL 20261115-140332-96c718: build passed; 485 passed, 0 failed, 0 skipped,
+  308 files, 204.91s. Windows host, wowlua 0.13.14, Camelot, configured Blizzard UI,
+  no filters. All 18 recorded SHA256 source hashes match the FINAL source exactly.
+  ZIP summary/metadata/log inspected. This final run supersedes intermediates.
+
+Shareable report: reports/tests/20261115-140332-96c718.zip (kept local, not uploaded).
+Metadata identifies parent commit 3ca5bbc plus then-uncommitted beta.14 source;
+recorded hashes bind the tested source to this correction. Existing W1034 remains.
+No game installation, main merge or addon release. Successful live observation
+at Mot is still pending after a separately authorized installation/retest.

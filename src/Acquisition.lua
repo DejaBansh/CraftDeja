@@ -11,17 +11,62 @@ function app.observeLearningCost(id,cost,source)
     app.character.learningCosts[id]={cost=cost,source=source or 'trainer',at=clock()}
     return not old or old.cost~=cost or type(old.at)~='number'or clock()<old.at or clock()-old.at>604800
 end
+-- Explicit user-observed trainer/recipe/item relationship, not a name guess.
+-- Extend only with a concrete trainer-offer observation. Fees stay live data.
+local linklessOffers={[11071]={[7771]=6345}} -- Mot Dawnstrider
+local function serviceKey(name,rank)
+    if type(name)~='string'or name==''or rank~=nil and type(rank)~='string'then return end
+    return name..'\001'..(rank or '')
+end
+local function linklessRecipe(row,rows)
+    if row.link~=nil or row.kind~='available'and row.kind~='unavailable'then return end
+    local guid=app.try(UnitGUID,'npc')
+    local npc=type(guid)=='string'and tonumber(guid:match('^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-'))
+    local offers=npc and linklessOffers[npc]
+    local key=serviceKey(row.name,row.rank)
+    if not offers or not key then return end
+    -- Even identical duplicate rows are ambiguous. Never select the first one.
+    for _,other in ipairs(rows)do
+        if other~=row and serviceKey(other.name,other.rank)==key then return end
+    end
+    local matched
+    for id,item in pairs(offers)do
+        local recipe=(app.catalog[333]or {})[id]
+        local name,rank=app.try(GetSpellInfo,id)
+        if recipe and recipe.scroll==item and serviceKey(name,rank)==key then
+            if matched then return end
+            matched=id
+        end
+    end
+    if not matched then return end
+    local seen={}
+    local language=app.try(GetLocale)=='deDE'and 'de'or 'en'
+    local names=app.names[language]or {}
+    for _,recipes in pairs(app.catalog)do for id,recipe in pairs(recipes)do
+        if id~=matched and not seen[id]then
+            seen[id]=true
+            local name,rank=app.try(GetSpellInfo,id)
+            if serviceKey(name,rank)==key or not name and names[id]==row.name then return end
+        end
+    end end
+    return matched
+end
 function app.observeTrainerCosts()
     if not app.character or app.craftRefreshBusy and app.craftRefreshBusy()then return false end
     local count=app.try(GetNumTrainerServices)
     if not valid(count)or count>1000 then return false end
     local changed=false
+    local rows={}
     for i=1,count do
         local link=app.try(GetTrainerServiceItemLink,i)
-        -- Exact spell/enchant links only. No translated-name or list-index guesses.
-        local id=type(link)=='string'and tonumber(link:match('spell:(%d+)')or link:match('enchant:(%d+)'))
+        local name,rank,kind=app.try(GetTrainerServiceInfo,i)
         local cost=app.try(GetTrainerServiceCost,i)
-        if id and valid(cost)and app.observeLearningCost(id,cost,'trainer')then changed=true end
+        rows[#rows+1]={link=link,name=name,rank=rank,kind=kind,cost=cost}
+    end
+    for _,row in ipairs(rows)do
+        local id=type(row.link)=='string'and tonumber(row.link:match('spell:(%d+)')or row.link:match('enchant:(%d+)'))
+        if not id and valid(row.cost)then id=linklessRecipe(row,rows)end
+        if id and valid(row.cost)and app.observeLearningCost(id,row.cost,'trainer')then changed=true end
     end
     if changed then app.flowLog('acquisition.trainer_observed',{});app.refresh(false)end
     return changed

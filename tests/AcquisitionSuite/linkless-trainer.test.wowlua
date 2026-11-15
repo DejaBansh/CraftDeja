@@ -1,0 +1,128 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Real catalog relationship 7771 -> recipe item 6345. NPC/service/spell API
+-- values reproduce the reported nil-link contract; not a live trainer test.
+local function setup()
+ local a=_G["CraftDeja"]
+ mock.setField(a.character,"learningCosts",{})
+ mock.setField(a,"craftBatch",nil);mock.setField(a,"craftQuietUntil",0)
+ local c={a=a,name=a.names.de[7771],rank="",npc="Creature-0-1-1-1-11071-00000001",refreshes=0,reads=0}
+ c.rows={{name=c.name,rank="",kind="available",cost=200}}
+ c.spells={[7771]={c.name,""}}
+ mock.stub(_G,"UnitGUID",function(unit)assert(unit=="npc");return c.npc end)
+ mock.stub(_G,"GetLocale",function()return "deDE"end)
+ mock.stub(_G,"GetNumTrainerServices",function()c.reads=c.reads+1;return #c.rows end)
+ mock.stub(_G,"GetTrainerServiceItemLink",function(i)return c.rows[i].link end)
+ mock.stub(_G,"GetTrainerServiceInfo",function(i)local r=c.rows[i];return r.name,r.rank,r.kind end)
+ mock.stub(_G,"GetTrainerServiceCost",function(i)return c.rows[i].cost end)
+ mock.stub(_G,"GetSpellInfo",function(id)local s=c.spells[id];if s then return s[1],s[2]end end)
+ mock.stub(a,"refresh",function()c.refreshes=c.refreshes+1 end)
+ c.observe=function()return a.observeTrainerCosts()end
+ c.saved=function()return a.character.learningCosts[7771]end
+ assert(a.catalog[333][7771].scroll==6345)
+ return c
+end
+
+@afterEach
+local function errors()
+ local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+
+@test("Linkless 01: Mot nil link records real recipe fee and refreshes")
+local function case01()
+ local c=setup();assert(c.observe());assert(c.saved().cost==200 and c.saved().source=="trainer");assert(c.refreshes==1)
+ local q=c.a.acquisitionQuote({id=7771,learned=false});assert(q.known and q.cost==200)
+end
+@test("Linkless 02: unknown NPC with same name cannot supply evidence")
+local function case02()
+ local c=setup();c.npc="Creature-0-1-1-1-3011-00000001";assert(not c.observe() and not c.saved())
+end
+@test("Linkless 03: missing NPC GUID fails closed")
+local function case03()
+ local c=setup();c.npc=nil;assert(not c.observe() and not c.saved())
+end
+@test("Linkless 04: gameobject GUID cannot impersonate trainer")
+local function case04()
+ local c=setup();c.npc="GameObject-0-1-1-1-11071-00000001";assert(not c.observe())
+end
+@test("Linkless 05: duplicate identical trainer offers are ambiguous")
+local function case05()
+ local c=setup();c.rows[2]={name=c.name,rank="",kind="available",cost=200};assert(not c.observe() and not c.saved() and c.refreshes==0)
+end
+@test("Linkless 06: duplicate offers with different prices cannot choose first")
+local function case06()
+ local c=setup();c.rows[2]={name=c.name,rank="",kind="unavailable",cost=500};assert(not c.observe() and not c.saved())
+end
+@test("Linkless 07: two catalog spell IDs with identical name and rank rejected")
+local function case07()
+ local c=setup();mock.setField(c.a.catalog[333],990777,{scroll=990778});c.spells[990777]={c.name,""};assert(not c.observe() and not c.saved())
+end
+@test("Linkless 08: ambiguity in another profession also rejected")
+local function case08()
+ local c=setup();mock.setField(c.a.catalog[171],990777,{});c.spells[990777]={c.name,""};assert(not c.observe())
+end
+@test("Linkless 09: same spell name with different rank is distinct")
+local function case09()
+ local c=setup();mock.setField(c.a.catalog[333],990777,{});c.spells[990777]={c.name,"Rank 2"};assert(c.observe() and c.saved().cost==200)
+end
+@test("Linkless 10: service rank must match client spell rank")
+local function case10()
+ local c=setup();c.rows[1].rank="Rank 2";assert(not c.observe())
+end
+@test("Linkless 11: substring and normalized name guesses are forbidden")
+local function case11()
+ local c=setup();c.rows[1].name=c.name.." ";assert(not c.observe())
+end
+@test("Linkless 12: missing client spell info cannot be replaced by dictionary")
+local function case12()
+ local c=setup();c.spells[7771]=nil;assert(not c.observe() and not c.saved())
+end
+@test("Linkless 13: headers and used services cannot supply fallback fee")
+local function case13()
+ local c=setup();c.rows[1].kind="header";assert(not c.observe());c.rows[1].kind="used";assert(not c.observe())
+end
+@test("Linkless 14: observed price is used instead of hardcoded 200")
+local function case14()
+ local c=setup();c.rows[1].cost=180;assert(c.observe() and c.saved().cost==180)
+end
+@test("Linkless 15: invalid fee rejected and confirmed zero accepted")
+local function case15()
+ local c=setup();c.rows[1].cost=-1;assert(not c.observe());c.rows[1].cost=nil;assert(not c.observe());c.rows[1].cost=0;assert(c.observe() and c.saved().cost==0)
+end
+@test("Linkless 16: changed recipe item relationship fails closed")
+local function case16()
+ local c=setup();mock.setField(c.a.catalog[333][7771],"scroll",999);assert(not c.observe() and not c.saved())
+end
+@test("Linkless 17: non-spell item link cannot trigger nil-link fallback")
+local function case17()
+ local c=setup();c.rows[1].link="|Hitem:6345|h[Formula]|h";assert(not c.observe())
+end
+@test("Linkless 18: exact link retains precedence over fallback identity")
+local function case18()
+ local c=setup();c.rows[1].link="|Hspell:7776|h[Test]|h";assert(c.observe());assert(not c.saved() and c.a.character.learningCosts[7776].cost==200)
+end
+@test("Linkless 19: row movement and unrelated header do not alter identity")
+local function case19()
+ local c=setup();c.rows[2]=c.rows[1];c.rows[1]={name="Enchanting",rank="",kind="header",cost=0};assert(c.observe() and c.saved().cost==200)
+end
+@test("Linkless 20: native crafting causes no trainer or spell reads")
+local function case20()
+ local c=setup();mock.setField(c.a,"craftBatch",{id=7771});mock.stub(_G,"GetSpellInfo",function()error("busy spell enumeration")end);assert(not c.observe() and c.reads==0)
+end
+@test("Linkless 21: exact English client data works without open profession")
+local function case21()
+ local c=setup();mock.setField(c.a,"active",nil);mock.stub(_G,"GetLocale",function()return "enUS"end);c.rows[1].name=c.a.names.en[7771];c.spells[7771]={c.rows[1].name,""};assert(c.observe() and c.saved().cost==200)
+end
+@test("Linkless 22: unresolved same-name catalog entry blocks assignment")
+local function case22()
+ local c=setup();mock.setField(c.a.catalog[333],990777,{});mock.setField(c.a.names.de,990777,c.name);assert(not c.observe())
+end
+@test("Linkless 23: unavailable service still provides observed learning fee")
+local function case23()
+ local c=setup();c.rows[1].kind="unavailable";assert(c.observe() and c.saved().cost==200)
+end
+@test("Linkless 24: malformed service name and rank fail closed")
+local function case24()
+ local c=setup();c.rows[1].name=nil;assert(not c.observe());c.rows[1].name=c.name;mock.setField(c.rows[1],"rank",2);assert(not c.observe())
+end
