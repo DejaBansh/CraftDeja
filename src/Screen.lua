@@ -301,6 +301,16 @@ function app.renderDetails(materials)
         lines[#lines+1]=app.caption('net_breakdown',app.money(quote.cost),app.money(quote.vendorRevenue or 0),app.money(quote.netCost or quote.cost))
         lines[#lines+1]=app.caption(quote.vendorRevenueKnown and 'net_minimum'or 'net_unverified')
     end
+    if app.acquisitionQuote then
+        local acquisition=app.acquisitionQuote(r)
+        lines[#lines+1]=not acquisition.known and app.caption('acquisition_unknown')or (acquisition.source=='learned'or acquisition.source=='owned_recipe')and app.caption('acquisition_owned')or app.caption('acquisition_fee',app.money(acquisition.cost),acquisition.source)
+        if not r.learned and app.decision and app.decision.snapshot then
+            local assessment=app.learningAssessment(app.decision.snapshot,r,app.active.profile.skill)
+            if assessment.known and assessment.total<math.huge and assessment.baseline<math.huge then
+                lines[#lines+1]=app.caption('acquisition_route',assessment.target,app.money(assessment.total),app.money(assessment.baseline))
+            end
+        end
+    end
     local plan,reason=app.materialPlan(r,tonumber(f.target:GetText()))
     lines[#lines+1]=''
     if plan then

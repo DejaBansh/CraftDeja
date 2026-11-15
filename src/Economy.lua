@@ -68,7 +68,7 @@ local function prefer(left,right)
 end
 
 function app.marketView(session)
-    local snapshot={profile=session.profile,recipes=session.recipes,quotes={},prices={},sellPrices={},eligibility={}}
+    local snapshot={profile=session.profile,recipes=session.recipes,quotes={},prices={},sellPrices={},eligibility={},acquisition={}}
     for id,recipe in pairs(session.recipes)do
         snapshot.quotes[id]=app.quote(recipe,snapshot.prices,snapshot.sellPrices)
         local allowed,reason=app.canRecommend(recipe);snapshot.eligibility[id]={allowed=allowed,reason=reason}
@@ -96,7 +96,12 @@ function app.selectionAt(snapshot,level,actual)
                 if recipe.learned then
                     if prefer(candidate,known)then known=candidate end
                     if colour~="green"and prefer(candidate,safe)then safe=candidate end
-                elseif prefer(candidate,unknown)then unknown=candidate end
+                else
+                    local assessment=app.learningAssessment and app.learningAssessment(snapshot,recipe,level)
+                    candidate.acquisition=assessment
+                    candidate.needsCostCheck=assessment and not assessment.known or false
+                    if (not assessment or not assessment.known or assessment.worth)and prefer(candidate,unknown)then unknown=candidate end
+                end
             elseif recipe.learned then missing=missing+1 end
         end
     end

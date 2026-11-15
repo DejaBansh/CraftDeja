@@ -1,42 +1,36 @@
 # CraftDeja — hier fortsetzen / resume here
 
-Stand: 15.11.2026, nach bestätigtem beta.12-Spieltest.
+Stand: 15.11.2026, beta.13-Quellstand und vorhandenen Windowsbericht geprüft.
 
-## Ausgangspunkt
+## Arbeitsbasis
 
-- Besitzer: Tim / DejaBansh. Repository: https://github.com/DejaBansh/CraftDeja
-- Gaming-PC: C:\Users\Tim\Projects\CraftDeja
-- Branch: fix/local-recipe-trainers, bisherige Basis f744a01; aktueller Sicherungscommit ist nach Ausführung über git log -1 festzustellen.
-- Version: 3.9.0-beta.12. main und öffentliches Addon-Release weiterhin beta.9. Nicht allein wegen einer Sicherung veröffentlichen/mergen.
-- Installiert: C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\CraftDeja
-- Vor jeder Änderung aktuelle Dateien/Gitstatus lesen. Frühere Pakete nicht erneut anwenden.
+- Projekt: C:\Users\Tim\Projects\CraftDeja
+- Repository: https://github.com/DejaBansh/CraftDeja
+- Branch: feature/acquisition-costs; Ausgangscommit f26799d1a383d3c4e6280bc9c36aa3fb32c34001 (beta.12).
+- Aktuellen Sicherungscommit mit git log -1 feststellen; Remote-Nachweis mit git ls-remote origin refs/heads/feature/acquisition-costs vergleichen. Nicht aus älteren Notizen ableiten.
+- Lokale Entwicklungsversion: 3.9.0-beta.13 in src/Start.lua und wowlua.json. Root-TOC beta.4 ist ein Altbestand; installierbare TOC wird generiert.
+- Main und Spielinstallation werden in dieser Übergaberunde nicht verändert. Kein Addon-Release. Beta.14 wurde noch nicht ausgeliefert oder installiert.
+- Vor Arbeitsbeginn AGENTS.md, diese Datei, PROJECT_STATE.md, DECISIONS.md, ROADMAP.md, TEST_RESULTS.md und aktuellen Gitstatus lesen. Frühere Pakete nicht erneut anwenden.
 
-## Fertig und belegt
+## Änderungen und Belege
 
-- Beta.10: Netto-Ranking (Material minus bestätigter Mindest-Händlerwert) je erwartetem Skillpunkt; Einkauf bleibt brutto, vorhandene Materialien werden für Einkauf abgezogen.
-- Beta.11: rezeptbezogene Mot/Teg-Quellen für Großer Magiezauberstab (14807); lokale passende Quellen zuerst. Kein pauschales Trainerwissen für alle Rezepte.
-- Beta.12: manuelle kleinere AH-Mengen bleiben stehen; unveränderte native Ansicht wird nicht ständig neu beschrieben. Unpassende Ereignisse ignoriert, relevante coalesziert; Leerlaufpoll prüft Berufskopf. Craft-Abbruch setzt Prüfung fort.
-- Windows wowlua 0.13.14 + Blizzard-UI: 427 passed, 0 failed, 0 skipped, 306 Dateien, 197.37s. Build und Installation erfolgreich, 15 Quellhashes geprüft.
-- Nutzerbericht: CraftDeja-beta12-20261115-003747.zip. Live: Nutzer bestätigt funktionierenden Ablauf; Menge 5 und CTA 6s20c stimmen bei 124c/Essenz. Deutlich geringere beobachtete Profilerlast, kein kontrollierter Benchmark.
-- W1034 in UnifiedUI.lua:37 bleibt als bekannte Buildwarnung.
+- Beta.13: Acquisition.lua beobachtet exakte Spell-/Enchant-Trainerlinks und einmalige Gebühren; berücksichtigt Rezeptgegenstandspreis bzw. Bestand. Begrenzter Vergleich eines unbekannten Kandidaten mit bekannten Rezepten, keine vollständige 1–300-Optimierung.
+- Unbekannte Gebühren bleiben unbekannt; CTA Lernkosten prüfen. Werkzeug-, Reise- und Rangkosten fehlen weiterhin. Keine Namenszuordnung als Rezeptbeweis.
+- Windowsbericht reports/tests/20261115-010908-b537ed.zip gelesen: beta.13, wowlua 0.13.14, Blizzard-UI, Build bestanden; 461 bestanden, 0 fehlgeschlagen, 0 übersprungen, 307 Dateien, 212.88 Sekunden. Alle 18 aufgezeichneten SHA256-Quellprüfsummen stimmen exakt mit dem aktuellen Code überein.
+- Bericht entstand auf Basis f26799d mit damals uncommittierten beta.13-Dateien. Er belegt den geprüften Quellstand, nicht einen bereits bestehenden beta.13-Commit.
+- Kein neuer Testlauf in der Übergaberunde: Laufzeitcode unverändert, vorhandener Windowsnachweis passt. W1034 in UnifiedUI.lua:37 bleibt bekannt.
+- Git 2.56.0.windows.4; wowlua 0.13.14 unter C:\Users\Tim\.wowlua\bin\wowlua.exe vorhanden. Bei Bedarf .wowlua\bin zum PATH der aktuellen Shell hinzufügen; tools/Test-CraftDeja.ps1 erledigt dies selbst. Keine dauerhafte PATH-Änderung nötig.
+- Lokales Backup vor Übergabeänderungen: reports/backups/beta13-before-handoff-20261115-134230/ mit Arbeitsbaum-ZIP, geprüftem Git-Bundle, Windowsbericht und Ausgangsstatus. Berichte/Backups bleiben lokal und ignoriert.
 
-## Regeln
+## Offener Trainerfehler — nächste separate Aufgabe
 
-AGENTS.md und DECISIONS.md beachten. Alle zukünftigen Tests über tools/Test-CraftDeja.ps1: automatisch ZIP mit Bericht, Protokoll, Metadaten, auch bei Fehlern. Breite passende Regressionen; während nativer Craftserien keine schweren Scans. DE/EN, Goblinstil, große grüne nächste Aktion und kleiner grauer Auftrag-ändern-Button bewahren. Automatische Levelmengen unter 300; Gift- und Produktionssonderfälle erhalten.
+Vom Nutzer berichteter Live-Fall: Mot Dawnstrider, Rezept 7771, Rezeptgegenstand 6345, Trainerlink nil, Lerngebühr 200 Kupfer.
+Beta.13 erkennt Gebühren nur über exakte Spell-/Enchant-Links. Bei nil kann die beobachtete Gebühr dem Rezept nicht zugeordnet werden. Die gemeldeten 200 Kupfer sind kein erfolgreich gespeicherter Erwerbskostenbeleg. Dieser Fehler ist offen; hier keine Korrektur vorgenommen. Beta.14 wurde noch nicht ausgeliefert oder installiert.
 
-## Grenzen / nichts erfinden
+Nächster Schritt: Trainerfall gezielt reproduzieren und sichere Rezept-/Gebührenzuordnung prüfen; erst als separate Aufgabe korrigieren und über tools/Test-CraftDeja.ps1 breit testen. Keine bloße Namensähnlichkeit als Beweis verwenden.
 
-Skillchancen Gelb/Grün sind Modellschätzungen. Keine global bewiesene 1–300-Optimalroute. AH-Verkaufserlöse nicht eingerechnet. Lern-/Rezept-/Werkzeugerwerbskosten bislang nicht in der wirtschaftlichen Auswahl. Vollständige Rezept-/Quellenabdeckung nicht belegt. Während laufender nativer Serie wird der schwere Marktvergleich verschoben. Spielaktionen benötigen weiterhin Nutzerklick.
+## Dauerhafte Grenzen und Übergabe
 
-## Nächster fachlicher Schritt
+Beta.12-AH-Mengen-/Craft-Performancegrenzen, DE/EN, konkrete grüne CTA, kleiner grauer Auftrag-ändern-Button, automatische Levelmengen unter 300 sowie Gift-/Produktionssonderfälle erhalten. Keine schweren Vollscans während nativer Serien. Spielaktionen benötigen Nutzerklick. Skillwahrscheinlichkeiten sind Modellschätzungen; AH-Verkaufserlöse und vollständige Quellenabdeckung sind nicht belegt.
 
-Einmalige Lern-, Rezept- und Voraussetzungskosten wirtschaftlich berücksichtigen. Mit klaren Vergleichsfällen beginnen: günstigeres unbekanntes Rezept lohnt sich nach wie vielen erwarteten Skillpunkten? Gebühren nicht je Craft mehrfach zählen; verfügbare Rezept-/Werkzeug-/Trainerbelege nutzen. Vorher AGENTS.md, PROJECT_STATE.md, DECISIONS.md, ROADMAP.md und TEST_RESULTS.md lesen.
-
-## Neuer Chat
-
-Diesem Chat Repository-Link und Branch geben und bitten:
-„Lies CONTINUE.md und die dort genannten Projektdateien auf dem Branch fix/local-recipe-trainers. Prüfe den aktuellen Gitstand und arbeite von diesem Stand weiter. Keine alten Patches erneut anwenden.“
-
-## Sicherung prüfen
-
-Ein lokaler Commit ist noch kein externer Nachweis. Erst wenn git push erfolgreich war und git ls-remote denselben Commit für refs/heads/fix/local-recipe-trainers meldet, ist der Stand auf GitHub bestätigt. Das Sicherungsskript erstellt zusätzlich eine lokale Quell-ZIP, ein Git-Bundle und einen ZIP-Bericht. Keine Testergebnisse automatisch als Rohdaten hochladen.
+Bei Abschluss diese Datei mit Änderungen, Testnachweisen, offenen Fehlern und nächstem Schritt aktualisieren. Commit/Push allein ist kein Remote-Nachweis; vollständige Commit-ID und Remote-Ref vergleichen. Rohberichte nicht automatisch veröffentlichen.

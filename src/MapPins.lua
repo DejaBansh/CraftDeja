@@ -35,7 +35,10 @@ function app.recipeLearningTask(recipe)
     local source=app.recipeSourceTarget(recipe)
     local key='learn:'..recipe.id
     if source then key=key..':'..tostring(source.id)..':'..source.map..':'..source.x..':'..source.y end
-    return {kind='learn',key=key,recipe=recipe,sourceTarget=source,
+    local snapshot=app.decision and app.decision.snapshot
+    local assessment=snapshot and app.learningAssessment and app.learningAssessment(snapshot,recipe,snapshot.profile.skill)
+    local costCheck=assessment and not assessment.known or app.acquisitionQuote and not app.acquisitionQuote(recipe).known
+    return {kind='learn',key=key,recipe=recipe,sourceTarget=source,needsCostCheck=costCheck,
         body=app.caption(source and 'recipe_source_learn'or 'step_learn',app.recipeName(recipe))}
 end
 function app.showRecipeSource(recipe)

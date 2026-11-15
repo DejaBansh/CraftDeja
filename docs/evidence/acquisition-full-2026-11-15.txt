@@ -1,0 +1,808 @@
+=== version ===
+Command: wowlua --version
+STDOUT:
+wowlua 0.13.12
+
+STDERR:
+
+Exit code: 0
+=== build ===
+Command: wowlua build --color never
+STDOUT:
+
+STDERR:
+warning[W1034]: `ns.nextStepWindow` is read while the file loads, but only defined later (inside functions that run at run time)
+   ┌─ src/UnifiedUI.lua:37:33
+   │
+37 │ local function root()return app.nextStepWindow end
+   │                                 ^^^^^^^^^^^^^^ read at load time
+
+warning: 1 warning emitted
+
+    Finished CraftDeja 3.9.0-beta.13-dev+f26799d (dev: camelot) in 0.80s → dist/dev/CraftDeja
+
+Exit code: 0
+=== tests ===
+Command: wowlua test --color never
+STDOUT:
+ PASS tests/AHMailSuite/01-quote-only.test.wowlua (camelot, 6.39s)
+   ✓ Preisangebot allein kauft und verbucht nichts
+ PASS tests/AHMailSuite/02-invalid-quotes.test.wowlua (camelot, 6.48s)
+   ✓ Ungueltige Mengen und Preise werden abgewiesen
+ PASS tests/AHMailSuite/03-stale-scan.test.wowlua (camelot, 6.41s)
+   ✓ Veraltete Preise sperren Angebot und Bestaetigung
+ PASS tests/AHMailSuite/04-scan-busy.test.wowlua (camelot, 6.70s)
+   ✓ Laufender oder unverarbeiteter Scan sperrt Kauefe
+ PASS tests/AHMailSuite/05-new-scan.test.wowlua (camelot, 6.50s)
+   ✓ Altes Dialogangebot gilt nach neuem Scan nicht weiter
+ PASS tests/AHMailSuite/06-quantity-edit.test.wowlua (camelot, 6.25s)
+   ✓ Geaenderte Dialogmenge braucht neues Angebot
+ PASS tests/AHMailSuite/07-old-dialog.test.wowlua (camelot, 6.51s)
+   ✓ Ueberholter Dialog kann neuen Auftrag nicht bestaetigen
+ PASS tests/AHMailSuite/08-double-confirm.test.wowlua (camelot, 6.37s)
+   ✓ Doppelte Bestaetigungsabsicht reserviert nur einmal
+ PASS tests/AHMailSuite/09-generic-success.test.wowlua (camelot, 6.41s)
+   ✓ Allgemeine Erfolgsmeldung wird genau einmal verbucht
+ PASS tests/AHMailSuite/10-duplicate-receipts.test.wowlua (camelot, 3.88s)
+   ✓ Artikel- und allgemeine Erfolgsmeldung zaehlen zusammen einmal
+ PASS tests/AHMailSuite/11-partial-receipts.test.wowlua (camelot, 4.61s)
+   ✓ Teilbestaetigungen addieren sich bis zur bestaetigten Menge
+ PASS tests/AHMailSuite/12-receipt-limit.test.wowlua (camelot, 4.22s)
+   ✓ Zu grosse Rueckmeldung bleibt auf bestaetigte Menge begrenzt
+ PASS tests/AHMailSuite/13-invalid-receipts.test.wowlua (camelot, 4.11s)
+   ✓ Null negative und gebrochene Rueckmeldungen erzeugen keinen Bestand
+ PASS tests/AHMailSuite/14-timeout.test.wowlua (camelot, 4.07s)
+   ✓ Zeitablauf haelt ungeklaerten Kauf gesperrt
+ PASS tests/AHMailSuite/15-late-success.test.wowlua (camelot, 4.27s)
+   ✓ Verspaetete Erfolgsmeldung klaert Zeitueberschreitung
+ PASS tests/AHMailSuite/16-failed.test.wowlua (camelot, 3.99s)
+   ✓ Fehlgeschlagener Kauf verbraucht kein Einkaufsbudget
+ PASS tests/AHMailSuite/17-reload.test.wowlua (camelot, 4.49s)
+   ✓ Nach Kontextverlust gilt allgemeiner Erfolg nicht als Beweis
+ PASS tests/AHMailSuite/18-reload-quote.test.wowlua (camelot, 4.01s)
+   ✓ Unbestaetigtes Angebot ist nach Initialisierung ungueltig
+ PASS tests/AHMailSuite/19-no-budget-regrowth.test.wowlua (camelot, 3.80s)
+   ✓ Gleicher Skillauftrag erhaelt bereits gekaufte Menge nicht erneut
+ PASS tests/AHMailSuite/20-explicit-new-plan.test.wowlua (camelot, 4.33s)
+   ✓ Neuer Einkaufsauftrag muss bewusst freigegeben werden
+ PASS tests/AHMailSuite/21-mail-partial.test.wowlua (camelot, 5.20s)
+   ✓ Teilweise Postabholung reduziert offene Lieferung um Taschenzuwachs
+ PASS tests/AHMailSuite/22-mail-full.test.wowlua (camelot, 3.93s)
+   ✓ Vollstaendige Postabholung loescht offene Lieferung
+ PASS tests/AHMailSuite/23-mail-unrelated.test.wowlua (camelot, 4.79s)
+   ✓ Anderer Postinhalt reduziert erwartete Materialien nicht
+ PASS tests/AHMailSuite/24-outside-mail.test.wowlua (camelot, 5.32s)
+   ✓ Spaeterer Taschenzuwachs ohne Postkontakt verbraucht Liefernachweis nicht
+ PASS tests/AHMailSuite/25-direct-delivery.test.wowlua (camelot, 4.43s)
+   ✓ Unmittelbare Lieferung zaehlt nicht gleichzeitig als offene Post
+ PASS tests/AHMailSuite/26-bags-after-receipt.test.wowlua (camelot, 3.95s)
+   ✓ Unmittelbarer Taschenzuwachs nach Quittung baut offene Lieferung ab
+ PASS tests/AHMailSuite/27-close-ah.test.wowlua (camelot, 3.98s)
+   ✓ AH-Schliessen hebt ungeklaerte Transaktion nicht auf
+ PASS tests/AHMailSuite/28-native-quote.test.wowlua (camelot, 4.45s)
+   ✓ Emulierter AH-Preisabruf gibt ohne Kaufbestaetigung kein Gold aus
+ PASS tests/AHMailSuite/29-native-buy.test.wowlua (camelot, 4.78s)
+   ✓ Emulierter AH-Kauf bucht Gold und genau eine erwartete Lieferung
+ PASS tests/AHMailSuite/30-buy-through-mail.test.wowlua (camelot, 4.70s)
+   ✓ Kauf und spaetere Postabholung werden durchgehend getrennt gezaehlt
+ PASS tests/AHPerformanceSuite/auction-performance.test.wowlua (camelot, 4.08s)
+   ✓ AH performance 01: one initial prefill
+   ✓ AH performance 02: manual five survives 30 status polls
+   ✓ AH performance 03: empty input survives
+   ✓ AH performance 04: zero never becomes full order
+   ✓ AH performance 05: fraction rejected unchanged
+   ✓ AH performance 06: over budget rejected unchanged
+   ✓ AH performance 07: display model mismatch blocked
+   ✓ AH performance 08: manual one total correct
+   ✓ AH performance 09: unchanged native apply is read only
+   ✓ AH performance 10: changed native apply exactly once
+   ✓ AH performance 11: stale scan rejects buying
+   ✓ AH performance 12: price rise above ceiling blocks edit
+   ✓ AH performance 13: limited affordable stock does not shrink manual edit
+   ✓ AH performance 14: multi price level total correct
+   ✓ AH performance 15: purchase receipt counts only five
+   ✓ AH performance 16: new order clears quantity context
+   ✓ AH performance 17: idle header polls do not enumerate recipes
+   ✓ AH performance 18: unrelated item events do not recompute
+   ✓ AH performance 19: other player casts do not recompute
+   ✓ AH performance 20: relevant loaded item refreshes once
+   ✓ AH performance 21: continuous events cannot starve refresh
+   ✓ AH performance 22: skill fallback detects new point
+   ✓ AH performance 23: details event invalidates recipe data
+   ✓ AH performance 24: failed item load does not retry forever
+   ✓ AH performance 25: eligibility checked once per economic snapshot
+ PASS tests/AcquisitionSuite/acquisition.test.wowlua (camelot, 4.34s)
+   ✓ Acquisition 01: known recipe is free to acquire
+   ✓ Acquisition 02: unknown fee is not zero
+   ✓ Acquisition 03: confirmed zero fee is allowed
+   ✓ Acquisition 04: fee paid once over ten points
+   ✓ Acquisition 05: high fee rejects cheaper per craft recipe
+   ✓ Acquisition 06: equal route cost does not request learning
+   ✓ Acquisition 07: one point cannot repay fee
+   ✓ Acquisition 08: multi point reward clipped at cap
+   ✓ Acquisition 09: multiple points compare actual progress
+   ✓ Acquisition 10: probability included in learning route
+   ✓ Acquisition 11: minimum vendor credit included
+   ✓ Acquisition 12: learned state never charges fee twice
+   ✓ Acquisition 13: unknown cheaper candidate requests cost check
+   ✓ Acquisition 14: negative cost rejected
+   ✓ Acquisition 15: fractional trainer fee rejected
+   ✓ Acquisition 16: NaN fee rejected
+   ✓ Acquisition 17: infinite fee rejected
+   ✓ Acquisition 18: stale quote marked unknown
+   ✓ Acquisition 19: future timestamp rejected
+   ✓ Acquisition 20: owned recipe item needs no new payment
+   ✓ Acquisition 21: recipe item market quote used once
+   ✓ Acquisition 22: missing recipe item price remains unknown
+   ✓ Acquisition 23: new snapshot uses changed fee
+   ✓ Acquisition 24: new snapshot uses changed material prices
+   ✓ Acquisition 25: cooldown charge limitation not hidden
+   ✓ Acquisition 26: graph route reused inside snapshot
+   ✓ Acquisition 27: trainer exact spell link observed
+   ✓ Acquisition 28: ambiguous trainer name not guessed
+   ✓ Acquisition 29: trainer item link is not mistaken for spell
+   ✓ Acquisition 30: native batch avoids trainer reads
+   ✓ Acquisition 31: owned recipe takes precedence over trainer fee
+   ✓ Acquisition 32: cheaper recipe item beats trainer fee
+   ✓ Acquisition 33: renewing expired identical fee refreshes decision
+   ✓ Acquisition 34: green disabled limits comparison horizon
+ PASS tests/AutoSkillSuite/01-default-full-window.test.wowlua (camelot, 4.30s)
+   ✓ Auto skill: 01-default-full-window
+ PASS tests/AutoSkillSuite/02-cheaper-switch.test.wowlua (camelot, 4.54s)
+   ✓ Auto skill: 02-cheaper-switch
+ PASS tests/AutoSkillSuite/03-green-cheaper.test.wowlua (camelot, 4.27s)
+   ✓ Auto skill: 03-green-cheaper
+ PASS tests/AutoSkillSuite/04-orange-beats-expensive-green.test.wowlua (camelot, 4.46s)
+   ✓ Auto skill: 04-orange-beats-expensive-green
+ PASS tests/AutoSkillSuite/05-rank-cap.test.wowlua (camelot, 4.52s)
+   ✓ Auto skill: 05-rank-cap
+ PASS tests/AutoSkillSuite/06-conflicting-ranges.test.wowlua (camelot, 4.16s)
+   ✓ Auto skill: 06-conflicting-ranges
+ PASS tests/AutoSkillSuite/07-green-toggle.test.wowlua (camelot, 4.49s)
+   ✓ Auto skill: 07-green-toggle
+ PASS tests/AutoSkillSuite/08-learning-next.test.wowlua (camelot, 4.10s)
+   ✓ Auto skill: 08-learning-next
+ PASS tests/AutoSkillSuite/09-missing-price.test.wowlua (camelot, 4.13s)
+   ✓ Auto skill: 09-missing-price
+ PASS tests/AutoSkillSuite/10-cooldown.test.wowlua (camelot, 4.40s)
+   ✓ Auto skill: 10-cooldown
+ PASS tests/AutoSkillSuite/11-multiskill-cost.test.wowlua (camelot, 4.14s)
+   ✓ Auto skill: 11-multiskill-cost
+ PASS tests/AutoSkillSuite/12-multiskill-cap.test.wowlua (camelot, 4.42s)
+   ✓ Auto skill: 12-multiskill-cap
+ PASS tests/AutoSkillSuite/13-orange-quantity.test.wowlua (camelot, 4.07s)
+   ✓ Auto skill: 13-orange-quantity
+ PASS tests/AutoSkillSuite/14-yellow-quantity.test.wowlua (camelot, 3.80s)
+   ✓ Auto skill: 14-yellow-quantity
+ PASS tests/AutoSkillSuite/15-multiskill-rounding.test.wowlua (camelot, 4.26s)
+   ✓ Auto skill: 15-multiskill-rounding
+ PASS tests/AutoSkillSuite/16-stock-deduction.test.wowlua (camelot, 4.18s)
+   ✓ Auto skill: 16-stock-deduction
+ PASS tests/AutoSkillSuite/17-gray-never-skills.test.wowlua (camelot, 4.96s)
+   ✓ Auto skill: 17-gray-never-skills
+ PASS tests/AutoSkillSuite/18-migrate-old-manual.test.wowlua (camelot, 3.69s)
+   ✓ Auto skill: 18-migrate-old-manual
+ PASS tests/AutoSkillSuite/19-no-manual-ui-below-300.test.wowlua (camelot, 4.31s)
+   ✓ Auto skill: 19-no-manual-ui-below-300
+ PASS tests/AutoSkillSuite/20-cooking-station.test.wowlua (camelot, 5.09s)
+   ✓ Auto skill: 20-cooking-station
+ PASS tests/AutoSkillSuite/21-station-met.test.wowlua (camelot, 4.90s)
+   ✓ Auto skill: 21-station-met
+ PASS tests/AutoSkillSuite/22-other-tool.test.wowlua (camelot, 4.60s)
+   ✓ Auto skill: 22-other-tool
+ PASS tests/AutoSkillSuite/23-closed-profession.test.wowlua (camelot, 4.35s)
+   ✓ Auto skill: 23-closed-profession
+ PASS tests/AutoSkillSuite/24-station-route-with-stock.test.wowlua (camelot, 3.88s)
+   ✓ Auto skill: 24-station-route-with-stock
+ PASS tests/AutoSkillSuite/25-auto-through-green.test.wowlua (camelot, 4.06s)
+   ✓ Auto skill: 25-auto-through-green
+ PASS tests/AutoSkillSuite/26-invalid-production-under-300.test.wowlua (camelot, 4.48s)
+   ✓ Auto skill: 26-invalid-production-under-300
+ PASS tests/AutoSkillSuite/27-production-exact-remaining.test.wowlua (camelot, 4.58s)
+   ✓ Auto skill: 27-production-exact-remaining
+ PASS tests/AutoSkillSuite/28-production-no-skill-needed.test.wowlua (camelot, 4.21s)
+   ✓ Auto skill: 28-production-no-skill-needed
+ PASS tests/AutoSkillSuite/29-production-unrelated-success.test.wowlua (camelot, 4.26s)
+   ✓ Auto skill: 29-production-unrelated-success
+ PASS tests/AutoSkillSuite/30-production-budget-stable.test.wowlua (camelot, 3.87s)
+   ✓ Auto skill: 30-production-budget-stable
+ PASS tests/AutoSkillSuite/31-production-lock.test.wowlua (camelot, 4.77s)
+   ✓ Auto skill: 31-production-lock
+ PASS tests/AutoSkillSuite/32-production-quantity-validation.test.wowlua (camelot, 4.52s)
+   ✓ Auto skill: 32-production-quantity-validation
+ PASS tests/AutoSkillSuite/33-native-production-batch.test.wowlua (camelot, 3.37s)
+   ✓ Auto skill native: 33-native-production-batch
+ PASS tests/AutoSkillSuite/34-native-missing-forge.test.wowlua (camelot, 2.80s)
+   ✓ Auto skill native: 34-native-missing-forge
+ PASS tests/AutoSkillSuite/35-native-production-ui.test.wowlua (camelot, 3.25s)
+   ✓ Auto skill native: 35-native-production-ui
+ PASS tests/AutoSkillSuite/36-native-station-becomes-ready.test.wowlua (camelot, 2.89s)
+   ✓ Auto skill native: 36-native-station-becomes-ready
+ PASS tests/CTASuite/01-visit-ah.test.wowlua (camelot, 3.88s)
+   ✓ CTA: 01-visit-ah
+ PASS tests/CTASuite/02-search-ah.test.wowlua (camelot, 4.08s)
+   ✓ CTA: 02-search-ah
+ PASS tests/CTASuite/03-purchase-price.test.wowlua (camelot, 3.85s)
+   ✓ CTA: 03-purchase-price
+ PASS tests/CTASuite/04-wait-disabled.test.wowlua (camelot, 3.79s)
+   ✓ CTA: 04-wait-disabled
+ PASS tests/CTASuite/05-done-disabled.test.wowlua (camelot, 3.63s)
+   ✓ CTA: 05-done-disabled
+ PASS tests/CTASuite/06-tooltip-explanations.test.wowlua (camelot, 4.72s)
+   ✓ CTA: 06-tooltip-explanations
+ PASS tests/CTASuite/07-order-page-overlay.test.wowlua (camelot, 3.95s)
+   ✓ CTA: 07-order-page-overlay
+ PASS tests/CTASuite/08-cooking-unknown-met.test.wowlua (camelot, 3.82s)
+   ✓ CTA: 08-cooking-unknown-met
+ PASS tests/CTASuite/09-cooking-replaces-handoff.test.wowlua (camelot, 3.72s)
+   ✓ CTA: 09-cooking-replaces-handoff
+ PASS tests/CTASuite/10-one-primary-craft.test.wowlua (camelot, 3.74s)
+   ✓ CTA: 10-one-primary-craft
+ PASS tests/CTASuite/11-errors-retained.test.wowlua (camelot, 3.77s)
+   ✓ CTA: 11-errors-retained
+ PASS tests/CTASuite/12-station-preview.test.wowlua (camelot, 4.16s)
+   ✓ CTA: 12-station-preview
+ PASS tests/CTASuite/13-native-station-lost.test.wowlua (camelot, 2.93s)
+   ✓ CTA: losing native station replaces an existing preparation
+ PASS tests/CraftPerformanceSuite/01-no-recipe-enumeration.test.wowlua (camelot, 3.15s)
+   ✓ Craft performance: 01-no-recipe-enumeration
+ PASS tests/CraftPerformanceSuite/02-no-full-inventory-sweep.test.wowlua (camelot, 3.60s)
+   ✓ Craft performance: 02-no-full-inventory-sweep
+ PASS tests/CraftPerformanceSuite/03-event-burst-coalesces.test.wowlua (camelot, 3.20s)
+   ✓ Craft performance: 03-event-burst-coalesces
+ PASS tests/CraftPerformanceSuite/04-end-resumes.test.wowlua (camelot, 3.49s)
+   ✓ Craft performance: 04-end-resumes
+ PASS tests/CraftPerformanceSuite/05-single-recipe-progress.test.wowlua (camelot, 3.16s)
+   ✓ Craft performance: 05-single-recipe-progress
+ PASS tests/CraftPerformanceSuite/06-no-replanning-on-poll.test.wowlua (camelot, 3.20s)
+   ✓ Craft performance: 06-no-replanning-on-poll
+ PASS tests/CraftPerformanceSuite/07-delayed-bags-real-count.test.wowlua (camelot, 3.25s)
+   ✓ Craft performance: 07-delayed-bags-real-count
+ PASS tests/CraftPerformanceSuite/08-interruption-resumes.test.wowlua (camelot, 3.19s)
+   ✓ Craft performance: 08-interruption-resumes
+ PASS tests/CraftPerformanceSuite/09-skill-boundary.test.wowlua (camelot, 3.10s)
+   ✓ Craft performance: 09-skill-boundary
+ PASS tests/CraftPerformanceSuite/10-grey-recipe-attention.test.wowlua (camelot, 3.26s)
+   ✓ Craft performance: 10-grey-recipe-attention
+ PASS tests/CraftPerformanceSuite/11-batch-counter-is-batch.test.wowlua (camelot, 3.45s)
+   ✓ Craft performance: 11-batch-counter-is-batch
+ PASS tests/CraftPerformanceSuite/12-prepared-counter.test.wowlua (camelot, 3.24s)
+   ✓ Craft performance: 12-prepared-counter
+ PASS tests/CraftPerformanceSuite/13-no-protected-craft.test.wowlua (camelot, 2.71s)
+   ✓ Craft performance: 13-no-protected-craft
+ PASS tests/CraftPerformanceSuite/14-metadata-without-schematic.test.wowlua (camelot, 3.57s)
+   ✓ Craft performance: 14-metadata-without-schematic
+ PASS tests/CraftPerformanceSuite/15-idle-inventory-still-captures.test.wowlua (camelot, 3.19s)
+   ✓ Craft performance: 15-idle-inventory-still-captures
+ PASS tests/CraftPerformanceSuite/16-transition-observed.test.wowlua (camelot, 3.42s)
+   ✓ Craft performance: 16-transition-observed
+ PASS tests/CraftPerformanceSuite/17-green-expected-versus-safe.test.wowlua (camelot, 3.92s)
+   ✓ Craft forecast: 17-green-expected-versus-safe
+ PASS tests/CraftPerformanceSuite/18-forecast-survives-handoff.test.wowlua (camelot, 3.95s)
+   ✓ Craft forecast: 18-forecast-survives-handoff
+ PASS tests/CraftPerformanceSuite/19-forecast-not-guarantee.test.wowlua (camelot, 4.29s)
+   ✓ Craft forecast: 19-forecast-not-guarantee
+ PASS tests/CraftPerformanceSuite/20-failed-attempt-memoryless.test.wowlua (camelot, 4.74s)
+   ✓ Craft forecast: 20-failed-attempt-memoryless
+ PASS tests/CraftPerformanceSuite/21-orange-one-point.test.wowlua (camelot, 4.14s)
+   ✓ Craft forecast: 21-orange-one-point
+ PASS tests/CraftPerformanceSuite/22-no-extra-crafts-beyond-stock.test.wowlua (camelot, 4.43s)
+   ✓ Craft forecast: 22-no-extra-crafts-beyond-stock
+ PASS tests/CraftPerformanceSuite/23-live-forecast.test.wowlua (camelot, 4.34s)
+   ✓ Craft forecast: live skill updates estimate without full route
+ PASS tests/CraftPerformanceSuite/24-direct-native-craft.test.wowlua (camelot, 3.15s)
+   ✓ Craft performance: 24-direct-native-craft
+ PASS tests/CraftPerformanceSuite/25-idle-gap-grace.test.wowlua (camelot, 2.91s)
+   ✓ Craft performance: 25-idle-gap-grace
+ PASS tests/CraftSuite/01-prepare-one.test.wowlua (camelot, 2.79s)
+   ✓ Preparing one craft never starts crafting by itself
+ PASS tests/CraftSuite/02-prepare-batch.test.wowlua (camelot, 2.94s)
+   ✓ Batch preparation uses only available bags and needs native click
+ PASS tests/CraftSuite/03-one-success.test.wowlua (camelot, 3.10s)
+   ✓ One native success yields two bars and consumes one of each reagent
+ PASS tests/CraftSuite/04-batch-success.test.wowlua (camelot, 3.43s)
+   ✓ A native batch records every success exactly once
+ PASS tests/CraftSuite/05-no-early-count.test.wowlua (camelot, 3.42s)
+   ✓ Cast start alone does not count as completed craft
+ PASS tests/CraftSuite/06-no-skillup.test.wowlua (camelot, 3.14s)
+   ✓ A successful craft counts even when it gives no skill point
+ PASS tests/CraftSuite/07-interrupt-first.test.wowlua (camelot, 3.55s)
+   ✓ Interrupting before success gives no items and no completed craft
+ PASS tests/CraftSuite/08-interrupt-batch.test.wowlua (camelot, 3.85s)
+   ✓ Interrupting a batch preserves only the already confirmed first craft
+ PASS tests/CraftSuite/09-guide-focus.test.wowlua (camelot, 3.66s)
+   ✓ Repeated guide clicks after preparation cannot start a native craft
+ PASS tests/CraftSuite/10-busy-guard.test.wowlua (camelot, 3.70s)
+   ✓ A running craft rejects a second preparation request
+ PASS tests/CraftSuite/11-duplicate-success.test.wowlua (camelot, 4.02s)
+   ✓ A repeated success GUID cannot increment completion twice
+ PASS tests/CraftSuite/12-unrelated-spell.test.wowlua (camelot, 3.18s)
+   ✓ An unrelated spell success cannot complete the prepared recipe
+ PASS tests/CraftSuite/13-other-unit.test.wowlua (camelot, 3.28s)
+   ✓ Another unit succeeding with the same spell cannot count as our craft
+ PASS tests/CraftSuite/14-lost-materials.test.wowlua (camelot, 3.03s)
+   ✓ Missing ingredients at preparation time block native handoff
+ PASS tests/CraftSuite/15-combat.test.wowlua (camelot, 2.83s)
+   ✓ Combat prevents preparation without starting or consuming anything
+ PASS tests/CraftSuite/16-close-prepared.test.wowlua (camelot, 2.98s)
+   ✓ Closing native profession cancels a prepared but unstarted handoff
+ PASS tests/CraftSuite/17-edit-quantity.test.wowlua (camelot, 3.13s)
+   ✓ Changing the native quantity invalidates the previous handoff
+ PASS tests/CraftSuite/18-change-recipe.test.wowlua (camelot, 3.05s)
+   ✓ Selecting another native recipe invalidates the prepared handoff
+ PASS tests/CraftSuite/19-delayed-bags.test.wowlua (camelot, 3.09s)
+   ✓ Confirmed success is counted once while material packets arrive later
+ PASS tests/CraftSuite/20-goal-complete.test.wowlua (camelot, 3.25s)
+   ✓ Reaching an explicit one-point skill target marks the order done
+ PASS tests/EconomyEvidenceSuite/economy.test.wowlua (camelot, 3.59s)
+   ✓ Economy evidence 01: cheap green beats orange / Gruen schlaegt Orange
+   ✓ Economy evidence 02: expensive green loses / Teures Gruen verliert
+   ✓ Economy evidence 03: chance adjusts each point / Chance je Skillpunkt
+   ✓ Economy evidence 04: switch at 124 / Wirtschaftlicher Wechsel bei 124
+   ✓ Economy evidence 05: no switch just for colour / Kein Wechsel nur wegen Farbe
+   ✓ Economy evidence 06: unknown price excluded / Unbekannter Preis nicht kostenlos
+   ✓ Economy evidence 07: all prices missing / Alle Preise fehlen
+   ✓ Economy evidence 08: missing one reagent invalidates quote / Fehlendes Reagenz
+   ✓ Economy evidence 09: quantities and cheapest alternative / Mengen und Alternativen
+   ✓ Economy evidence 10: two points compared fairly / Mehrfach-Skillpunkte
+   ✓ Economy evidence 11: cap clips awarded points / Skillcap begrenzt Punkte
+   ✓ Economy evidence 12: verified unlearned bargain / Guenstigeres unbekanntes Rezept
+   ✓ Economy evidence 13: unavailable bargain ignored / Nicht verfuegbares Rezept
+   ✓ Economy evidence 14: cooldown ignored / Abklingzeit ausschliessen
+   ✓ Economy evidence 15: grey gives no progress / Grau ohne Skillgewinn
+   ✓ Economy evidence 16: equal expected cost prefers chance / Gleichstand
+   ✓ Economy evidence 17: refreshed price changes recommendation / Neue Preise
+   ✓ Economy evidence 18: six expected attempts are not six guaranteed / Versuche
+   ✓ Economy evidence 19: capped profession stops / Skillcap erreicht
+   ✓ Economy evidence 20: green setting respected / Gruen-Einstellung
+ PASS tests/MapSuite/01-horde-real-recipe.test.wowlua (camelot, 4.01s)
+   ✓ Recipe map: 01-horde-real-recipe
+ PASS tests/MapSuite/02-alliance-real-recipe.test.wowlua (camelot, 3.57s)
+   ✓ Recipe map: 02-alliance-real-recipe
+ PASS tests/MapSuite/03-unknown-faction.test.wowlua (camelot, 3.62s)
+   ✓ Recipe map: 03-unknown-faction
+ PASS tests/MapSuite/04-all-professions.test.wowlua (camelot, 4.00s)
+   ✓ Recipe map: 04-all-professions
+ PASS tests/MapSuite/05-guide-auto-marker.test.wowlua (camelot, 3.74s)
+   ✓ Recipe map: 05-guide-auto-marker
+ PASS tests/MapSuite/06-click-opens-map.test.wowlua (camelot, 3.46s)
+   ✓ Recipe map: 06-click-opens-map
+ PASS tests/MapSuite/07-repeat-click.test.wowlua (camelot, 4.04s)
+   ✓ Recipe map: 07-repeat-click
+ PASS tests/MapSuite/08-missing-source.test.wowlua (camelot, 4.28s)
+   ✓ Recipe map: 08-missing-source
+ PASS tests/MapSuite/09-missing-click-details.test.wowlua (camelot, 4.02s)
+   ✓ Recipe map: 09-missing-click-details
+ PASS tests/MapSuite/10-hostile-only.test.wowlua (camelot, 4.50s)
+   ✓ Recipe map: 10-hostile-only
+ PASS tests/MapSuite/11-coordinates-missing.test.wowlua (camelot, 5.10s)
+   ✓ Recipe map: 11-coordinates-missing
+ PASS tests/MapSuite/12-coordinates-invalid.test.wowlua (camelot, 3.43s)
+   ✓ Recipe map: 12-coordinates-invalid
+ PASS tests/MapSuite/13-map-invalid.test.wowlua (camelot, 5.30s)
+   ✓ Recipe map: 13-map-invalid
+ PASS tests/MapSuite/14-drop-not-trainer.test.wowlua (camelot, 3.78s)
+   ✓ Recipe map: 14-drop-not-trainer
+ PASS tests/MapSuite/15-nearest-same-map.test.wowlua (camelot, 4.44s)
+   ✓ Recipe map: 15-nearest-same-map
+ PASS tests/MapSuite/16-vendor-recipe.test.wowlua (camelot, 3.87s)
+   ✓ Recipe map: 16-vendor-recipe
+ PASS tests/MapSuite/17-questgiver.test.wowlua (camelot, 3.84s)
+   ✓ Recipe map: 17-questgiver
+ PASS tests/MapSuite/18-no-rank-substitute.test.wowlua (camelot, 4.42s)
+   ✓ Recipe map: 18-no-rank-substitute
+ PASS tests/MapSuite/19-default-waypoint-unavailable.test.wowlua (camelot, 4.07s)
+   ✓ Recipe map: 19-default-waypoint-unavailable
+ PASS tests/MapSuite/20-other-map-hides-pin.test.wowlua (camelot, 4.16s)
+   ✓ Recipe map: 20-other-map-hides-pin
+ PASS tests/NetCostSuite/net-costs.test.wowlua (camelot, 4.32s)
+   ✓ Net cost 01: resale changes gross winner
+   ✓ Net cost 02: net orange beats gross cheap green
+   ✓ Net cost 03: green net value beats orange
+   ✓ Net cost 04: multiple outputs count each item
+   ✓ Net cost 05: variable output uses minimum
+   ✓ Net cost 06: missing quantity gives no credit
+   ✓ Net cost 07: reference output cannot establish credit
+   ✓ Net cost 08: missing output ID gives no credit
+   ✓ Net cost 09: possible zero output gives no credit
+   ✓ Net cost 10: unknown vendor value preserves material cost
+   ✓ Net cost 11: known zero vendor value
+   ✓ Net cost 12: unloaded item name invalidates value
+   ✓ Net cost 13: unsellable soulbound item
+   ✓ Net cost 14: sellable soulbound item is not excluded
+   ✓ Net cost 15: equipment enchant is not a saleable output
+   ✓ Net cost 16: unknown enchanting output type is conservative
+   ✓ Net cost 17: confirmed physical enchanting output
+   ✓ Net cost 18: resale cannot fill missing material prices
+   ✓ Net cost 19: negative costs remain signed
+   ✓ Net cost 20: zero cost ties prefer higher chance
+   ✓ Net cost 21: negative net score uses chance without invalid savings
+   ✓ Net cost 22: multi skill cap applies to net score
+   ✓ Net cost 23: vendor buy and sell values remain separate
+   ✓ Net cost 24: buying reagents requires gross gold
+   ✓ Net cost 25: owned materials reduce purchases only
+   ✓ Net cost 26: one vendor read per shared output per snapshot
+   ✓ Net cost 27: unknown cache recovers in next snapshot
+   ✓ Net cost 28: new vendor price does not mutate old snapshot
+   ✓ Net cost 29: net costs drive switch lookahead
+   ✓ Net cost 30: unknown ingredients block material plan
+   ✓ Net cost 31: NaN sell price rejected
+   ✓ Net cost 32: negative sell price rejected
+   ✓ Net cost 33: infinite sell price rejected
+   ✓ Net cost 34: fractional copper sell price rejected
+   ✓ Net cost 35: contradictory output bounds rejected
+   ✓ Net cost 36: fractional output amount rejected
+   ✓ Net cost 37: legacy fallback after modern API error
+   ✓ Net cost 38: legacy fallback after modern missing data
+   ✓ Net cost 39: modern zero is authoritative
+   ✓ Net cost 40: output metadata for all crafting professions
+   ✓ Net cost 41: legacy output quantities are read
+   ✓ Net cost 42: missing schematic clears stale output proof
+   ✓ Net cost 43: unknown recipe cannot claim credit
+   ✓ Net cost 44: no output API guesses one item
+   ✓ Net cost 45: invalid maximum NaN rejected
+   ✓ Net cost 46: native batch reuses cached vendor value
+   ✓ Net cost 47: localized details explain sale assumption
+   ✓ Net cost 48: conflicting client output IDs receive no credit
+   ✓ Net cost 49: native batch without cache never queries item data
+   ✓ Net cost 50: multi skill points divide net not gross
+ PASS tests/ProfessionSuite/01-smith.test.wowlua (camelot, 4.55s)
+   ✓ Blacksmithing loads client recipes and shows one guide
+ PASS tests/ProfessionSuite/02-mining.test.wowlua (camelot, 4.30s)
+   ✓ Mining loads the recorded smelting recipes
+ PASS tests/ProfessionSuite/03-smith-to-mining.test.wowlua (camelot, 4.29s)
+   ✓ Switching to Mining does not retain Blacksmithing recipes
+ PASS tests/ProfessionSuite/04-mining-to-smith.test.wowlua (camelot, 5.64s)
+   ✓ Switching to Blacksmithing does not retain smelting recipes
+ PASS tests/ProfessionSuite/05-transition-lock.test.wowlua (camelot, 4.02s)
+   ✓ Pending profession data shows loading instead of actionable old data
+ PASS tests/ProfessionSuite/06-rapid-switch.test.wowlua (camelot, 4.58s)
+   ✓ Rapid profession switches settle on the last requested profession
+ PASS tests/ProfessionSuite/07-repeated-open.test.wowlua (camelot, 4.93s)
+   ✓ Three profession visits preserve guide-only close behavior
+ PASS tests/ProfessionSuite/08-close-options.test.wowlua (camelot, 4.35s)
+   ✓ Closing profession while options are open restores guide only
+ PASS tests/ProfessionSuite/09-close-log.test.wowlua (camelot, 4.53s)
+   ✓ Closing profession while log is open hides the log page
+ PASS tests/ProfessionSuite/10-close-systemcheck.test.wowlua (camelot, 4.82s)
+   ✓ Closing profession hides the hosted systemcheck without starting it
+ PASS tests/ProfessionSuite/11-switch-catalogue.test.wowlua (camelot, 4.57s)
+   ✓ Switching professions dismisses the old recipe catalogue page
+ PASS tests/ProfessionSuite/12-skill-order-ui.test.wowlua (camelot, 4.57s)
+   ✓ Automatic skill plan is displayed without manual quantity below 300
+ PASS tests/ProfessionSuite/13-dismiss-inventory.test.wowlua (camelot, 4.68s)
+   ✓ An irrelevant bag update does not reopen a dismissed guide
+ PASS tests/ProfessionSuite/14-route-ah.test.wowlua (camelot, 4.05s)
+   ✓ Missing non-vendor materials automatically select the AH task
+ PASS tests/ProfessionSuite/15-route-vendor.test.wowlua (camelot, 4.08s)
+   ✓ Missing vendor materials automatically select the vendor task
+ PASS tests/ProfessionSuite/16-route-bank.test.wowlua (camelot, 3.87s)
+   ✓ Owned bank material selects collection rather than buying
+ PASS tests/ProfessionSuite/17-route-alt.test.wowlua (camelot, 4.39s)
+   ✓ Eligible alt material selects transfer rather than buying
+ PASS tests/ProfessionSuite/18-route-unknown.test.wowlua (camelot, 4.79s)
+   ✓ Unknown inventory selects a stock check instead of crafting
+ PASS tests/ProfessionSuite/19-route-ready.test.wowlua (camelot, 4.67s)
+   ✓ Available recorded recipe ingredients select crafting automatically
+ PASS tests/ProfessionSuite/20-route-priority.test.wowlua (camelot, 5.29s)
+   ✓ Available crafts take priority over buying more materials
+ PASS tests/RequirementsSuite/01-hammer-first.test.wowlua (camelot, 4.18s)
+   ✓ Requirements: 01-hammer-first
+ PASS tests/RequirementsSuite/02-engineering-tool.test.wowlua (camelot, 3.88s)
+   ✓ Requirements: 02-engineering-tool
+ PASS tests/RequirementsSuite/03-philosopher-stone.test.wowlua (camelot, 4.50s)
+   ✓ Requirements: 03-philosopher-stone
+ PASS tests/RequirementsSuite/04-all-supported-professions.test.wowlua (camelot, 5.77s)
+   ✓ Requirements: 04-all-supported-professions
+ PASS tests/RequirementsSuite/05-tool-before-station.test.wowlua (camelot, 4.88s)
+   ✓ Requirements: 05-tool-before-station
+ PASS tests/RequirementsSuite/06-owned-substitute-accepted.test.wowlua (camelot, 5.18s)
+   ✓ Requirements: 06-owned-substitute-accepted
+ PASS tests/RequirementsSuite/07-area-requirement.test.wowlua (camelot, 4.90s)
+   ✓ Requirements: 07-area-requirement
+ PASS tests/RequirementsSuite/08-generic-workstation.test.wowlua (camelot, 4.67s)
+   ✓ Requirements: 08-generic-workstation
+ PASS tests/RequirementsSuite/09-cache-missing-tool.test.wowlua (camelot, 4.97s)
+   ✓ Requirements: 09-cache-missing-tool
+ PASS tests/RequirementsSuite/10-cache-station-not-authoritative.test.wowlua (camelot, 4.62s)
+   ✓ Requirements: 10-cache-station-not-authoritative
+ PASS tests/RequirementsSuite/11-tools-not-consumed.test.wowlua (camelot, 4.55s)
+   ✓ Requirements: 11-tools-not-consumed
+ PASS tests/RequirementsSuite/12-tool-blocks-ah-plan.test.wowlua (camelot, 3.79s)
+   ✓ Requirements: 12-tool-blocks-ah-plan
+ PASS tests/RequirementsSuite/13-tool-blocks-vendor-plan.test.wowlua (camelot, 4.24s)
+   ✓ Requirements: 13-tool-blocks-vendor-plan
+ PASS tests/RequirementsSuite/14-tool-resolves.test.wowlua (camelot, 3.96s)
+   ✓ Requirements: 14-tool-resolves
+ PASS tests/RequirementsSuite/15-tool-before-prices.test.wowlua (camelot, 4.46s)
+   ✓ Requirements: 15-tool-before-prices
+ PASS tests/RequirementsSuite/16-single-available-attempt.test.wowlua (camelot, 4.31s)
+   ✓ Requirements: 16-single-available-attempt
+ PASS tests/RequirementsSuite/17-yellow-limited-attempt.test.wowlua (camelot, 3.85s)
+   ✓ Requirements: 17-yellow-limited-attempt
+ PASS tests/RequirementsSuite/18-cooldown-fallback.test.wowlua (camelot, 4.40s)
+   ✓ Requirements: 18-cooldown-fallback
+ PASS tests/RequirementsSuite/19-zero-charges.test.wowlua (camelot, 4.33s)
+   ✓ Requirements: 19-zero-charges
+ PASS tests/RequirementsSuite/20-production-limited-budget.test.wowlua (camelot, 4.84s)
+   ✓ Requirements: 20-production-limited-budget
+ PASS tests/RequirementsSuite/21-tool-presence-refreshes-ui.test.wowlua (camelot, 3.65s)
+   ✓ Requirements: 21-tool-presence-refreshes-ui
+ PASS tests/RequirementsSuite/22-missing-readiness-not-ready.test.wowlua (camelot, 3.99s)
+   ✓ Requirements: 22-missing-readiness-not-ready
+ PASS tests/RequirementsSuite/23-production-cooldown-cta.test.wowlua (camelot, 4.10s)
+   ✓ Requirements: 23-production-cooldown-cta
+ PASS tests/RequirementsSuite/24-tool-tooltip-list.test.wowlua (camelot, 4.37s)
+   ✓ Requirements: 24-tool-tooltip-list
+ PASS tests/RequirementsSuite/25-native-requirement-metadata.test.wowlua (camelot, 3.20s)
+   ✓ Requirements native/API: 25-native-requirement-metadata
+ PASS tests/RequirementsSuite/26-native-no-multiple.test.wowlua (camelot, 2.94s)
+   ✓ Requirements native/API: 26-native-no-multiple
+ PASS tests/RequirementsSuite/27-native-charge-metadata.test.wowlua (camelot, 2.97s)
+   ✓ Requirements native/API: 27-native-charge-metadata
+ PASS tests/RequirementsSuite/28-transmute-client-label.test.wowlua (camelot, 4.21s)
+   ✓ Requirements: ready transmute receives conservative one-attempt budget
+ PASS tests/RequirementsSuite/29-exhausted-transmute-charges.test.wowlua (camelot, 4.54s)
+   ✓ Requirements: exhausted charges remain unavailable for transmutes
+ PASS tests/RequirementsSuite/30-limited-production-budget-resumes.test.wowlua (camelot, 4.29s)
+   ✓ Requirements: confirmed limited production unlocks only the next purchase slice
+ PASS tests/RodSuite/01-missing-rod-plan.test.wowlua (camelot, 4.13s)
+   ✓ RodSuite: 01-missing-rod-plan
+ PASS tests/RodSuite/02-grey-rod.test.wowlua (camelot, 4.11s)
+   ✓ RodSuite: 02-grey-rod
+ PASS tests/RodSuite/03-reusable-chain.test.wowlua (camelot, 4.12s)
+   ✓ RodSuite: 03-reusable-chain
+ PASS tests/RodSuite/04-consumed-chain.test.wowlua (camelot, 4.08s)
+   ✓ RodSuite: 04-consumed-chain
+ PASS tests/RodSuite/05-owned-predecessor.test.wowlua (camelot, 4.40s)
+   ✓ RodSuite: 05-owned-predecessor
+ PASS tests/RodSuite/06-higher-tool-accepted.test.wowlua (camelot, 3.91s)
+   ✓ RodSuite: 06-higher-tool-accepted
+ PASS tests/RodSuite/07-output-proof-required.test.wowlua (camelot, 4.12s)
+   ✓ RodSuite: 07-output-proof-required
+ PASS tests/RodSuite/08-single-output-proof.test.wowlua (camelot, 4.11s)
+   ✓ RodSuite: 08-single-output-proof
+ PASS tests/RodSuite/09-not-target-enchantment.test.wowlua (camelot, 3.68s)
+   ✓ RodSuite: 09-not-target-enchantment
+ PASS tests/RodSuite/10-learn-first.test.wowlua (camelot, 3.95s)
+   ✓ RodSuite: 10-learn-first
+ PASS tests/RodSuite/11-unknown-tool.test.wowlua (camelot, 3.88s)
+   ✓ RodSuite: 11-unknown-tool
+ PASS tests/RodSuite/12-missing-price.test.wowlua (camelot, 3.86s)
+   ✓ RodSuite: 12-missing-price
+ PASS tests/RodSuite/13-owned-unpriced.test.wowlua (camelot, 4.05s)
+   ✓ RodSuite: 13-owned-unpriced
+ PASS tests/RodSuite/14-wait-for-bags.test.wowlua (camelot, 4.06s)
+   ✓ RodSuite: 14-wait-for-bags
+ PASS tests/RodSuite/15-wait-for-requirement.test.wowlua (camelot, 4.11s)
+   ✓ RodSuite: 15-wait-for-requirement
+ PASS tests/RodSuite/16-resume-parent.test.wowlua (camelot, 4.04s)
+   ✓ RodSuite: 16-resume-parent
+ PASS tests/RodSuite/17-duplicate-events.test.wowlua (camelot, 3.55s)
+   ✓ RodSuite: 17-duplicate-events
+ PASS tests/RodSuite/18-other-spell-unit.test.wowlua (camelot, 3.96s)
+   ✓ RodSuite: 18-other-spell-unit
+ PASS tests/RodSuite/19-interruption.test.wowlua (camelot, 3.64s)
+   ✓ RodSuite: 19-interruption
+ PASS tests/RodSuite/20-parent-production.test.wowlua (camelot, 4.85s)
+   ✓ RodSuite: 20-parent-production
+ PASS tests/RodSuite/21-stable-budget-key.test.wowlua (camelot, 3.81s)
+   ✓ RodSuite: 21-stable-budget-key
+ PASS tests/RodSuite/22-shopping-rod-only.test.wowlua (camelot, 4.19s)
+   ✓ RodSuite: 22-shopping-rod-only
+ PASS tests/RodSuite/23-vendor-rod-only.test.wowlua (camelot, 4.81s)
+   ✓ RodSuite: 23-vendor-rod-only
+ PASS tests/RodSuite/24-wait-cta.test.wowlua (camelot, 4.17s)
+   ✓ RodSuite: 24-wait-cta
+ PASS tests/RodSuite/25-native-preparation.test.wowlua (camelot, 4.49s)
+   ✓ RodSuite: 25-native-preparation
+ PASS tests/RodSuite/26-native-success-delay.test.wowlua (camelot, 4.64s)
+   ✓ RodSuite: 26-native-success-delay
+ PASS tests/RodSuite/27-chain-advances.test.wowlua (camelot, 4.42s)
+   ✓ RodSuite: 27-chain-advances
+ PASS tests/RodSuite/28-cycle-guard.test.wowlua (camelot, 4.80s)
+   ✓ RodSuite: 28-cycle-guard
+ PASS tests/RodSuite/29-live-materials-only.test.wowlua (camelot, 3.43s)
+   ✓ RodSuite: 29-live-materials-only
+ PASS tests/RodSuite/30-unavailable-rod.test.wowlua (camelot, 3.65s)
+   ✓ RodSuite: 30-unavailable-rod
+ PASS tests/RodSuite/31-forge-unaffected.test.wowlua (camelot, 4.99s)
+   ✓ RodSuite: 31-forge-unaffected
+ PASS tests/RodSuite/32-overview-not-done.test.wowlua (camelot, 4.66s)
+   ✓ RodSuite: 32-overview-not-done
+ PASS tests/RodSuite/33-enchant-target-unchanged.test.wowlua (camelot, 4.47s)
+   ✓ RodSuite: 33-enchant-target-unchanged
+ PASS tests/RodSuite/34-tool-cta.test.wowlua (camelot, 5.16s)
+   ✓ RodSuite: 34-tool-cta
+ PASS tests/RodSuite/35-client-ingest.test.wowlua (camelot, 3.61s)
+   ✓ RodSuite: client metadata ingestion uses current physical output and materials
+ PASS tests/RodSuite/36-all-classic-rods.test.wowlua (camelot, 3.66s)
+   ✓ RodSuite: 36-all-classic-rods
+ PASS tests/RodSuite/37-no-schematic.test.wowlua (camelot, 4.86s)
+   ✓ RodSuite: 37-no-schematic
+ PASS tests/RodSuite/38-pending-budget-change.test.wowlua (camelot, 5.24s)
+   ✓ RodSuite: 38-pending-budget-change
+ PASS tests/RodSuite/39-pending-reload.test.wowlua (camelot, 4.02s)
+   ✓ RodSuite: 39-pending-reload
+ PASS tests/RodSuite/40-no-guessed-tool-requirement.test.wowlua (camelot, 3.72s)
+   ✓ RodSuite: 40-no-guessed-tool-requirement
+ PASS tests/RodSuite/41-learned-rod-resumes.test.wowlua (camelot, 3.79s)
+   ✓ RodSuite: 41-learned-rod-resumes
+ PASS tests/RodSuite/42-new-stage-search.test.wowlua (camelot, 4.14s)
+   ✓ RodSuite: 42-new-stage-search
+ PASS tests/RodSuite/43-parent-search-resumes.test.wowlua (camelot, 4.11s)
+   ✓ RodSuite: 43-parent-search-resumes
+ PASS tests/RodSuite/44-pending-lower-output.test.wowlua (camelot, 4.09s)
+   ✓ RodSuite: 44-pending-lower-output
+ PASS tests/RodSuite/45-requirement-before-bags.test.wowlua (camelot, 4.48s)
+   ✓ RodSuite: requirement packet before bags
+ PASS tests/RodSuite/46-substitute-after-preparation.test.wowlua (camelot, 4.44s)
+   ✓ RodSuite: substitute arrives after preparation
+ PASS tests/RodSuite/47-reopen-for-tool-check.test.wowlua (camelot, 3.65s)
+   ✓ RodSuite: reopen profession after rod reaches bags
+ PASS tests/RodSuite/48-stored-rod.test.wowlua (camelot, 4.19s)
+   ✓ RodSuite: 48-stored-rod
+ PASS tests/RodSuite/49-stored-predecessor.test.wowlua (camelot, 4.77s)
+   ✓ RodSuite: 49-stored-predecessor
+ PASS tests/RodSuite/50-progress-isolation.test.wowlua (camelot, 4.56s)
+   ✓ RodSuite: rod and parent progress remain separate
+ PASS tests/SkillGoalSuite/01-completed-stable.test.wowlua (camelot, 3.86s)
+   ✓ Fixed manual goal remains completed and its action is disabled
+ PASS tests/SkillGoalSuite/02-explicit-restart.test.wowlua (camelot, 3.37s)
+   ✓ Applying the same completed goal explicitly starts a fresh order
+ PASS tests/SkillGoalSuite/03-bag-after-done.test.wowlua (camelot, 3.99s)
+   ✓ Bag updates cannot reopen a completed manual order
+ PASS tests/SkillGoalSuite/04-partial-skill.test.wowlua (camelot, 2.98s)
+   ✓ Partial skill progress reduces remaining distance without moving target
+ PASS tests/SkillGoalSuite/05-reopen-preserves.test.wowlua (camelot, 4.22s)
+   ✓ Closing and reopening the profession preserves the fixed target
+ PASS tests/SkillGoalSuite/06-batch-cap.test.wowlua (camelot, 3.03s)
+   ✓ Prepare all cannot exceed a one-point manual target
+ PASS tests/SkillGoalSuite/07-no-auto-continue.test.wowlua (camelot, 3.60s)
+   ✓ Completed manual order refuses another craft until explicit restart
+ PASS tests/SkillGoalSuite/08-explicit-change.test.wowlua (camelot, 3.69s)
+   ✓ Changing the requested points explicitly creates a new fixed target
+ PASS tests/SkillGoalSuite/09-preview.test.wowlua (camelot, 3.03s)
+   ✓ A target preview does not replace the saved active goal
+ PASS tests/SkillGoalSuite/10-profession-scope.test.wowlua (camelot, 3.17s)
+   ✓ Manual targets remain separate for different professions
+ PASS tests/StationCTASuite/01-anvil.test.wowlua (camelot, 4.92s)
+   ✓ StationCTA: 01-anvil
+ PASS tests/StationCTASuite/02-forge.test.wowlua (camelot, 5.08s)
+   ✓ StationCTA: 02-forge
+ PASS tests/StationCTASuite/03-furnace.test.wowlua (camelot, 3.50s)
+   ✓ StationCTA: 03-furnace
+ PASS tests/StationCTASuite/04-smelting-furnace.test.wowlua (camelot, 4.74s)
+   ✓ StationCTA: 04-smelting-furnace
+ PASS tests/StationCTASuite/05-cooking.test.wowlua (camelot, 5.12s)
+   ✓ StationCTA: 05-cooking
+ PASS tests/StationCTASuite/06-campfire.test.wowlua (camelot, 4.46s)
+   ✓ StationCTA: 06-campfire
+ PASS tests/StationCTASuite/07-black-anvil.test.wowlua (camelot, 4.23s)
+   ✓ StationCTA: 07-black-anvil
+ PASS tests/StationCTASuite/08-black-forge.test.wowlua (camelot, 3.71s)
+   ✓ StationCTA: 08-black-forge
+ PASS tests/StationCTASuite/09-alchemy.test.wowlua (camelot, 5.02s)
+   ✓ StationCTA: 09-alchemy
+ PASS tests/StationCTASuite/10-moonwell.test.wowlua (camelot, 5.23s)
+   ✓ StationCTA: 10-moonwell
+ PASS tests/StationCTASuite/11-loom.test.wowlua (camelot, 5.37s)
+   ✓ StationCTA: 11-loom
+ PASS tests/StationCTASuite/12-workbench.test.wowlua (camelot, 5.00s)
+   ✓ StationCTA: 12-workbench
+ PASS tests/StationCTASuite/13-runeforge.test.wowlua (camelot, 4.63s)
+   ✓ StationCTA: 13-runeforge
+ PASS tests/StationCTASuite/14-enchanting-table.test.wowlua (camelot, 4.72s)
+   ✓ StationCTA: 14-enchanting-table
+ PASS tests/StationCTASuite/15-unknown-focus.test.wowlua (camelot, 4.97s)
+   ✓ StationCTA: 15-unknown-focus
+ PASS tests/StationCTASuite/16-unknown-area.test.wowlua (camelot, 4.52s)
+   ✓ StationCTA: 16-unknown-area
+ PASS tests/StationCTASuite/17-known-area.test.wowlua (camelot, 4.07s)
+   ✓ StationCTA: 17-known-area
+ PASS tests/StationCTASuite/18-no-name.test.wowlua (camelot, 4.64s)
+   ✓ StationCTA: 18-no-name
+ PASS tests/StationCTASuite/19-trim-case.test.wowlua (camelot, 4.31s)
+   ✓ StationCTA: 19-trim-case
+ PASS tests/StationCTASuite/20-no-profession-guess.test.wowlua (camelot, 3.88s)
+   ✓ StationCTA: 20-no-profession-guess
+ PASS tests/StationCTASuite/21-tool-remains-portable.test.wowlua (camelot, 3.52s)
+   ✓ StationCTA: 21-tool-remains-portable
+ PASS tests/StationCTASuite/22-readiness.test.wowlua (camelot, 3.97s)
+   ✓ StationCTA: 22-readiness
+ PASS tests/StationCTASuite/23-all-professions.test.wowlua (camelot, 3.82s)
+   ✓ StationCTA: 23-all-professions
+ PASS tests/StationCTASuite/24-click-does-not-craft.test.wowlua (camelot, 3.99s)
+   ✓ StationCTA: 24-click-does-not-craft
+ PASS tests/TrainerRoutingSuite/routing.test.wowlua (camelot, 4.01s)
+   ✓ Trainer routing 01: real wand prefers Mot in Thunder Bluff
+   ✓ Trainer routing 02: real wand prefers Teg when closer
+   ✓ Trainer routing 03: Orgrimmar still selects Jhag
+   ✓ Trainer routing 04: Alliance does not route to Horde trainers
+   ✓ Trainer routing 05: unknown faction does not invent access
+   ✓ Trainer routing 06: details and marker agree in Thunder Bluff
+   ✓ Trainer routing 07: details and marker agree in Orgrimmar
+   ✓ Trainer routing 08: moving city recalculates without reload
+   ✓ Trainer routing 09: no position still prefers current city
+   ✓ Trainer routing 10: plain position fields supported
+   ✓ Trainer routing 11: other recipe gets no guessed Thunder Bluff trainers
+   ✓ Trainer routing 12: rank trainer is not proof of recipe teaching
+   ✓ Trainer routing 13: same map beats another city
+   ✓ Trainer routing 14: nearer same map trainer wins
+   ✓ Trainer routing 15: neutral local trainer allowed
+   ✓ Trainer routing 16: hostile local trainer excluded
+   ✓ Trainer routing 17: no map is deterministic
+   ✓ Trainer routing 18: invalid coordinates do not create marker
+   ✓ Trainer routing 19: coordinates missing do not create marker
+   ✓ Trainer routing 20: duplicate supplement is listed once
+   ✓ Trainer routing 21: reference dataset is not mutated
+   ✓ Trainer routing 22: recipe task carries selected local source
+   ✓ Trainer routing 23: route identity changes with destination
+   ✓ Trainer routing 24: algorithm applies to every crafting profession
+   ✓ Trainer routing 25: drop source is not treated as trainer
+   ✓ Trainer routing 26: questgiver expansion remains available
+   ✓ Trainer routing 27: same NPC can have distinct spawn locations
+   ✓ Trainer routing 28: valid local coordinates precede missing local position
+   ✓ Trainer routing 29: supplemented source remains marked reference
+   ✓ Trainer routing 30: returned target can change without altering shared rows
+ PASS tests/UICompatibilitySuite/01-normal-cost.test.wowlua (camelot, 3.81s)
+   ✓ Compatibility model returns false only for a recorded paid recipe
+ PASS tests/UICompatibilitySuite/02-unknown.test.wowlua (camelot, 3.51s)
+   ✓ Compatibility model rejects unknown recipes instead of guessing
+ PASS tests/UICompatibilitySuite/03-missing-schema.test.wowlua (camelot, 4.14s)
+   ✓ Compatibility model rejects missing schematic data
+ PASS tests/UICompatibilitySuite/04-free-unsupported.test.wowlua (camelot, 4.28s)
+   ✓ Compatibility model rejects zero-reagent scenarios outside its scope
+ PASS tests/VendorSuite/01-normal.test.wowlua (camelot, 4.34s)
+   ✓ Guide buys only the deficit after explicit click
+ PASS tests/VendorSuite/02-double-click.test.wowlua (camelot, 3.51s)
+   ✓ Repeated clicks cannot duplicate an in-flight purchase
+ PASS tests/VendorSuite/03-no-gold.test.wowlua (camelot, 4.00s)
+   ✓ Insufficient gold blocks purchase
+ PASS tests/VendorSuite/04-exact-gold.test.wowlua (camelot, 4.24s)
+   ✓ Exact required gold is sufficient
+ PASS tests/VendorSuite/05-close-before.test.wowlua (camelot, 3.36s)
+   ✓ Closing merchant before click prevents purchase
+ PASS tests/VendorSuite/06-close-pending.test.wowlua (camelot, 4.81s)
+   ✓ Closing merchant preserves an already sent purchase confirmation
+ PASS tests/VendorSuite/07-price-rise.test.wowlua (camelot, 3.58s)
+   ✓ A higher price after display requires a new confirmation
+ PASS tests/VendorSuite/08-price-drop.test.wowlua (camelot, 5.07s)
+   ✓ Even a lower changed total requires renewed confirmation
+ PASS tests/VendorSuite/09-quantity-change.test.wowlua (camelot, 4.51s)
+   ✓ Changed planned quantity cannot be purchased on the old quote
+ PASS tests/VendorSuite/10-stock-arrived.test.wowlua (camelot, 4.24s)
+   ✓ Material arriving after display stops the outdated purchase
+ PASS tests/VendorSuite/11-packages.test.wowlua (camelot, 4.08s)
+   ✓ Merchant package quantities round up without underbuying
+ PASS tests/VendorSuite/12-stack-limit.test.wowlua (camelot, 4.24s)
+   ✓ Large orders need separate confirmed maximum-stack purchases
+ PASS tests/VendorSuite/13-limited-stock.test.wowlua (camelot, 3.69s)
+   ✓ Limited merchant stock is not offered by the unlimited-stock buyer
+ PASS tests/VendorSuite/14-no-demand.test.wowlua (camelot, 3.70s)
+   ✓ A completed target produces no merchant purchase offer
+ PASS tests/VendorSuite/15-full-bags.test.wowlua (camelot, 3.91s)
+   ✓ Full bags cannot be reported as a successful purchase
+ PASS tests/VendorSuite/16-late-confirmation.test.wowlua (camelot, 3.99s)
+   ✓ Late inventory reporting never counts a purchase early
+ PASS tests/VendorSuite/17-retry-before-timeout.test.wowlua (camelot, 3.31s)
+   ✓ Retry during an in-flight purchase does not unlock buying
+ PASS tests/VendorSuite/18-retry-uncertain.test.wowlua (camelot, 3.30s)
+   ✓ Retry with a paid but unconfirmed purchase cannot buy twice
+ PASS tests/VendorSuite/19-bundle-change.test.wowlua (camelot, 3.10s)
+   ✓ A changed merchant package size invalidates the old quote
+ PASS tests/VendorSuite/20-unknown-stock.test.wowlua (camelot, 3.05s)
+   ✓ Unknown current bag count prevents buying on an old quote
+
+STDERR:
+warning[W1034]: `ns.nextStepWindow` is read while the file loads, but only defined later (inside functions that run at run time)
+   ┌─ src/UnifiedUI.lua:37:33
+   │
+37 │ local function root()return app.nextStepWindow end
+   │                                 ^^^^^^^^^^^^^^ read at load time
+
+warning: 1 warning emitted
+
+      Tested 461 passed, 0 failed, 0 skipped (307 files) in 143.22s
+
+Exit code: 0

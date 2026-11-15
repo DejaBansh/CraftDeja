@@ -235,7 +235,7 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='ah_done'then title,label='cta_purchase_done','cta_details'
     elseif kind=='mail'then title,label='cta_mail','cta_mail_check'
     elseif kind=='vendor'then title,label=task.atVendor and 'cta_material'or 'cta_vendor',task.atVendor and 'cta_buy'or 'cta_map'
-    elseif kind=='learn'then title,label='cta_learn',task.sourceTarget and 'cta_source'or 'cta_details'
+    elseif kind=='learn'then title,label=task.needsCostCheck and 'acquisition_check'or 'cta_learn',task.sourceTarget and 'cta_source'or 'cta_details'
     elseif kind=='rank'then title,label=task.levelBlocked and 'cta_level'or 'cta_rank','cta_trainer'
     elseif kind=='station'then
         title,label='cta_workshop','cta_workshop'

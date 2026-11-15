@@ -1,0 +1,99 @@
+-- SPDX-License-Identifier: MIT
+local _,app=...
+local function valid(n)return type(n)=='number'and n==n and n>=0 and n<math.huge and n==math.floor(n)end
+local function clock()return app.try(time)or 0 end
+local words={en={acquisition_fee='One-time learning/recipe cost: %s (%s).',acquisition_unknown='Learning/recipe cost unknown: check the source before treating this as a cheaper route.',acquisition_owned='Recipe already learned or recipe item already owned: no additional acquisition payment.',acquisition_check='Check learning cost',acquisition_route='Comparison to skill %d: %s with learning, %s using known recipes. Model estimate; other unknown recipes/travel/tools excluded.'},de={acquisition_fee='Einmalige Lern-/Rezeptkosten: %s (%s).',acquisition_unknown='Lern-/Rezeptkosten unbekannt: Quelle prüfen, bevor dies als günstigere Route gilt.',acquisition_owned='Rezept bereits gelernt oder Rezeptgegenstand vorhanden: kein zusätzlicher Erwerbsbetrag.',acquisition_check='Lernkosten prüfen',acquisition_route='Vergleich bis Skill %d: %s mit Lernen, %s mit bekannten Rezepten. Modellschätzung; andere unbekannte Rezepte/Reise/Werkzeuge ausgeschlossen.'}}
+for lang,entries in pairs(words)do for k,v in pairs(entries)do app.words[lang][k]=v end end
+function app.observeLearningCost(id,cost,source)
+    if not app.character or not valid(id)or id<1 or not valid(cost)then return false end
+    app.character.learningCosts=app.character.learningCosts or {}
+    local old=app.character.learningCosts[id]
+    app.character.learningCosts[id]={cost=cost,source=source or 'trainer',at=clock()}
+    return not old or old.cost~=cost or type(old.at)~='number'or clock()<old.at or clock()-old.at>604800
+end
+function app.observeTrainerCosts()
+    if not app.character or app.craftRefreshBusy and app.craftRefreshBusy()then return false end
+    local count=app.try(GetNumTrainerServices)
+    if not valid(count)or count>1000 then return false end
+    local changed=false
+    for i=1,count do
+        local link=app.try(GetTrainerServiceItemLink,i)
+        -- Exact spell/enchant links only. No translated-name or list-index guesses.
+        local id=type(link)=='string'and tonumber(link:match('spell:(%d+)')or link:match('enchant:(%d+)'))
+        local cost=app.try(GetTrainerServiceCost,i)
+        if id and valid(cost)and app.observeLearningCost(id,cost,'trainer')then changed=true end
+    end
+    if changed then app.flowLog('acquisition.trainer_observed',{});app.refresh(false)end
+    return changed
+end
+function app.acquisitionQuote(recipe,memo)
+    if recipe.learned then return {cost=0,known=true,source='learned'}end
+    if memo and memo[recipe.id]then return memo[recipe.id]end
+    local q={known=false,source='unknown'}
+    local row=app.character and app.character.learningCosts and app.character.learningCosts[recipe.id]
+    if row and valid(row.cost)and type(row.at)=='number'and clock()>=row.at and clock()-row.at<=604800 then
+        q={cost=row.cost,known=true,source=row.source or 'trainer',observedAt=row.at}
+    end
+    local data=app.accessInfo and app.accessInfo(recipe)or {}
+    local item=data.item or recipe.scroll
+    if item then
+        local inventory=app.inventoryFor(item)
+        if inventory and type(inventory.total)=='number'and inventory.total>=1 then q={cost=0,known=true,source='owned_recipe',item=item}
+        else
+            local price,provider=app.unitPrice(item,{})
+            if valid(price)and (not q.known or price<q.cost)then q={cost=price,known=true,source=provider or 'recipe_item',item=item,estimated=true}end
+        end
+    end
+    if memo then memo[recipe.id]=q end
+    return q
+end
+-- Expected net cost to the candidate's grey limit / skill cap. One additional
+-- recipe, all already-known alternatives; learning is paid once, never per cast.
+function app.learningAssessment(snapshot,recipe,level)
+    snapshot.learningRoutes=snapshot.learningRoutes or {}
+    local routes=snapshot.learningRoutes[recipe.id]
+    if not routes then
+        local fee=app.acquisitionQuote(recipe,snapshot.acquisition)
+        if not fee.known then return {known=false}end
+        if recipe.rangeConflict or recipe.craftLimit~=nil then return {known=false,fee=fee,unsupported=true}end
+        local target=math.min(snapshot.profile.cap,(not app.options.green and recipe.green)or recipe.grey or level+1)
+        local known,unlocked,first={},{},{}
+        known[target]=0;unlocked[target]=0
+        local function edge(r,at)
+            local q=snapshot.quotes[r.id];local access=snapshot.eligibility and snapshot.eligibility[r.id]
+            local allowed=access and access.allowed
+            if not access then allowed=app.canRecommend(r)end
+            if not allowed or not r.confirmed or not q or r.disabled or r.cooldown or r.noSkill or r.craftLimit~=nil or r.rangeConflict then return end
+            if not r.learned and (r.referenceHidden or r.skill and at<r.skill)then return end
+            local p,colour=app.probability(r,at,at==snapshot.profile.skill)
+            if p<=0 or colour=='green'and not app.options.green then return end
+            return (q.netCost or q.cost)/p,math.min(target,at+(r.points or 1))
+        end
+        for at=target-1,snapshot.profile.skill,-1 do
+            local best,with,choice=math.huge,math.huge,nil
+            for _,r in pairs(snapshot.recipes)do if r.learned then
+                local cost,next= edge(r,at)
+                if cost then
+                    best=math.min(best,cost+(known[next]or math.huge))
+                    local total=cost+(unlocked[next]or math.huge)
+                    if total<with then with=total;choice=r.id end
+                end
+            end end
+            local cost,next=edge(recipe,at)
+            if cost then
+                local total=cost+(unlocked[next]or math.huge)
+                if total<with then with=total;choice=recipe.id end
+            end
+            known[at]=best;unlocked[at]=with;first[at]=choice
+        end
+        routes={fee=fee,target=target,known=known,unlocked=unlocked,first=first}
+        snapshot.learningRoutes[recipe.id]=routes
+    end
+    local baseline=routes.known[level]or math.huge
+    local total=(routes.unlocked[level]or math.huge)+routes.fee.cost
+    return {known=true,fee=routes.fee,target=routes.target,total=total,baseline=baseline,
+        worth=total<baseline-.000001 and routes.first[level]==recipe.id}
+end
+local f=CreateFrame('Frame')
+for _,event in ipairs({'TRAINER_SHOW','TRAINER_UPDATE','TRAINER_SERVICE_INFO_NAME_UPDATE'})do app.try(f.RegisterEvent,f,event)end
+f:SetScript('OnEvent',function()app.observeTrainerCosts()end)

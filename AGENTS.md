@@ -11,3 +11,5 @@ Bei Code-/Dokumentwiderspruch nicht aus Erinnerung entscheiden: Ursache prüfen,
 Vor Übergabe PROJECT_STATE.md und ROADMAP.md aktualisieren. Nichts ungeprüft als erledigt markieren.
 
 Bei allen künftigen Windows-Testläufen tools/Test-CraftDeja.ps1 verwenden: jeder Lauf erzeugt automatisch Bericht, vollständiges Protokoll, Metadaten und eine teilbare ZIP, auch bei Fehlern. Berichte lokal unter reports/tests/ belassen; nicht automatisch veröffentlichen. Isolierte Entwicklerläufe ebenfalls mit Protokoll und klarem Prüfumfang dokumentieren.
+
+Übergaberegel: Bei Arbeitsbeginn Branch, Commit, offene Änderungen und CONTINUE.md prüfen. Bei Abschluss CONTINUE.md mit Änderungen, Testnachweisen, offenen Fehlern und nächstem Schritt aktualisieren.

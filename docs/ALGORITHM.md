@@ -22,7 +22,7 @@ Skill and inventory events update the guide. `Run.refresh` takes a lightweight p
 
 ### Limits and planned improvements
 
-The economic ranking now deducts confirmed minimum vendor sell value if the output is sold. It does not deduct AH resale proceeds or amortize recipe purchases, trainer fees, travel or tool acquisition. Requirement/rod tasks in the guide do not imply their acquisition costs are included in the score.
+The economic ranking now deducts confirmed minimum vendor sell value if the output is sold. It does not deduct AH resale proceeds. Beta.13 additionally gates unlearned candidates with observed/quoted one-time recipe costs against a bounded route of known alternatives; unknown costs are explicitly provisional. Travel, tools and profession-rank costs remain excluded. See [ACQUISITION_COSTS.md](ACQUISITION_COSTS.md). Requirement/rod tasks in the guide do not imply their acquisition costs are included in the score.
 
 This is a local cost-per-expected-point comparison with switch lookahead, not a demonstrated globally optimal full 1–300 route. Future work includes one-time learning/prerequisite costs, full-route comparisons and empirical validation of Forever skill probabilities. [Roadmap](../ROADMAP.md).
 

@@ -1,7 +1,18 @@
 # CraftDeja — verbindlicher Projektstand
 
-Stand: 14.11.2026. Dies ist ein Arbeitsstand aus Dateien und sichtbarem Gespräch, kein vollständiges Chat-Transkript.
+Stand: 15.11.2026. Dies ist ein Arbeitsstand aus Dateien und sichtbarem Gespräch, kein vollständiges Chat-Transkript.
 Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis ersetzt Versionskontrolle.
+
+## Aktueller Fortsetzungspunkt — beta.13, 15.11.2026
+
+- Tatsächlicher Arbeitsordner C:\Users\Tim\Projects\CraftDeja; Branch feature/acquisition-costs, Ausgangscommit f26799d1a383d3c4e6280bc9c36aa3fb32c34001. Version in Start.lua und wowlua.json: 3.9.0-beta.13. Aktuellen Sicherungscommit immer mit Git bestimmen.
+- Vorhandener Windowsbericht reports/tests/20261115-010908-b537ed.zip geprüft: Build bestanden, 461/0/0, 307 Dateien, 212.88s, wowlua 0.13.14 mit Blizzard-UI. Alle 18 aufgezeichneten Quellprüfsummen stimmen exakt überein. Kein neuer Lauf für diese Dokumentations-/Sicherungsrunde erforderlich.
+- Acquisition.lua und Integration implementieren begrenzte einmalige Rezeptkosten; vollständige Werkzeug-/Reise-/Rangkosten und globales Routenoptimum bleiben offen.
+- Offener Nutzer-Livebericht: Mot Dawnstrider, Rezept 7771, Rezeptgegenstand 6345, Trainerlink nil, Lerngebühr 200 Kupfer. Exakte Linkbeobachtung in beta.13 kann diese Gebühr nicht zuordnen. Keine Trainerkorrektur in dieser Runde.
+- Beta.14 wurde noch nicht ausgeliefert oder installiert. Main und Spielinstallation bleiben in dieser Runde unverändert; kein Release.
+- wowlua 0.13.14 liegt unter C:\Users\Tim\.wowlua\bin\wowlua.exe. Testskript ergänzt den Sitzungs-PATH. W1034 bleibt bekannt.
+- Lokales Backup: reports/backups/beta13-before-handoff-20261115-134230/ (Arbeitsbaum, geprüftes Git-Bundle, Windowsbericht, Ausgangsstatus).
+- Nächste fachliche Aufgabe: sichere Trainerzuordnung für diesen konkreten nil-Link-Fall untersuchen, separat korrigieren und breit testen. CONTINUE.md ist die aktuelle Übergabe; darunter folgen historische Entwicklungsstände.
 
 ## Ziel und Produktentscheidungen
 
@@ -14,7 +25,7 @@ Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis erset
 - Größere fachliche Testsuiten statt ständig einzelner Kleinsttests. Qualität vor Tempo.
 - Goblinstil bewahren. Beschreibung und Patchnotes DE/EN. Goblinbild zuerst, nicht riesig. Demo-Einblendungen EN, Originalspielaufnahme DE.
 
-## Aktueller Stand
+## Historischer Stand bis beta.12 (aktueller Fortsetzungspunkt siehe oben)
 
 - Entwicklungsversion app.release und wowlua.json: 3.9.0-beta.12. Öffentlich veröffentlichte Addon-ZIP weiterhin beta.9.
 - Öffentliches Quellrepository: https://github.com/DejaBansh/CraftDeja ; im aktuellen Arbeitsdurchlauf frisch geklont.
@@ -64,7 +75,7 @@ Vor Änderungen aktuellen Code und diese Notizen prüfen. Kein Gedächtnis erset
 5. Nach einer Runde Änderungen, Testergebnisse, offene Punkte und nächste Aktion in diesen Dateien aktualisieren.
 6. Nur installierbare ZIP mit CraftDeja/-Hauptordner zu CurseForge; dieses Arbeits-/Sicherungspaket gehört NICHT in den Addon-Upload.
 
-## Nächste technische Priorität
+## Frühere technische Priorität (historisch)
 
 Beta.12-AH-/Performancekorrektur vollständig prüfen, dann kurzen Live-Profilercheck; anschließend einmalige Lern-/Voraussetzungskosten.
 Vorher Tests für Orange-vs-Grün mit Verkaufswert, Ausgabemenge, unbekannten Preisen, nicht verkäuflichen Ergebnissen und Skillcap definieren.
@@ -175,3 +186,21 @@ feature/net-vendor-costs committen/pushen. Main/CF-Release bleiben beta.9, bis g
 - Jetzt Projektdateien, Belege und Fortsetzungsnotiz committen und auf denselben Feature-Branch pushen. Kein Merge nach main und kein CurseForge-Release in dieser Sicherungsrunde.
 - Für neuen Chat zuerst CONTINUE.md, dann PROJECT_STATE.md, DECISIONS.md, ROADMAP.md, TEST_RESULTS.md und aktuellen Code lesen. Nicht alte Installations-/Patchpakete erneut anwenden.
 - Nächste fachliche Priorität: einmalige Lern-/Rezept-/Voraussetzungskosten in der wirtschaftlichen Auswahl berücksichtigen; vorher konkreten Vergleichsfall definieren. Globales 1–300-Optimum, exakte Serverskillchancen, volle Rezeptabdeckung und AH-Verkaufserlöse bleiben unbewiesen/nicht implementiert.
+
+
+## Beta.13 — einmalige Rezeptkosten, Entwicklungsstand 15.11.2026
+
+- Nutzer-Sicherung extern bestätigt: f26799d auf fix/local-recipe-trainers frisch von GitHub gelesen. Neuer Arbeitsbranch feature/acquisition-costs.
+- Version beta.13; neues Acquisition.lua. Bestätigte Trainergebühr über exakten Spell-/Enchant-Link, beobachtete Gebühr maximal 7 Tage, aktueller Rezeptgegenstandspreis bzw. vorhandenes Rezeptitem. Keine Namenszuordnung.
+- Gebühr einmalig gegen Route aus bekannten Rezepten plus einem Kandidaten vergleichen; endlicher Horizont bis Grau/Skillcap, bei deaktiviertem Grün bis Grün. Kein globales Mehrrezeptoptimum.
+- Unbekannte Gebühren bleiben unbekannt und führen zu CTA Lernkosten prüfen statt einer belegten Billiger-Aussage. Begrenzte Craft-/Cooldown-Kandidaten bleiben unbewertet. Werkzeug-, Reise-, Rangkosten fehlen weiterhin.
+- 34 neue Fälle lokal mit Camelot und Blizzard-UI bestanden. Vollständiger finaler Lauf, Windows-Lauf und echte Trainergebührenbeobachtung noch prüfen.
+- Beta.12-Craft-/AH-Performancegrenzen und manuelle Kaufmengen bleiben erhalten. Keine neuen regelmäßigen Trainer-/Marktscans.
+
+
+Final beta.13 automated validation: build passed; 461 passed, 0 failed,
+0 skipped (307 files), 143.22s. wowlua 0.13.12, camelot Windows emulation
+on Linux with Blizzard UI. Report 20261114-235923-cabb11.zip checked; all
+18 runtime source hashes match. At that Linux checkpoint Windows-host and real
+trainer-link/fee observation were pending; see the verified Windows checkpoint
+in CONTINUE.md / TEST_RESULTS.md. W1034 remains.

@@ -87,7 +87,7 @@ try {
     $config = Get-Content -LiteralPath (Join-Path $project 'wowlua.json') -Raw | ConvertFrom-Json
     $meta.addonVersion = $config.package.version
     $meta.blizzardUI = [bool]$config.test.'blizzard-ui'
-    foreach ($name in @('Start','Client','Economy','Poisons','Run','Access','MapPins','Trainers','Data/RecipeSourceCorrections','Data/FactionAccess','AuctionBridge','PurchaseState','Shopping','CraftActions','PlanningGoals')) {
+    foreach ($name in @('Start','Client','Economy','Poisons','Run','Access','MapPins','Trainers','Data/RecipeSourceCorrections','Data/FactionAccess','AuctionBridge','PurchaseState','Shopping','CraftActions','PlanningGoals','Acquisition','Screen','UnifiedUI')) {
         $source = Join-Path $project "src/$name.lua"
         if (Test-Path -LiteralPath $source) { $meta.sourceHashes[$name] = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash }
     }

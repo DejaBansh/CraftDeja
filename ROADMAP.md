@@ -1,4 +1,4 @@
-# Roadmap — Stand 14.11.2026
+# Roadmap — Stand 15.11.2026
 
 ## Sichtbarkeit: erste Runde
 
@@ -89,3 +89,24 @@ Sichtbarkeit messen an echten Rückmeldungen und Nutzung, nicht nur einer KI-Ran
 - [x] CONTINUE.md mit exaktem Stand, Grenzen und nächstem Arbeitsschritt erstellt.
 - [ ] Sicherungscommit und Push auf fix/local-recipe-trainers durch Nutzer-PC-Skript; erst nach Remote-Prüfung als extern gesichert melden.
 - [ ] Danach Lern-/Rezept-/Voraussetzungskosten anhand definierter Belegfälle entwickeln.
+
+
+## Beta.13 — einmalige Rezeptkosten
+
+- [x] Sicherungscommit f26799d öffentlich verifiziert, isolierter Entwicklungsbranch.
+- [x] Exakte beobachtete Trainergebühr, Rezeptgegenstandspreis/Bestand und unbekannten Status trennen.
+- [x] Einmalzahlung gegen begrenzte Route mit bekannten Alternativen prüfen, nicht je Craft addieren.
+- [x] 34 fokussierte Fälle mit realen Modulen/vertraglichen Trainerfixtures bestanden.
+- [x] Finaler Gesamtlauf mit aktueller Quelle: 461/461, 307 Dateien, 143.22s; 18 Quellhashes geprüft.
+- [x] Windows-Gesamtlauf anhand 20261115-010908-b537ed.zip geprüft: 461/0/0, 212.88s; alle 18 Quellprüfsummen identisch.
+- [ ] Beta.13-Installation mit Backup gesondert belegen; diese Übergaberunde verändert die Spielinstallation nicht.
+- [x] Nutzer-Livefall dokumentiert: Mot Dawnstrider, Rezept 7771, Rezeptgegenstand 6345, Trainerlink nil, Lerngebühr 200 Kupfer.
+- [ ] Trainerfehler separat korrigieren: beta.13 kann bei nil-Link die Gebühr nicht zuordnen; reale erfolgreiche Zuordnung noch offen.
+- [ ] Werkzeug-/Reise-/Ranggebühren und mehrere unbekannte Rezepte gemeinsam modellieren.
+
+## Aktuelle Übergabe
+
+- [x] Vorhandenen Windowsbericht und alle 18 aufgezeichneten Quellhashes geprüft; lokales Backup mit geprüftem Git-Bundle erstellt.
+- [x] CONTINUE.md und AGENTS.md für gemeinsame Weiterarbeit aktualisiert.
+- Beta.14 wurde noch nicht ausgeliefert oder installiert. Main und Spielinstallation bleiben unverändert. Frühere Sicherungsaufgaben oben sind historische Einträge; aktueller Branch feature/acquisition-costs.
+- Commit/Push und Remote-Gleichheit erst anhand der tatsächlichen Git-Ausgabe bestätigen; aktueller Sicherungscommit über git log -1.

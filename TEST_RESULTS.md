@@ -554,3 +554,42 @@ Auctionator quantity 5 at 124c/unit, total 620c, matching CraftDeja CTA 6s20c.
 Freeloader sample shows 1.03 ms/frame for ALL addons; CraftDeja row about 0.06 ms/frame.
 The prior 12.89 ms/frame was a different sample: no controlled benchmark or
 general performance/savings guarantee is asserted. No purchase needed for this check.
+
+
+## Beta.13 acquisition module — 2026-11-15
+
+Fresh base f26799d, feature/acquisition-costs. Added AcquisitionSuite.
+First focused run: 29/30 passed; the NaN fixture used 0/0, which WoW correctly
+throws for. Replaced with math.huge - math.huge, as in the existing net tests.
+Intermediate full source: 457/457 passed (307 files, 127.30s).
+Then added four fee-source/horizon edge cases and fixes. Final focused cases:
+34/34 passed, 4.00s. Latest full-source regression pending below.
+All runs wowlua 0.13.12, camelot Windows emulation on Linux with Blizzard UI;
+PowerShell ZIP reporter used. Trainer services are fixtures, not live evidence.
+Windows and actual trainer-link validation remain pending.
+
+
+Final beta.13 automated validation: build passed; 461 passed, 0 failed,
+0 skipped (307 files), 143.22s. wowlua 0.13.12, camelot Windows emulation
+on Linux with Blizzard UI. Report 20261114-235923-cabb11.zip checked; all
+18 runtime source hashes match. At that Linux checkpoint Windows-host and real
+trainer-link/fee observation were pending; see the verified Windows checkpoint
+in CONTINUE.md / TEST_RESULTS.md. W1034 remains.
+
+## Verified beta.13 Windows checkpoint — 2026-11-15
+
+Existing local report reports/tests/20261115-010908-b537ed.zip inspected in full
+(summary, metadata and process log). beta.13, wowlua 0.13.14 on Windows,
+configured Blizzard UI, no filters. Build passed; 461 passed, 0 failed,
+0 skipped (307 files), 212.88s. Start/end: 01:09:08–01:12:42 +01:00.
+All 18 recorded SHA256 source hashes match the current working files exactly.
+The report records base f26799d1a383d3c4e6280bc9c36aa3fb32c34001 and then-uncommitted
+beta.13 source on feature/acquisition-costs. It is source evidence, not a claim
+that beta.13 had already been committed. No new run needed for this documentation
+handoff; runtime source unchanged. W1034 remains. Raw report stays local.
+
+Open user-reported live case: Mot Dawnstrider, recipe 7771, recipe item 6345,
+trainer link nil, learning fee 200 copper. beta.13 requires an exact spell/enchant
+link and cannot associate this nil-link fee. This is an unresolved trainer bug,
+not proof of successful fee capture. Fix follows separately. Beta.14 has not
+been delivered or installed. This handoff does not change main or the game installation.

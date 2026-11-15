@@ -1,0 +1,195 @@
+import test from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Synthetic copper quotes and exact trainer links. Real acquisition, quote,
+-- probability, route comparison and decision functions run unchanged.
+local function setup(skill,cap)
+ local a=_G["CraftDeja"];a.character.learningCosts={};a.craftBatch=nil;a.craftQuietUntil=0;a.options.green=true
+ mock.stub(a,"canRecommend",function()return true,"known"end)
+ mock.stub(a,"accessInfo",function()return {}end)
+ mock.stub(a,"inventoryFor",function()return {total=0}end)
+ local prices={};mock.stub(a,"unitPrice",function(id)return prices[id],"fixture"end)
+ local function make(id,cost,learned)
+  prices[id]=cost
+  return {id=id,profession=333,skill=1,confirmed=true,learned=learned,complete=true,colour="orange",yellow=200,green=220,grey=240,points=1,
+   groups={{amount=1,choices={id}}},isEnchantingRecipe=true}
+ end
+ local c={a=a,prices=prices,make=make}
+ c.known=make(990001,100,true);c.new=make(990002,80,false)
+ c.snapshot=function()
+  return a.marketView({profile={id=333,skill=skill or 100,cap=cap or 110},recipes={[c.known.id]=c.known,[c.new.id]=c.new}})
+ end
+ c.fee=function(n)assert(a.observeLearningCost(c.new.id,n,"trainer"))end
+ c.compare=function()return a.learningAssessment(c.snapshot(),c.new,skill or 100)end
+ return c
+end
+
+@test("Acquisition 01: known recipe is free to acquire")
+local function scenario01()
+ local c=setup();local q=c.a.acquisitionQuote(c.known);assert(q.known and q.cost==0)
+end
+
+@test("Acquisition 02: unknown fee is not zero")
+local function scenario02()
+ local c=setup();local q=c.a.acquisitionQuote(c.new);assert(not q.known and q.cost==nil)
+end
+
+@test("Acquisition 03: confirmed zero fee is allowed")
+local function scenario03()
+ local c=setup();c.fee(0);assert(c.compare().worth)
+end
+
+@test("Acquisition 04: fee paid once over ten points")
+local function scenario04()
+ local c=setup();c.fee(100);local q=c.compare();assert(q.total==900 and q.baseline==1000 and q.worth)
+end
+
+@test("Acquisition 05: high fee rejects cheaper per craft recipe")
+local function scenario05()
+ local c=setup();c.fee(201);assert(not c.compare().worth);local d=c.a.decide(c.snapshot());assert(not(d.followup and d.followup.level==100 and d.followup.candidate.needsLearning))
+end
+
+@test("Acquisition 06: equal route cost does not request learning")
+local function scenario06()
+ local c=setup();c.fee(200);assert(not c.compare().worth)
+end
+
+@test("Acquisition 07: one point cannot repay fee")
+local function scenario07()
+ local c=setup(109,110);c.fee(100);assert(not c.compare().worth)
+end
+
+@test("Acquisition 08: multi point reward clipped at cap")
+local function scenario08()
+ local c=setup(109,110);c.new.points=3;c.fee(5);local q=c.compare();assert(q.total==85 and q.baseline==100 and q.worth)
+end
+
+@test("Acquisition 09: multiple points compare actual progress")
+local function scenario09()
+ local c=setup(100,110);c.new.points=2;c.fee(100);local q=c.compare();assert(q.total==500 and q.worth)
+end
+
+@test("Acquisition 10: probability included in learning route")
+local function scenario10()
+ local c=setup(100,102);c.new.yellow=90;c.new.green=105;c.new.grey=110;c.new.colour="yellow";c.fee(0);assert(not c.compare().worth,"Low skill chance ignored")
+end
+
+@test("Acquisition 11: minimum vendor credit included")
+local function scenario11()
+ local c=setup();c.new.isEnchantingRecipe=false;c.new.outputFromClient=true;c.new.outputItemID=990010;c.new.outputMin=1;c.new.outputMax=1;mock.stub(c.a,"vendorSellPrice",function()return 40 end);c.fee(100);local q=c.compare();assert(q.total==500 and q.worth)
+end
+
+@test("Acquisition 12: learned state never charges fee twice")
+local function scenario12()
+ local c=setup();c.fee(100);c.new.learned=true;assert(c.a.acquisitionQuote(c.new).cost==0)
+end
+
+@test("Acquisition 13: unknown cheaper candidate requests cost check")
+local function scenario13()
+ local c=setup();local d=c.a.decide(c.snapshot());assert(d.followup.candidate.needsCostCheck and not d.followup.candidate.acquisition.known)
+end
+
+@test("Acquisition 14: negative cost rejected")
+local function scenario14()
+ local c=setup();assert(not c.a.observeLearningCost(c.new.id,-1))
+end
+
+@test("Acquisition 15: fractional trainer fee rejected")
+local function scenario15()
+ local c=setup();assert(not c.a.observeLearningCost(c.new.id,1.5))
+end
+
+@test("Acquisition 16: NaN fee rejected")
+local function scenario16()
+ local c=setup();assert(not c.a.observeLearningCost(c.new.id,(math.huge-math.huge)))
+end
+
+@test("Acquisition 17: infinite fee rejected")
+local function scenario17()
+ local c=setup();assert(not c.a.observeLearningCost(c.new.id,math.huge))
+end
+
+@test("Acquisition 18: stale quote marked unknown")
+local function scenario18()
+ local c=setup();c.fee(100);c.a.character.learningCosts[c.new.id].at=time()-604801;assert(not c.a.acquisitionQuote(c.new).known)
+end
+
+@test("Acquisition 19: future timestamp rejected")
+local function scenario19()
+ local c=setup();c.fee(100);c.a.character.learningCosts[c.new.id].at=time()+10;assert(not c.a.acquisitionQuote(c.new).known)
+end
+
+@test("Acquisition 20: owned recipe item needs no new payment")
+local function scenario20()
+ local c=setup();c.new.scroll=990011;mock.stub(c.a,"inventoryFor",function()return {total=1}end);assert(c.a.acquisitionQuote(c.new).cost==0)
+end
+
+@test("Acquisition 21: recipe item market quote used once")
+local function scenario21()
+ local c=setup();c.new.scroll=990011;c.prices[990011]=100;local q=c.compare();assert(q.total==900 and q.fee.cost==100)
+end
+
+@test("Acquisition 22: missing recipe item price remains unknown")
+local function scenario22()
+ local c=setup();c.new.scroll=990011;assert(not c.a.acquisitionQuote(c.new).known)
+end
+
+@test("Acquisition 23: new snapshot uses changed fee")
+local function scenario23()
+ local c=setup();c.fee(100);assert(c.compare().worth);c.fee(500);assert(not c.compare().worth)
+end
+
+@test("Acquisition 24: new snapshot uses changed material prices")
+local function scenario24()
+ local c=setup();c.fee(100);assert(c.compare().worth);c.prices[c.new.id]=99;assert(not c.compare().worth)
+end
+
+@test("Acquisition 25: cooldown charge limitation not hidden")
+local function scenario25()
+ local c=setup();c.new.craftLimit=1;c.fee(100);local q=c.compare();assert(not q.known and q.unsupported)
+end
+
+@test("Acquisition 26: graph route reused inside snapshot")
+local function scenario26()
+ local c=setup();c.fee(100);local v=c.snapshot();c.a.learningAssessment(v,c.new,100);local saved=v.learningRoutes[c.new.id];c.a.learningAssessment(v,c.new,101);assert(v.learningRoutes[c.new.id]==saved)
+end
+
+@test("Acquisition 27: trainer exact spell link observed")
+local function scenario27()
+ local c=setup();mock.stub(_G,"GetNumTrainerServices",function()return 1 end);mock.stub(_G,"GetTrainerServiceItemLink",function()return "|Hspell:990002|h[Test]|h"end);mock.stub(_G,"GetTrainerServiceCost",function()return 100 end);mock.stub(c.a,"refresh",function()end);assert(c.a.observeTrainerCosts());assert(c.a.acquisitionQuote(c.new).cost==100)
+end
+
+@test("Acquisition 28: ambiguous trainer name not guessed")
+local function scenario28()
+ local c=setup();mock.stub(_G,"GetNumTrainerServices",function()return 1 end);mock.stub(_G,"GetTrainerServiceItemLink",function()return nil end);mock.stub(_G,"GetTrainerServiceCost",function()return 100 end);assert(not c.a.observeTrainerCosts());assert(not c.a.acquisitionQuote(c.new).known)
+end
+
+@test("Acquisition 29: trainer item link is not mistaken for spell")
+local function scenario29()
+ local c=setup();mock.stub(_G,"GetNumTrainerServices",function()return 1 end);mock.stub(_G,"GetTrainerServiceItemLink",function()return "|Hitem:990002|h[Test]|h"end);mock.stub(_G,"GetTrainerServiceCost",function()return 100 end);assert(not c.a.observeTrainerCosts())
+end
+
+@test("Acquisition 30: native batch avoids trainer reads")
+local function scenario30()
+ local c=setup();c.a.craftBatch={id=c.new.id};local calls=0;mock.stub(_G,"GetNumTrainerServices",function()calls=calls+1;return 1 end);assert(not c.a.observeTrainerCosts() and calls==0);c.a.craftBatch=nil
+end
+
+@test("Acquisition 31: owned recipe takes precedence over trainer fee")
+local function scenario31()
+ local c=setup();c.fee(100);c.new.scroll=990011;mock.stub(c.a,"inventoryFor",function()return {total=1}end);assert(c.a.acquisitionQuote(c.new).cost==0)
+end
+
+@test("Acquisition 32: cheaper recipe item beats trainer fee")
+local function scenario32()
+ local c=setup();c.fee(100);c.new.scroll=990011;c.prices[990011]=50;assert(c.a.acquisitionQuote(c.new).cost==50)
+end
+
+@test("Acquisition 33: renewing expired identical fee refreshes decision")
+local function scenario33()
+ local c=setup();c.fee(100);c.a.character.learningCosts[c.new.id].at=time()-604801;assert(c.a.observeLearningCost(c.new.id,100,"trainer"))
+end
+
+@test("Acquisition 34: green disabled limits comparison horizon")
+local function scenario34()
+ local c=setup();c.a.options.green=false;c.new.yellow=100;c.new.green=105;c.new.grey=110;c.new.colour="yellow";c.prices[c.new.id]=10;c.fee(50);local q=c.compare();assert(q.target==105 and q.worth)
+end
