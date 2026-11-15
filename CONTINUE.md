@@ -1,5 +1,15 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## beta.17 Release-Vergleich installiert — 15.11.2026, 21:48
+
+- Auf ausdrücklichen Nutzerauftrag nach beendetem WoW installiert: 3.9.0-beta.17-alpha+48e75b3, Buildprofil release, app.release weiterhin 3.9.0-beta.17. Automatischer alpha/Commit-Zusatz ist die Compilerkennung dieses Feature-Branchs; gleicher fachlicher beta.17-Code. Installationsquellcommit 48e75b374c891933847ccf3b4766e08a2b006347, codex/performance-refresh.
+- Vollständige Prozesssicht vor Backup, unmittelbar vor und nach Installation ohne Spielclient. Backup reports/install/beta17-release-20261115-214747/CraftDeja-dev-before-release.zip: alle 118 alten Dateien SHA256 im ZIP und unmittelbar vor Ersetzen gegen unveränderte Installation geprüft.
+- Alle 73 installierten Release-Payload-Dateien SHA256-identisch mit aktuellem Release-Build; .wowlua-install separat geprüft. Gegen gesicherten geprüften Release-Kandidaten nur generierte Metadaten in CraftDeja.toc verändert, Bundle/Assets exakt gleich. Kein src/-Devbaum oder wowlua/runtime.lua übrig; TOC ohne Dev-Runtime/Dev-SavedVariable, Bundle ohne automatische __wl.prof/__wl.mon/__wl.perf-Instrumentierung.
+- 38 Quellhashes passen zum Build-/Quelltestnachweis reports/tests/20261115-213837-0c6669.zip, 520/0/0, 221.77s. Kein neuer Testlauf: unveränderter Laufzeitcode. Grenzen der Quellemulation bleiben dokumentiert; Installation ist kein Live-FPS-Nachweis. Bekannte W1034 bleibt.
+- Teilbarer automatischer Installationsbericht reports/install/beta17-release-20261115-214747-bericht.zip, Ergebnis installed_verified; Dev-Backup/Release-Kandidatenbackup separat im gleichen Verzeichnis. SavedVariables/WTF nicht geändert. Main unverändert, kein Merge/Releasepublish.
+- Nächster Schritt: exakt dasselbe Addonset, Ort/Fenster und Freeloader-Einstellungen wie beim ruckelnden Dev-Stand. Nach Ladephase 60–90s Leerlauf ohne /cdj perf start; Freeze und nach 10s neu auftretende Peaks beurteilen. Grafik/scriptProfile/Addonset nicht gleichzeitig ändern. Wirkung des Release-Vergleichs und GC-/Heapursache ausdrücklich noch offen.
+
+
 ## Peak >100 / Speicherhypothese: Dev-Release-Vergleich vorbereitet — 15.11.2026
 
 - Neue Beobachtung: mehr aktive Addons scheinen Ruckeln zu verstärken. Paar CraftDeja+Kela und anschließend kumulativ Companion/Loot Sparkles/Quest Tint, ForeverQuestMark/GearQuest, LFG Bulletin Board, RogueEnergyCombo, ForeverDungeonJournal jeweils flüssig. Weitere Addons dann ohne vollständige Liste aktiviert, Freeze wieder vorhanden. Kein einzelner Partner isoliert.

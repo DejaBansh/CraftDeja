@@ -83,3 +83,12 @@ Verschwinden die Spitzen, ist Dev-Instrumentierung als beteiligte Bedingung
 eingegrenzt; dies beweist weiterhin kein Speicherleck als konkreten Mechanismus.
 Bleiben sie, weitere Frame-/Speichermessungen vorbereiten, keine pauschale
 Garbage-Collection oder künstliche Zeitdrossel als vermeintlichen Fix einbauen.
+
+## Installation auf neuen Nutzerauftrag bestätigt
+
+Release-Vergleich am 15.11.2026 installiert und mit 73/73 Payload-Hashes geprüft.
+Kennung: 3.9.0-beta.17-alpha+48e75b3; nur generierte TOC-Metadaten gegenüber
+dem hier beschriebenen Kandidaten geändert. Bericht:
+reports/install/beta17-release-20261115-214747-bericht.zip. Der frühere Status
+vorbereitet/nicht installiert beschreibt die vorhergehende Untersuchungsrunde.
+Live-Ergebnis weiterhin offen; genaue Übergabe in CONTINUE.md.
