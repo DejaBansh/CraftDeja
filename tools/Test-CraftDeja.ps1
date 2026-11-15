@@ -1,6 +1,7 @@
 ﻿param(
     [string]$ProjectPath = (Split-Path -Parent $PSScriptRoot),
     [string[]]$Filter = @(),
+    [ValidateSet('dev','release')][string]$Profile = 'dev',
     [switch]$SkipBuild,
     [switch]$Benchmark,
     [switch]$OpenReportFolder
@@ -21,7 +22,8 @@ $meta = [ordered]@{
     started = $started.ToString('o'); ended = $null; project = $project
     addonVersion = $null; toolVersion = $null; gitCommit = $null; gitBranch = $null
     sourceHashes = [ordered]@{}; testHashes = [ordered]@{}; inputHashes = [ordered]@{}
-    blizzardUI = $null; filters = @($Filter); benchmark = [bool]$Benchmark
+    blizzardUI = $null; filters = @($Filter); benchmark = [bool]$Benchmark; buildProfile = $Profile
+    testMode = 'native source emulator; test command has no build-profile selector'
     environment = [ordered]@{ os = [Environment]::OSVersion.VersionString; architecture = $env:PROCESSOR_ARCHITECTURE; processor = $env:PROCESSOR_IDENTIFIER; cpuCount = [Environment]::ProcessorCount }
     build = 'not_started'; testExitCode = $null; passed = $null; failed = $null; skipped = $null
     result = 'not_started'; runnerError = $null
@@ -117,11 +119,11 @@ try {
     $meta.toolVersion = $version.Text.Trim()
     if ($SkipBuild) { $meta.build = 'skipped' }
     else {
-        $build = Invoke-LoggedProcess $exe @('build','--color','never') 'build'
+        $build = Invoke-LoggedProcess $exe @('build','--profile',$Profile,'--color','never') 'build'
         $meta.build = if ($build.ExitCode -eq 0) { 'passed' } else { 'failed' }
         if ($build.ExitCode -ne 0) { throw 'Build failed; tests not run.' }
     }
-    $nativeArgs = if ($Benchmark) { @('bench','--profile','dev','--samples','7','--batch-ms','100','--json','--color','never') + @($Filter) } else { @('test','--color','never') + @($Filter) }
+    $nativeArgs = if ($Benchmark) { @('bench','--profile',$Profile,'--samples','7','--batch-ms','100','--json','--color','never') + @($Filter) } else { @('test','--color','never') + @($Filter) }
     $tests = Invoke-LoggedProcess $exe $nativeArgs 'tests'
     $meta.testExitCode = $tests.ExitCode
     $match = [regex]::Match($tests.Text, '(?:Tested\s+|tests failed:\s*)(\d+) passed,\s*(\d+) failed,\s*(\d+) skipped[^\r\n]*')
