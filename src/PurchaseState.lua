@@ -144,7 +144,7 @@ end
 function app.updateLiveCommodity(id,results)
     local minimum
     for _,r in ipairs(results or {})do if type(r.price)=='number'and r.price>0 and (not minimum or r.price<minimum)then minimum=r.price end end
-    if minimum and app.updateLiveAHPrice(id,minimum,'offers')then app.refresh(false)end
+    if minimum and app.updateLiveAHPrice(id,minimum,'offers')then app.requestMarketRefresh()end
 end
 function app.showPurchaseDiagnostic()
     if not app.purchaseDiagnostic then

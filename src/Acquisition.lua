@@ -114,6 +114,29 @@ function app.acquisitionQuote(recipe,memo)
 end
 -- Expected net cost to the candidate's grey limit / skill cap. One additional
 -- recipe, all already-known alternatives; learning is paid once, never per cast.
+local function learningEdge(snapshot,r,at)
+    local q=snapshot.quotes[r.id];local access=snapshot.eligibility and snapshot.eligibility[r.id]
+    local allowed=access and access.allowed
+    if not access then allowed=app.canRecommend(r)end
+    if not allowed or not r.confirmed or not q or r.disabled or r.cooldown or r.noSkill or r.craftLimit~=nil or r.rangeConflict then return end
+    if not r.learned and (r.referenceHidden or r.skill and at<r.skill)then return end
+    local p,colour=app.probability(r,at,at==snapshot.profile.skill)
+    if p<=0 or colour=='green'and not app.options.green then return end
+    return (q.netCost or q.cost)/p,r.points or 1
+end
+local function knownLearningEdges(snapshot,at)
+    snapshot.knownLearningEdges=snapshot.knownLearningEdges or {}
+    local edges=snapshot.knownLearningEdges[at]
+    if edges then return edges end
+    edges={};snapshot.knownLearningEdges[at]=edges
+    -- Same progress means the same next node for EVERY candidate. A more
+    -- expensive known edge is dominated, even with negative net costs.
+    for _,r in pairs(snapshot.recipes)do if r.learned then
+        local cost,points=learningEdge(snapshot,r,at)
+        if cost and (not edges[points]or cost<edges[points].cost)then edges[points]={cost=cost,points=points,id=r.id}end
+    end end
+    return edges
+end
 function app.learningAssessment(snapshot,recipe,level)
     snapshot.learningRoutes=snapshot.learningRoutes or {}
     local routes=snapshot.learningRoutes[recipe.id]
@@ -124,28 +147,17 @@ function app.learningAssessment(snapshot,recipe,level)
         local target=math.min(snapshot.profile.cap,(not app.options.green and recipe.green)or recipe.grey or level+1)
         local known,unlocked,first={},{},{}
         known[target]=0;unlocked[target]=0
-        local function edge(r,at)
-            local q=snapshot.quotes[r.id];local access=snapshot.eligibility and snapshot.eligibility[r.id]
-            local allowed=access and access.allowed
-            if not access then allowed=app.canRecommend(r)end
-            if not allowed or not r.confirmed or not q or r.disabled or r.cooldown or r.noSkill or r.craftLimit~=nil or r.rangeConflict then return end
-            if not r.learned and (r.referenceHidden or r.skill and at<r.skill)then return end
-            local p,colour=app.probability(r,at,at==snapshot.profile.skill)
-            if p<=0 or colour=='green'and not app.options.green then return end
-            return (q.netCost or q.cost)/p,math.min(target,at+(r.points or 1))
-        end
         for at=target-1,snapshot.profile.skill,-1 do
             local best,with,choice=math.huge,math.huge,nil
-            for _,r in pairs(snapshot.recipes)do if r.learned then
-                local cost,next= edge(r,at)
-                if cost then
-                    best=math.min(best,cost+(known[next]or math.huge))
-                    local total=cost+(unlocked[next]or math.huge)
-                    if total<with then with=total;choice=r.id end
-                end
-            end end
-            local cost,next=edge(recipe,at)
+            for _,edge in pairs(knownLearningEdges(snapshot,at))do
+                local next=math.min(target,at+edge.points)
+                best=math.min(best,edge.cost+(known[next]or math.huge))
+                local total=edge.cost+(unlocked[next]or math.huge)
+                if total<with then with=total;choice=edge.id end
+            end
+            local cost,points=learningEdge(snapshot,recipe,at)
             if cost then
+                local next=math.min(target,at+points)
                 local total=cost+(unlocked[next]or math.huge)
                 if total<with then with=total;choice=recipe.id end
             end

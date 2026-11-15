@@ -28,3 +28,8 @@
 | Übergabe am tatsächlichen Git-/Teststand ausrichten | Branch, Commit, offene Änderungen und CONTINUE.md bei Beginn prüfen; Abschluss mit Änderungen, Nachweisen, Fehlern und nächstem Schritt | verbindlich in AGENTS.md |
 
 | Fehlende Rangfelder nicht erfinden | Forever liefert name/status/icon; bei ranglosen Angeboten sind gleiche Spellnamen immer mehrdeutig | beta.15 erkennt Status per Typ/Wert, C_Spell-Tabellen mit geprüfter Spell-ID; Legacy bleibt unterstützt |
+
+| Bekannte Routenarbeit pro Snapshot teilen | Gleicher Skill/Punktgewinn hat denselben Folgeknoten; dominierte Kanten sind unnötig | beta.16; unabhängige Routenreferenz und vollständige Regression bestanden |
+| Preis-Bursts pro Frame zusammenführen | Preise sofort speichern, nur finale Neuentscheidung einmal; explizite Aktionen synchron prüfen | beta.16; keine neue Zeitdrossel, keine Änderungen an manuellen Mengen |
+| CPU-Diagnose nur auf ausdrücklichen Befehl | Bounded 30s, Originalhandler wiederherstellen, keine Nutzerdaten/Argumente | /cdj perf start / stop / show, standardmäßig aus |
+| Performanceauftrag ohne Installation | Aktuelle ausdrückliche Nutzeranweisung hat Vorrang vor allgemeinem Auto-Installwunsch | beta.16 nur Quellbranch; beta.15 im Spiel unverändert |

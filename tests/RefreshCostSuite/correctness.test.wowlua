@@ -1,0 +1,133 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+@afterEach
+local function clean()
+ local a=_G["CraftDeja"];a.stopPerformanceCapture();a.marketRefreshPending=nil
+ assert(#mock.errors()==0,"Unexpected emulated error")
+end
+
+@test("Refresh correctness: exhaustive small routes preserve fees, progress, probabilities and negative costs")
+local function oracle()
+ local a=_G["CraftDeja"]
+ mock.setField(a.character,"learningCosts",{})
+ mock.stub(a,"accessInfo",function()return {}end)
+ mock.stub(a,"probability",function(r)return r.chance,"orange",false end)
+ for _,level in ipairs({100,102,104})do for _,points in ipairs({1,2,3})do for _,fee in ipairs({0,50,500})do for _,credit in ipairs({false,true})do
+  local known={{id=990101,learned=true,points=1,chance=1},{id=990102,learned=true,points=2,chance=.5},{id=990103,learned=true,points=1,chance=.5}}
+  local candidate={id=990104,learned=false,points=points,chance=.75}
+  local s={profile={skill=level,cap=105},recipes={},quotes={},eligibility={},acquisition={}}
+  local costs={100,40,credit and -10 or 120,credit and -30 or 25}
+  for i,r in ipairs({known[1],known[2],known[3],candidate})do
+   r.confirmed=true;r.skill=1;r.grey=105;r.green=105;r.yellow=105
+   s.recipes[r.id]=r;s.quotes[r.id]={cost=100,netCost=costs[i]};s.eligibility[r.id]={allowed=true}
+  end
+  a.observeLearningCost(candidate.id,fee,"fixture")
+  -- Independently enumerate every complete sequence to cap (at most 4^5),
+  -- rather than sharing the optimized dynamic-programming representation.
+  local function enumerate(at,include)
+   if at>=105 then return 0,nil end
+   local best,first=math.huge,nil
+   for i=1,(include and 4 or 3)do
+    local r=i==4 and candidate or known[i]
+    local total=costs[i]/r.chance+enumerate(math.min(105,at+r.points),include)
+    if total<best then best=total;first=r.id end
+   end
+   return best,first
+  end
+  local baseline=enumerate(level,false);local route,first=enumerate(level,true)
+  local q=a.learningAssessment(s,candidate,level)
+  assert(math.abs(q.baseline-baseline)<.000001 and math.abs(q.total-(route+fee))<.000001)
+  assert(q.worth==(route+fee<baseline-.000001 and first==candidate.id))
+ end end end end
+end
+
+local function prices()
+ local a=_G["CraftDeja"];local c={a=a,unit=100,markets=0,reads=0,busy=false}
+ local r={id=990201,profession=333,learned=true,confirmed=true,complete=true,skill=1,colour="orange",yellow=150,green=150,grey=150,groups={{amount=1,choices={990202}}},isEnchantingRecipe=true}
+ local session={profile={id=333,skill=117,cap=150},recipes={[r.id]=r},confirmed=1}
+ mock.setField(a,"active",session);mock.setField(a,"professionOpen",false);mock.setField(a,"professionLoading",false)
+ mock.setField(a,"marketRefreshPending",nil);mock.setField(a,"craftRefreshDeferred",nil)
+ mock.setField(a,"craftBatch",nil);mock.setField(a,"craftQuietUntil",0)
+ mock.setField(a.shopping,"open",true);mock.setField(a.shopping,"ready",GetTime());mock.setField(a.shopping,"readyWall",time())
+ mock.setField(a.shopping,"started",nil);mock.setField(a.shopping,"pendingScan",nil);mock.setField(a.shopping,"livePrices",nil)
+ mock.setField(a.shopping,"prices",{[990202]=100});mock.setField(a.shopping,"autoAfter",GetTime()+1000)
+ mock.setField(_G,"Auctionator",{State={}})
+ mock.setField(_G,"C_AuctionHouse",{GetNumCommoditySearchResults=function()return 1 end,GetCommoditySearchResultInfo=function()return {unitPrice=c.unit,quantity=100}end})
+ mock.stub(a,"unitPrice",function()local row=a.shopping.livePrices and a.shopping.livePrices[990202];return row and row.unit or 100,"fixture"end)
+ mock.stub(a,"accessInfo",function()return {}end);mock.stub(a,"canRecommend",function()return true,"known"end)
+ mock.stub(a,"refreshUI",function()end);mock.stub(a,"refreshNextStep",function()end)
+ mock.stub(a,"nativeProfessionVisible",function()return false end)
+ mock.stub(a,"craftRefreshBusy",function()return c.busy end)
+ mock.stub(a,"refreshCraftProgress",function()return true end)
+ local market=a.marketView;mock.stub(a,"marketView",function(...)c.markets=c.markets+1;return market(...)end)
+ mock.stub(a,"readRecipes",function()c.reads=c.reads+1;return session end)
+ c.tick=a.events:GetScript("OnUpdate");return c
+end
+@test("Refresh correctness: both commodity channels share one next-frame decision with latest price")
+local function channels()
+ local c=prices();c.unit=110;c.a.observeCommodityResults(990202)
+ c.a.updateLiveCommodity(990202,{{price=111,quantity=100}})
+ assert(c.markets==0 and c.a.shopping.livePrices[990202].unit==111)
+ c.tick(c.a.events,.016)
+ assert(c.markets==1 and c.reads==0 and c.a.decision.current.quote.cost==111)
+ c.tick(c.a.events,.016);assert(c.markets==1)
+end
+@test("Refresh correctness: explicit refresh before next frame is synchronous and consumes pending work")
+local function explicit()
+ local c=prices();c.unit=120;c.a.observeCommodityResults(990202);c.a.refresh(false)
+ assert(c.a.decision.current.quote.cost==120 and c.markets==1)
+ c.tick(c.a.events,.016);assert(c.markets==1)
+end
+@test("Refresh correctness: burst prices are retained during native craft and processed on resume")
+local function busy()
+ local c=prices();c.busy=true;c.unit=125;c.a.observeCommodityResults(990202);c.tick(c.a.events,.016)
+ assert(c.markets==0 and c.a.marketRefreshPending and c.a.shopping.livePrices[990202].unit==125)
+ c.busy=false;c.tick(c.a.events,.016);assert(c.markets==1 and c.a.decision.current.quote.cost==125)
+end
+@test("Refresh correctness: hidden catalogue is not rebuilt by general UI refresh, visible one updates")
+local function hidden()
+ local a=_G["CraftDeja"];local shown,calls=false,0
+ mock.setField(a,"catalogWindow",{IsShown=function()return shown end})
+ mock.stub(a,"renderCatalogue",function()calls=calls+1 end)
+ mock.stub(a,"renderMain",function()end);mock.stub(a,"renderOptions",function()end);mock.stub(a,"refreshNextStep",function()end)
+ a.refreshUI();assert(calls==0);shown=true;a.refreshUI();assert(calls==1)
+end
+@test("Refresh correctness: Auctionator hooks remain single registration across repeated polls")
+local function hooks()
+ local a=_G["CraftDeja"];local calls=0
+ local function noop()end
+ local buyer={UpdateView=noop,ReceiveEvent=noop,OnEvent=noop,
+  QuantityCheckConfirmationDialog={SetDetails=noop,ConfirmPurchase=noop},FinalConfirmationDialog={SetDetails=noop,ConfirmPurchase=noop}}
+ mock.setField(_G,"Auctionator",{State={BuyCommodityFrameRef=buyer}})
+ mock.stub(_G,"hooksecurefunc",function()calls=calls+1 end)
+ for _i=1,50 do a.bindAuctionBuying()end
+ assert(calls==7,"Duplicate Auctionator hooks")
+end
+@test("Refresh correctness: performance capture is opt-in, preserves nil returns and restores functions")
+local function diagnostic()
+ local a=_G["CraftDeja"];a.stopPerformanceCapture()
+ local fn=function()return nil,7,nil end;mock.stub(a,"quote",fn)
+ local original=a.quote;assert(not(a.performanceCapture and a.performanceCapture.active));a.startPerformanceCapture()
+ local x,y,z=a.quote();assert(x==nil and y==7 and z==nil)
+ assert(a.performanceCapture.rows.quote.calls==1)
+ assert(a.stopPerformanceCapture() and a.quote==original and not a.performanceCapture.active)
+end
+@test("Refresh correctness: repeated capture starts do not stack and auto-stop at 30 seconds")
+local function automatic()
+ local a=_G["CraftDeja"];a.stopPerformanceCapture();local event=a.events:GetScript("OnEvent")
+ mock.stub(a,"quote",function()return 1 end)
+ a.startPerformanceCapture();a.startPerformanceCapture();a.quote();assert(a.performanceCapture.rows.quote.calls==1)
+ -- Replace the original update before capture so no unrelated world work runs.
+ a.stopPerformanceCapture();local update=a.events:GetScript("OnUpdate")
+ a.events:SetScript("OnUpdate",function()end);a.startPerformanceCapture()
+ a.events:GetScript("OnUpdate")(a.events,30)
+ assert(not a.performanceCapture.active and a.events:GetScript("OnEvent")==event)
+ a.events:SetScript("OnUpdate",update)
+end
+@test("Refresh correctness: capture records and rethrows function errors without swallowing them")
+local function errors()
+ local a=_G["CraftDeja"];a.stopPerformanceCapture()
+ local fn=function()error("expected diagnostic error")end;mock.stub(a,"quote",fn)
+ local original=a.quote;a.startPerformanceCapture();local ok=pcall(a.quote);assert(not ok and a.performanceCapture.rows.quote.errors==1)
+ a.stopPerformanceCapture();assert(a.quote==original)
+end

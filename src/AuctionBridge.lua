@@ -58,7 +58,7 @@ function app.observeCommodityResults(id)
             minimum=math.min(minimum or info.unitPrice,info.unitPrice)
         end
     end
-    if minimum and app.updateLiveAHPrice(id,minimum,'commodity_event')then app.refresh(false);return true end
+    if minimum and app.updateLiveAHPrice(id,minimum,'commodity_event')then app.requestMarketRefresh();return true end
     return false
 end
 function app.setAHOrder(plan)

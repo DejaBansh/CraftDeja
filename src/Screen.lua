@@ -357,7 +357,7 @@ function app.renderOptions()
     f.scan:SetText(app.caption('reload'));f.center:SetText(app.caption('reset_position'));f.help:SetText(app.caption('help'))
 end
 function app.refreshUI()
-    app.renderMain();app.renderCatalogue();app.renderOptions();if app.refreshNextStep then app.refreshNextStep()end
+    app.renderMain();if app.catalogWindow and app.catalogWindow:IsShown()then app.renderCatalogue()end;app.renderOptions();if app.refreshNextStep then app.refreshNextStep()end
     if app.detailsWindow and app.detailsWindow:IsShown()then app.renderDetails(app.detailsWindow.materials)end
     if app.shoppingWindow and app.shoppingWindow:IsShown()then app.renderShopping()end
 end

@@ -75,3 +75,7 @@ Auctionator quantity 5 at 124c/unit, total 620c, matching CraftDeja CTA 6s20c.
 Freeloader sample shows 1.03 ms/frame for ALL addons; CraftDeja row about 0.06 ms/frame.
 The prior 12.89 ms/frame was a different sample: no controlled benchmark or
 general performance/savings guarantee is asserted. No purchase needed for this check.
+
+## Beta.16: erneute Untersuchung am 15.11.2026
+
+Der beta.12-Mengenfix bleibt enthalten und getestet. Die neue Untersuchung belegt wiederholte Erwerbskostenarbeit seit beta.13 sowie sofortige Marktvergleiche bei Commodity-Bursts; siehe [Messmethodik, Ergebnisse und Grenzen](PERFORMANCE_BETA16.md). 517/0/0 im finalen Windowslauf. Keine Installation und keine behauptete Live-FPS-Verbesserung.

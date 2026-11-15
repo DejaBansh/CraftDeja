@@ -1,0 +1,80 @@
+import test, afterEach, bench from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Fixed deterministic workloads used unchanged before and after correction.
+-- Reagent prices, fees and access are fixtures. Production quote/selection,
+-- route evaluation, price handlers and Run event dispatch execute normally.
+local function setup(known,unknown)
+ local a=_G["CraftDeja"]
+ mock.setField(a,"active",nil);mock.setField(a,"decision",nil)
+ mock.setField(a,"craftBatch",nil);mock.setField(a,"craftQuietUntil",0)
+ mock.setField(a,"professionOpen",false);mock.setField(a,"professionLoading",false)
+ mock.setField(a.character,"learningCosts",{})
+ mock.setField(a.options,"green",true)
+ local c={a=a,probabilities=0,markets=0,quotes=0,reads=0,renders=0,unit=100,recipes={}}
+ for i=1,known+unknown do
+  local id=980000+i
+  c.recipes[id]={id=id,profession=333,learned=i<=known,confirmed=true,complete=true,skill=1,
+   yellow=150,green=150,grey=150,colour="orange",points=1,isEnchantingRecipe=true,
+   groups={{amount=1,choices={id}}}}
+  if i>known then a.observeLearningCost(id,200,"fixture")end
+ end
+ local session={profile={id=333,skill=117,cap=150},recipes=c.recipes,confirmed=known+unknown}
+ mock.setField(a,"active",session)
+ mock.stub(a,"unitPrice",function(id)return id==980001 and c.unit or id<=980000+known and 100 or 80,"fixture"end)
+ mock.stub(a,"accessInfo",function()return {}end)
+ mock.stub(a,"canRecommend",function()return true,"known"end)
+ mock.stub(a,"nativeProfessionVisible",function()return false end)
+ mock.stub(a,"inventoryFor",function()return {total=0,alts={}}end)
+ mock.stub(a,"refreshUI",function()c.renders=c.renders+1 end)
+ mock.stub(a,"refreshNextStep",function()end)
+ mock.stub(a,"readRecipes",function()c.reads=c.reads+1;return session end)
+ local probability,market,quote=a.probability,a.marketView,a.quote
+ mock.stub(a,"probability",function(...)c.probabilities=c.probabilities+1;return probability(...)end)
+ mock.stub(a,"marketView",function(...)c.markets=c.markets+1;return market(...)end)
+ mock.stub(a,"quote",function(...)c.quotes=c.quotes+1;return quote(...)end)
+ mock.setField(a.shopping,"open",true);mock.setField(a.shopping,"ready",GetTime())
+ mock.setField(a.shopping,"readyWall",time());mock.setField(a.shopping,"started",nil)
+ mock.setField(a.shopping,"pendingScan",nil);mock.setField(a.shopping,"livePrices",nil)
+ mock.setField(a.shopping,"prices",{[980001]=100});mock.setField(a.shopping,"autoAfter",GetTime()+1000)
+ mock.setField(_G,"Auctionator",{State={}})
+ mock.setField(_G,"C_AuctionHouse",{GetNumCommoditySearchResults=function()return 1 end,
+  GetCommoditySearchResultInfo=function()return {unitPrice=c.unit,quantity=1000}end})
+ c.session=session;c.event=a.events:GetScript("OnEvent");c.tick=a.events:GetScript("OnUpdate")
+ c.once=function()return a.decide(a.marketView(session))end
+ return c
+end
+@afterEach
+local function errors()
+ local e=mock.errors();assert(#e==0,table.concat(e,"\n"))
+end
+@test("Refresh cost: 262 recipes 62 known acquisition fees three snapshots")
+local function acquisition()
+ local c=setup(200,62);local started=debugprofilestop()
+ for _i=1,3 do local d=c.once();assert(d and d.current.recipe.learned and d.followup and d.followup.candidate.needsLearning)end
+ print("PERF acquisition recipes=262 fees=62 snapshots=3 probability="..c.probabilities.." quotes="..c.quotes.." ms="..(debugprofilestop()-started))
+ assert(c.markets==3 and c.quotes==786)
+ assert(c.probabilities==27510,"PERF acquisition probability="..c.probabilities.." expected=27510; snapshots=3; quotes="..c.quotes.." ms="..(debugprofilestop()-started))
+end
+@test("Refresh cost: 24 changing commodity events in one frame then idle")
+local function burst()
+ local c=setup(36,12);local started=debugprofilestop()
+ for i=1,24 do c.unit=100+i;c.event(c.a.events,"COMMODITY_SEARCH_RESULTS_UPDATED",980001)end
+ c.tick(c.a.events,.016)
+ assert(c.a.shopping.livePrices[980001].unit==124 and c.reads==0)
+ print("PERF burst events=24 markets="..c.markets.." renders="..c.renders.." probability="..c.probabilities.." ms="..(debugprofilestop()-started))
+ assert(c.markets==1,"PERF burst events=24 markets="..c.markets.." renders="..c.renders.." probability="..c.probabilities.." ms="..(debugprofilestop()-started))
+end
+@test("Refresh cost: unchanged commodity events do not recalculate")
+local function unchanged()
+ local c=setup(36,12)
+ for _i=1,100 do c.event(c.a.events,"COMMODITY_SEARCH_RESULTS_UPDATED",980001)end
+ c.tick(c.a.events,.016);assert(c.markets==0)
+end
+
+local benchContext
+@bench("262 recipes / 62 acquisition fees / one economic decision")
+local function economicBenchmark()
+ if not benchContext then benchContext=setup(200,62)end
+ return benchContext.once()
+end

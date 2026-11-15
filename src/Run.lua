@@ -28,6 +28,7 @@ end
 function app.refresh(rescan)
     if not app.saved then return end
     if app.craftRefreshBusy()and app.refreshCraftProgress()then deferCraftRefresh();return end
+    app.marketRefreshPending=nil
     if rescan and (not app.shopping.open or app.professionOpen and app.nativeProfessionVisible()~=false)then
         local profile=app.readProfession()
         if profile and (not app.expectedProfession or profile.id==app.expectedProfession)then
@@ -53,6 +54,11 @@ function app.refresh(rescan)
     if app.poisonShowOnRead and app.active and not app.professionLoading then
         app.poisonShowOnRead=nil;if app.isPoison()then if app.unifiedUI then app.refreshNextStep(true)else app.showPoisonPlanner()end end
     end
+end
+function app.requestMarketRefresh()
+    -- Prices are already stored synchronously. Merge notifications in the same
+    -- frame; explicit buy/search/quote actions still call refresh synchronously.
+    app.marketRefreshPending=true
 end
 local function schedule()
     if app.craftRefreshBusy()then deferCraftRefresh();return end
@@ -189,6 +195,7 @@ events:SetScript('OnUpdate',function(_,delta)
             end
         end
     end
+    if app.marketRefreshPending and not app.craftRefreshBusy()then app.refresh(false)end
     if open and not app.craftRefreshBusy()then
         poll=poll+delta
         if poll>=3 then
@@ -211,6 +218,7 @@ function app.command(message)
     elseif action=='materials'then app.showDetails(app.decision and app.decision.current.recipe,true)
     elseif action=='options'then app.showOptions()
     elseif action=='log'then app.showFlowLog()
+    elseif action=='perf'then app.performanceCommand(argument)
     elseif action=='poisons'or action=='gifte'then app.showPoisonPlanner()
     elseif action=='order'or action=='auftrag'then app.refreshNextStep(true)
     elseif action=='data'or action=='audit'then app.showRecipeAudit()

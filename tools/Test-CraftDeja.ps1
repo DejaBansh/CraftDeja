@@ -2,6 +2,7 @@
     [string]$ProjectPath = (Split-Path -Parent $PSScriptRoot),
     [string[]]$Filter = @(),
     [switch]$SkipBuild,
+    [switch]$Benchmark,
     [switch]$OpenReportFolder
 )
 $ErrorActionPreference = 'Stop'
@@ -19,7 +20,9 @@ $runnerError = ''
 $meta = [ordered]@{
     started = $started.ToString('o'); ended = $null; project = $project
     addonVersion = $null; toolVersion = $null; gitCommit = $null; gitBranch = $null
-    sourceHashes = [ordered]@{}; blizzardUI = $null; filters = @($Filter)
+    sourceHashes = [ordered]@{}; testHashes = [ordered]@{}; inputHashes = [ordered]@{}
+    blizzardUI = $null; filters = @($Filter); benchmark = [bool]$Benchmark
+    environment = [ordered]@{ os = [Environment]::OSVersion.VersionString; architecture = $env:PROCESSOR_ARCHITECTURE; processor = $env:PROCESSOR_IDENTIFIER; cpuCount = [Environment]::ProcessorCount }
     build = 'not_started'; testExitCode = $null; passed = $null; failed = $null; skipped = $null
     result = 'not_started'; runnerError = $null
 }
@@ -69,7 +72,7 @@ function Invoke-LoggedProcess([string]$Executable, [string[]]$NativeArgs, [strin
         [void]$log.AppendLine("Exit code: $nativeCode")
         Write-Host $outText
         Write-Host $errText
-        return [pscustomobject]@{ ExitCode=$nativeCode; Text=($outText + "`n" + $errText) }
+        return [pscustomobject]@{ ExitCode=$nativeCode; StdOut=$outText; Text=($outText + "`n" + $errText) }
     }
     finally { $process.Dispose() }
 }
@@ -91,6 +94,17 @@ try {
         $source = Join-Path $project "src/$name.lua"
         if (Test-Path -LiteralPath $source) { $meta.sourceHashes[$name] = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash }
     }
+    foreach ($source in Get-ChildItem -LiteralPath (Join-Path $project 'src') -Recurse -File -Filter '*.lua') {
+        $name = $source.FullName.Substring((Join-Path $project 'src').Length + 1).Replace('\','/').Replace('.lua','')
+        $meta.sourceHashes[$name] = (Get-FileHash -LiteralPath $source.FullName -Algorithm SHA256).Hash
+    }
+    foreach ($testFile in Get-ChildItem -LiteralPath (Join-Path $project 'tests') -Recurse -File -Filter '*.wowlua') {
+        $name = $testFile.FullName.Substring($project.Length + 1).Replace('\','/')
+        $meta.testHashes[$name] = (Get-FileHash -LiteralPath $testFile.FullName -Algorithm SHA256).Hash
+    }
+    foreach ($name in @('wowlua.json','wowlua.lock','tools/Test-CraftDeja.ps1')) {
+        $meta.inputHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $project $name) -Algorithm SHA256).Hash
+    }
     if (Get-Command git -CommandType Application -ErrorAction SilentlyContinue) {
         $commit = git rev-parse HEAD 2>$null
         if ($LASTEXITCODE -eq 0) { $meta.gitCommit = ($commit | Out-String).Trim() }
@@ -107,7 +121,7 @@ try {
         $meta.build = if ($build.ExitCode -eq 0) { 'passed' } else { 'failed' }
         if ($build.ExitCode -ne 0) { throw 'Build failed; tests not run.' }
     }
-    $nativeArgs = @('test','--color','never') + @($Filter)
+    $nativeArgs = if ($Benchmark) { @('bench','--profile','dev','--samples','7','--batch-ms','100','--json','--color','never') + @($Filter) } else { @('test','--color','never') + @($Filter) }
     $tests = Invoke-LoggedProcess $exe $nativeArgs 'tests'
     $meta.testExitCode = $tests.ExitCode
     $match = [regex]::Match($tests.Text, '(?:Tested\s+|tests failed:\s*)(\d+) passed,\s*(\d+) failed,\s*(\d+) skipped[^\r\n]*')
@@ -118,7 +132,22 @@ try {
         $summary = $match.Value
     }
     else { $summary = 'No standard test summary found; inspect the complete log.' }
-    if ($tests.ExitCode -eq 0 -and $match.Success -and $meta.passed -gt 0 -and $meta.failed -eq 0) {
+    if ($Benchmark -and $tests.ExitCode -eq 0) {
+        $benchResult = $tests.StdOut.Trim() | ConvertFrom-Json
+        $benchCount = 0
+        foreach ($file in @($benchResult.files)) {
+            if ($file.error) { throw ('Benchmark file failed: ' + $file.error) }
+            foreach ($bench in @($file.benches)) {
+                if ($bench.error) { throw ('Benchmark failed: ' + $bench.error) }
+                if (-not $bench.skipped -and $bench.calls -gt 0) { $benchCount++ }
+            }
+        }
+        if ($benchCount -eq 0) { throw 'Benchmark returned no completed measurements.' }
+        [System.IO.File]::WriteAllText((Join-Path $reportDir 'BENCHMARK.json'), $tests.StdOut, $utf8)
+        $summary = 'Benchmark completed; see BENCHMARK.json and full log. Not a test pass count.'
+        $code = 0; $meta.result = 'benchmark_completed'
+    }
+    elseif ($tests.ExitCode -eq 0 -and $match.Success -and $meta.passed -gt 0 -and $meta.failed -eq 0) {
         $code = 0
         $meta.result = if ($meta.skipped -gt 0) { 'passed_with_skips' } else { 'passed' }
     }
@@ -164,7 +193,10 @@ Diese ZIP kannst du im Chat anhaengen. Ein lokaler C:\-Pfad allein ist kein erre
     [System.IO.File]::WriteAllText($logPath, $log.ToString(), $utf8)
     [System.IO.File]::WriteAllText($metaPath, ($meta | ConvertTo-Json -Depth 8), $utf8)
     $archive = $reportDir + '.zip'
-    Compress-Archive -LiteralPath @($summaryPath,$logPath,$metaPath) -DestinationPath $archive
+    $archiveFiles = @($summaryPath,$logPath,$metaPath)
+    $benchPath = Join-Path $reportDir 'BENCHMARK.json'
+    if (Test-Path -LiteralPath $benchPath) { $archiveFiles += $benchPath }
+    Compress-Archive -LiteralPath $archiveFiles -DestinationPath $archive
     [System.IO.File]::WriteAllText((Join-Path $reportRoot 'LETZTER_BERICHT.txt'), $archive, $utf8)
     Write-Host "`n$summary"
     Write-Host "BERICHT-ZIP ZUM ANHAENGEN: $archive"
