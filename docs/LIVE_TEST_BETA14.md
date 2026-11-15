@@ -105,3 +105,12 @@ Der frühere GetSpellInfo-Diagnosebefehl kann mangels globaler API vor der Ausga
 ```
 
 Finaler beta.15-Nachweis: reports/tests/20261115-184607-d24132.zip, Build erfolgreich, 505/0/0, 213.08s; 18 Quellhashes exakt geprüft. Der nachgewiesene Name/Status/Icon-Unterschied ist im Code korrigiert; erfolgreiche Live-Erfassung bleibt offen. Bei erneutem Installationsauftrag ein neues Backup erstellen; der alte lokale beta.14-Installationsreporter ist auf Version/Commit beta.14 festgelegt und darf nicht unverändert für beta.15 verwendet werden.
+
+## Mot-Livebeleg bestätigt — 15.11.2026, Screenshot 19:10
+
+- Nutzerbild zeigt `CraftDeja 3.9.0-beta.15` und `7771: 200 trainer 1794766159 1794766291`.
+- Damit ist die gespeicherte Lerngebühr für Rezept 7771 (Umhang - Schwacher Schutz, Rezeptgegenstand 6345) mit 200 Kupfer und Herkunft trainer im echten Client belegt. Sie passt zum zuvor ausgegebenen Mot-Angebot `available 135913 200 nil`.
+- Beobachtungszeitpunkt 1794766159, Diagnosezeit 1794766291: der Beleg war bei der Abfrage 132 Sekunden alt. Es wird kein neuer Schreibvorgang exakt im Moment der Chatabfrage behauptet.
+- Der konkrete Nil-Link-/API-Layout-Fall ist damit live bestätigt. Dies belegt weder alle Trainer/Rezepte noch eine vollständige wirtschaftliche Route oder die Anzeige aller Detailansichten. Das Fehlen von Mot in der separaten Referenzquellenliste wurde hier nicht korrigiert.
+- Automatisierter beta.15-Testnachweis bleibt 505/0/0 (213.08s), reports/tests/20261115-184607-d24132.zip; geprüfte Installation: reports/install/beta15-20261115-185829-bericht.zip. Nur Dokumentation/Übergabe geändert, kein neuer Testlauf oder erneute Installation nötig.
+- Trainerfix-Quellcommit: 106c61fa7b838096449dec6b18570d82e08a1ee7. Kein Merge nach main und kein Addon-Release. Nächster Schritt: normale Nutzung; weitere konkrete Abweichungen getrennt mit Belegen untersuchen. Für diesen Gebührenbeleg ist kein weiterer Diagnosebefehl nötig.
