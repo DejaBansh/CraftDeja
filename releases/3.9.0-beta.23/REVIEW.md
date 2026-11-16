@@ -1,5 +1,9 @@
 # beta.23 publication review — 16 November 2026
 
+## Subsequent publication confirmed — do not approve another beta.23 upload
+
+The user has already published this version as file **9654021**, now **Beta / Approved**, and reports completing the description edit. The public CDN archive was downloaded and its SHA256 exactly matches the verified local release package: **F0633ABFBB186A479ECC85FB33FFE0FE1E194B4C4D6B645B07B0D250052A3A31**. The source mapping is **e4b8bdcb69dccd71a05b854d446ee7c8b0cf9d9d**. See `releases/published-history.json`. This resolves the next release's Beta baseline; it does not authorize re-uploading beta.23. Its approval flags intentionally stay false. The older pre-publication investigation below is retained as history. Prepare a new version and its actual delta for the next upload.
+
 ## What is verified
 
 - Source starting point: 962a28bea44397d0356d785d5ba5563116255be7, beta.23.

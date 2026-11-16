@@ -1,5 +1,14 @@
 # Validation — 3.9.0-beta.4
 
+## GitHub-Dry-Run erfolgreich — 16.11.2026, 22:36
+
+- Echter Actions-Lauf https://github.com/DejaBansh/CraftDeja/actions/runs/43959442195 erfolgreich; geprüfter Commit 1a5100095632199fb2272b74abcb2ff39f4216f4 auf codex/curseforge-dry-run. package success, upload skipped, description skipped. Kein Token im Testjob, keine echte Veröffentlichung oder Beschreibungsänderung; Tokenberechtigung damit nicht geprüft.
+- Vollsuite: 614/0/0, 322 Dateien, 788.85s, Windows/Camelot/Blizzard-UI/WoWLua 0.13.14. 26 Pipeline-Prüfungen ebenfalls grün. Paket 81 Dateien einzeln verifiziert, exakt Version 3.9.0-beta.23/16001/release. Keine neue Live-Abnahme daraus ableiten.
+- GitHub-Artefakt 14274836707 / curseforge-package-43959442195 heruntergeladen und GitHub-Digest C24F64888E15F3FA289DD084891BF9110575884EAB931911EC938E89F32FE0C5 geprüft. Enthaltenes Paket SHA256 9A7536F1FAED035BBEC87EB76BB2AE00751A358038B90597DDD28E00C0AF5D60; Texte und alle 81 Payloadhashes geprüft. Lokal reports/github-dry-run-43959442195-bericht.zip, inklusive Testnachweis, Run-/Jobstatus und Baselinebeleg.
+- Bereits veröffentlichte Datei 9654021 separat vom offiziellen CDN heruntergeladen: ZIP SHA256 F0633ABFBB186A479ECC85FB33FFE0FE1E194B4C4D6B645B07B0D250052A3A31 identisch zum originalen lokalen beta.23-Release für Quellcommit e4b8bdcb69dccd71a05b854d446ee7c8b0cf9d9d. Damit Beta-Baseline für nächstes echtes Update belegt; kein Rückgriff auf unzugeordnete alte 3.8-Beta nötig. releases/published-history.json aktualisiert.
+- Legacy-veröffentlichte beta.23-TOC enthält alpha+e4b8bdc; künftige Tag-Pakete verlangen exakte Version ohne diesen Zusatz. beta.23 nicht erneut freigeben/hochladen; REVIEW.md markiert die bisherige Vorabprüfung als Historie. Nächstes echtes Update braucht neue Versionsnummer, reale Änderungen, eigenen Diff und DE/EN-Texte.
+- main bleibt 711d463af4c17f1e711248bb409f1dd5fecfe303. Keine Tags, kein Merge, keine Spielinstallation. Ergebnisdokumentation nur auf codex/curseforge-release pushen, damit kein zweiter Testlauf ausgelöst wird. Nächster Schritt für Nutzer: grünen Run und Artifacts ansehen; Automatisierungs-Dry-Run ist abgenommen.
+
 ## CurseForge-Dry-Run abgeschlossen — 16.11.2026, 21:58
 
 - Code-/Workflowcommit 25bee977a941f9d44b5ba340c126476214e67c83 auf codex/curseforge-release. Lokaler isolierter Dry Run reports/curseforge-dry-run-20261116, vollständiges Prüfpaket reports/curseforge-dry-run-20261116.zip. Kein GitHub-Actions-Lauf gestartet, kein Push/echter Tag, Upload, Merge oder Spielinstallationswechsel.
