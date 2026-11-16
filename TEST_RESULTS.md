@@ -1,5 +1,17 @@
 # Validation — 3.9.0-beta.4
 
+## beta.23 — finale UI-/Auftragsprüfung, 16.11.2026
+
+**612 bestanden, 0 fehlgeschlagen, 0 übersprungen; 322 Dateien; 232.88s.** Release-Build bestanden, wowlua 0.13.14, Windows/Camelot/Blizzard-UI. reports/tests/20261116-203441-b987a6.zip enthält vollständiges Protokoll, Umgebung, native JSON-Ergebnisse und Quell-/Test-/Inputhashes. Alle 382 erfassten Hashes exakt geprüft: 56 Runtimequellen, 323 Test-/Profilquellen, drei Inputs.
+
+Zwölf neue Workshop-Fälle mit echtem Auftragsdurchlauf (bestätigter Händlerkauf, Bank, native Serie, spätere Entnahme, zweite Serie, Abschluss gleicher Auftrag), UI-Projektionen aller Auftragsarten, Bank voll/Preis fehlt/Verarbeitung, staler Klick, aktuelle Materialbestände/-preise ohne Neuplanung und begrenzte/gestoppte Animation. Die bestehende Suite prüft weiterhin Preise, Kaufmengen, Trainer, Bank, Twinks und Gilde.
+
+Echte test.screen-Matrix mit dpiScale=1: 1920x1080, UI 0.65 (203454-5c9d62) / 1.00 (203519-9dccc0); 3440x1440, UI 0.65 (203544-705a7f) / 1.00 (203611-5cbad5). Jeder Lauf 12/0/0 und eigene automatische ZIP mit gerenderten Hauptfenster-/Guide-/Material-/Einstellungs-/Warteansichten. Finale PNG-Abmessungen binär geprüft; Runtimequellen und alle 74 Grafikdateien identisch. Index, Bilder und Matrix-/Assetprüfsummen reports/workshop-beta23/ANSICHTEN.html bzw. MATRIX-AND-ASSETS.json. Alle Bilder Quellemulation, KEINE Live-Client-Ansichten.
+
+Erste CTA-Prüfung 201128-cdee54: 35/2/0 durch geänderte Overlay-/Fehlerdarstellung. Frühe Workshop-Fälle deckten doppelte Navigationserzeugung, Test-Callback-Leck und Materialprojektion auf; korrigiert. Breiter Zwischenstand 202358-4562aa: 602/9/0 (aufklappbare statt immer sichtbare Auftragsübersicht und tatsächlich fehlende Werkzeugzeile). Werkzeugnamen wieder sichtbar, bisherige Tests klappen Übersicht tatsächlich auf. Späterer 203109-b2a158 meldet 612/0/0, ist wegen anschließendem Bank-Zusatzbutton-Fix und abweichenden Hashes ausdrücklich keine finale Freigabe. Verbindlich nur der finale Bericht oben.
+
+Neue Grafikexports reproduzierbar bytegleich; Hauptbutton wird bei Bank voll und fehlenden Voraussetzungen nicht als bereit animiert. W1034 UnifiedUI.lua:37 bleibt bekannte Buildwarnung, kein Testfehler. Kein FPS-Nachweis und keine Live-Abnahme des kompilierten Bundles. Details/Live-Plan: docs/WORKSHOP_BETA23.md.
+
 ## beta.22 — finale Navigation-/Zugriffsprüfung, 16.11.2026
 
 **600 bestanden, 0 fehlgeschlagen, 0 übersprungen; 321 Testdateien; 182.51s.** Release-Build bestanden, wowlua 0.13.14, Windows/Camelot/Blizzard-UI. reports/tests/20261116-194918-dbcd1e.zip enthält Protokoll, Umgebung, Quell-/Test-/Inputprüfsummen und native JSON-Ergebnisse. Alle erfassten Hashes mit finalem Stand identisch.

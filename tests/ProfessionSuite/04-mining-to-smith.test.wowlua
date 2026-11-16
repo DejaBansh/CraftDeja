@@ -64,7 +64,9 @@ local function setup()
         assert(g.task and g.task.kind==kind,
             "Expected route "..kind..", observed "..tostring(g.task and g.task.kind))
         assert(g.body:IsVisible(), "Task body missing")
-        assert(g.orderBar:IsVisible(), "Order progress missing")
+        assert(g.orderBar and g.orderBar.view and g.workshopToggle:IsVisible(), "Folded order progress missing")
+        if not g.workshopExpanded then mock.click(g.workshopToggle)end
+        assert(g.orderBar:IsVisible(), "Order progress cannot be expanded")
         return g
     end
     return c

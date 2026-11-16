@@ -1,15 +1,17 @@
-# CraftDeja 3.9.0-beta.22
+# CraftDeja 3.9.0-beta.23
 
 ## Deutsch
 
-- **Passende Lehrer näher finden:** Erweiterte Rezept-Lehrer-Zuordnungen und eine gemeinsame Standortauswahl für alle unterstützten Berufe helfen dir, unnötige Wege zu vermeiden. Kupferrohr berücksichtigt jetzt auch Unterstadt.
-- **Zuverlässiger zurück zum Auftrag:** Beim erneuten Öffnen des Berufsfensters erscheint der Guide wieder und führt deinen laufenden Auftrag fort.
-- **CraftDeja an der Minimap:** Öffne den Guide per Linksklick oder die Einstellungen per Rechtsklick. Die Position lässt sich verschieben und wird gespeichert.
-- **Einstellungen leichter erreichen:** Ein eigener Eintrag unter Optionen → Addons bietet direkten Zugriff auf CraftDeja und die Anzeigeoptionen.
+- **Dein neues Goblin-Werkstattpult:** Dunkles Rauchglas, blau-violette Lichtkanten, Messingdetails und ein eigenes Goblin-Motiv geben CraftDeja eine klare neue Oberfläche.
+- **Route und Materialien im Blick:** Navigation, Skillfortschritt, Rezeptwechsel und ausgewählte Schrittdetails helfen dir, deinen Auftrag leichter zu überblicken.
+- **Ein klarer nächster Schritt:** Der kompakte Guide hebt die konkrete Aktion mit einem grünen Hauptbutton hervor. Ein kurzer Lichtimpuls zeigt neu bereite Aktionen; Wartezeiten und fehlende Voraussetzungen bleiben ruhig.
+- **Wichtige Angaben direkt sichtbar:** Mengen, Kaufpreise, Werkzeugnamen und konkrete Statusmeldungen stehen bei der Aufgabe. Weitere Informationen und seltene Aktionen kannst du aufklappen.
+- **Sicher weiterarbeiten:** Aktuelle Bestände und Preise fließen in die Materialansicht ein. Ändert sich die nächste Aktion vor einem Klick, zeigt CraftDeja zuerst den aktualisierten Button.
 
 ## English
 
-- **Find suitable trainers closer to you:** Expanded recipe-to-trainer references and shared location selection across supported professions help avoid unnecessary trips. Copper Tube now includes Undercity.
-- **Return to your order reliably:** Reopening the profession window restores the guide and continues your ongoing order.
-- **CraftDeja on your minimap:** Left-click to open the guide or right-click for settings. Drag the button to save your preferred position.
-- **Easier access to settings:** A dedicated Options → AddOns entry provides direct access to CraftDeja and its visibility settings.
+- **Your new goblin workshop console:** Dark smoke glass, blue-violet light edges, brass details and a dedicated goblin motif give CraftDeja a clear new interface.
+- **Keep routes and supplies in view:** Navigation, skill progress, recipe transitions and selected-step details make your order easier to follow.
+- **One clear next step:** The compact guide highlights the concrete action with a green primary button. A brief pulse marks newly ready actions, while waiting and unmet requirements stay calm.
+- **Key information beside the task:** Quantities, purchase prices, tool names and concrete status messages are visible where you need them. Expand additional information and occasional actions when useful.
+- **Continue with current information:** The materials view reflects current inventory and prices. If the next action changes before a click, CraftDeja shows the updated button first.

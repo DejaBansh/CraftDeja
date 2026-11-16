@@ -1,5 +1,11 @@
 # Entscheidungen — Stand 15.11.2026
 
+## beta.23 — 16.11.2026
+
+- Routenübersicht als großes Werkstattpult, NextStep als eigenständiger kompakter Guide. Originale Auftrags-/Preis-/Bank-/Lehrer-/Twink-/Gildenskripte beibehalten; zusätzliche Übersichten sind Projektionen, kein zweites Planungsmodell.
+- Eigene Smoke-Glass-/Messing-/Goblin-Assets getrennt von realen UI-Werten. Bereitschaftseffekt einmalig und nur sichtbar; Warte-/Blockierzustände ruhig, keine neue permanente Aktualisierungsschleife. Alte Zusatzknöpfe müssen in den Details Platz finden.
+- Dashboard-Klick bei veränderter Aktionsidentität aktualisiert zuerst die Anzeige. Auflösungsabnahme über echte Bildschirmmanifeste mit Hashnachweis; Quellemulation und noch offene Live-Grafik-/Addonkonfiguration klar unterscheiden.
+
 ## beta.22 — 16.11.2026
 
 - Nächster bekannter geeigneter Lehrer aus ausdrücklicher Rezept-/Rangmitgliedschaft, Fraktion und vergleichbaren Standortdaten. Keine beliebigen Berufsmeister als Rezeptlehrer einsetzen; keine behauptete Vollständigkeit oder kürzeste Reisezeit. Gekappte/übernommene Referenzdaten transparent halten und eindeutige tatsächliche Besuche ergänzen.

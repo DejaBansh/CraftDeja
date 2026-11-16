@@ -1,5 +1,14 @@
 # Roadmap — Stand 15.11.2026
 
+## beta.23 — Werkstattpult, 16.11.2026
+
+- [x] Fensterbeziehungen geprüft und bestehendes Routenfenster in Übersicht mit Navigation, Rezeptabschnitten, Status-/Detail- und Kostenkarten überführt; seltener genutzte Originalaktionen erhalten.
+- [x] Eigenständiger Guide, konkrete Hauptaktion, sichtbare Gründe/Werkzeuge, aufklappbare Details, ruhige Blockierung und einmaliger sichtbarer Bereitschaftsimpuls.
+- [x] Vier eigene getrennte hochauflösende Assets mit PNG-Quellen/transparenter TGA-Ausgabe, Logo erhalten; keine eingebrannten Spielwerte.
+- [x] 612/0/0 breit, 232.88s; 382 Hashes identisch; finale Suite reports/tests/20261116-203441-b987a6.zip.
+- [x] Vier echte Bildschirm-/UI-Skalierungsfälle 1920x1080/3440x1440 x 65%/100%, je 12/0/0, PNG-Abmessungen und Quellen/Grafiken geprüft. Quellemulation ausdrücklich gekennzeichnet.
+- [ ] Release installieren und Layout/Aktionen mit echter Forever-/ElvUI-/TSM-Konfiguration live prüfen. Keine neue Performance- oder komplette Live-Abnahme behaupten.
+
 ## beta.22 — Trainer und Zugriff, 16.11.2026
 
 - [x] Kupferrohr-Unterstadt und fehlendes Wiederöffnen im unveränderten beta.21 reproduziert; gleiche Clientfälle in beta.22 bestanden.

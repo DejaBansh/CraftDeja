@@ -12,7 +12,7 @@ Compare recipes by **estimated net cost per skill point**, then follow one clear
 
 | Current source | Automated validation | Status |
 |---|---|---|
-| 3.9.0-beta.22 (local feature branch) | Release/source validation recorded in TEST_RESULTS.md | Location-aware trainer selection, minimap access and AddOns settings; live retest pending |
+| 3.9.0-beta.23 (local feature branch) | Release/source validation recorded in TEST_RESULTS.md | Goblin workshop dashboard and compact guide; automated layout checks passed, live retest pending |
 
 Validation uses Windows/Camelot, wowlua 0.13.14 and configured Blizzard UI. Source emulation is not execution of the bundled release artifact or a complete live-server test. The earlier beta.17 release comparison was reported smooth in game. [Full test record](TEST_RESULTS.md) · [Multi-stage routes and controlled comparisons](docs/MULTI_STAGE_ROUTES.md) · [Product priorities](docs/PRODUCT_PLAN.md).
 

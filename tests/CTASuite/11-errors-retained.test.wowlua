@@ -24,7 +24,7 @@ end
 local function scenario()
 local a,_plan,render=setup();render("ah");a.actionNotice="Important purchase error. Do not retry blindly."
 local f=render("ah")
-assert(f.notice:IsShown() and f.notice:GetText()==a.caption("cta_issue"),"Error status missing")
+assert(f.workshopStatus:IsShown() and f.workshopStatus:GetText():find(a.actionNotice,1,true),"Concrete error status missing from visible guide")
 local found=false;for _,line in ipairs(f.ctaDetails)do if line==a.actionNotice then found=true end end
 assert(found,"Full error removed from tooltip")
 end

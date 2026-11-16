@@ -1,0 +1,248 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+-- Only client/API boundaries are simulated. Route, stock, quote, merchant,
+-- native preparation, bank queue and guide functions are production modules.
+local function setup()
+ local a=_G['CraftDeja'];local c:any={a=a,slots={[0]={},[6]={}},bagSlots=20,bankSlots=8,open=false,cursor=nil,skill=23,money=10000,moves=0,delayed=false,commits={}}
+ for _,key in ipairs({'routeSearch','routeDirty','routeSuggestion','nativeCraftHandoff','craftBatch','routeApplyBlocked'})do mock.setField(a,key,nil)end
+ mock.setField(a,'craftQuietUntil',0);mock.setField(a.shopping,'open',false);mock.setField(a.shopping,'goal','next')
+ mock.setField(a.character,'inventory',{items={}});mock.setField(a.character,'bankTransfer',{})
+ mock.setField(a.character,'vendor',{});mock.setField(a.saved,'sharedInventory',{[a.character.identity.realm]={items={}}})
+ mock.setField(a.saved,'routeOrders',{});mock.setField(a.saved,'routeActive',{})
+ mock.setField(a.options,'autoOpenMerchant',true);mock.setField(a.options,'green',true);mock.setField(a.options,'prices','auctionator');mock.setField(a.options,'guideSeenV1',true)
+ mock.setField(a.inventoryState,'bankOpen',false)
+ local function count(bag,id)local n=0;for _,v in pairs(c.slots[bag]or {})do if v.id==id then n=n+v.n end end;return n end
+ c.count=function(id,bank)return count(0,id)+(bank and count(6,id)or 0)end
+ c.add=function(bag,id,n)
+  for _,v in pairs(c.slots[bag])do if v.id==id and v.n+n<=20 then v.n=v.n+n;return end end
+  for i=1,(bag==0 and c.bagSlots or c.bankSlots)do if not c.slots[bag][i]then c.slots[bag][i]={id=id,n=n};return end end
+  error('fixture full')
+ end
+ c.set=function(bag,slot,id,n)c.slots[bag][slot]=id and {id=id,n=n}or nil end
+ c.set(0,1,2589,8);c.set(0,2,4357,9);c.set(0,3,2840,1);c.set(0,4,4359,1)
+ mock.stub(C_Container,'GetContainerNumSlots',function(id)return id==0 and c.bagSlots or id==6 and c.bankSlots or 0 end)
+ mock.stub(C_Container,'GetContainerItemInfo',function(bag,slot)local v=(c.slots[bag]or {})[slot];if v then return {itemID=v.id,stackCount=v.n,isLocked=v.locked,hyperlink='item:'..v.id}end end)
+ mock.stub(C_Container,'GetContainerItemID',function(bag,slot)local v=(c.slots[bag]or {})[slot];return v and v.id end)
+ mock.stub(C_Container,'GetContainerNumFreeSlots',function(bag)local used=0;for _ in pairs(c.slots[bag]or {})do used=used+1 end;return (bag==0 and c.bagSlots or c.bankSlots)-used,c.family or 0 end)
+ mock.stub(C_Bank,'CanUseBank',function()return c.open end)
+ mock.stub(C_Bank,'FetchPurchasedBankTabData',function()return {{ID=6}}end)
+ mock.stub(C_Bank,'CanViewBank',function()return false end)
+ mock.stub(C_Item,'GetItemCount',function(id,bank)return c.count(id,bank)end)
+ mock.stub(C_Item,'GetItemFamily',function()return 0 end)
+ mock.stub(C_Item,'GetItemInfo',function(id)return 'Item '..id,'item:'..id,1,1,1,'Trade Goods','Reagent',20,'',134400,id==4360 and 500 or 0,7,0,0 end)
+ mock.stub(C_Item,'GetItemNameByID',function(id)return id==2589 and 'Leinenstoff'or 'Item '..id end)
+ mock.stub(_G,'GetMoney',function()return c.money end)
+ mock.stub(_G,'GetCursorInfo',function()if c.cursor then return 'item',c.cursor.id,'item:'..c.cursor.id end end)
+ mock.stub(C_Container,'SplitContainerItem',function(bag,slot,n)
+  if c.reject then error('client rejected')end
+  local v=c.slots[bag][slot];assert(v and v.n>n and not c.cursor);v.n=v.n-n;c.cursor={id=v.id,n=n}
+ end)
+ mock.stub(C_Container,'PickupContainerItem',function(bag,slot)
+  if c.reject then error('client rejected')end
+  local v=c.slots[bag][slot]
+  if not c.cursor then assert(v);c.cursor={id=v.id,n=v.n};c.slots[bag][slot]=nil
+  else
+   local held=c.cursor;c.cursor=nil
+   local function commit()
+    local dest=c.slots[bag][slot]
+    if dest then assert(dest.id==held.id and dest.n+held.n<=20);dest.n=dest.n+held.n else c.slots[bag][slot]={id=held.id,n=held.n}end
+   end
+   c.moves=c.moves+1
+   if c.delayed then c.commits[#c.commits+1]=commit else commit()end
+  end
+ end)
+ local ingredients={[3919]={[2589]=1,[4357]=1},[3923]={[2589]=1,[4357]=2,[2840]=1,[4359]=1}}
+ mock.stub(C_TradeSkillUI,'GetBaseProfessionInfo',function()return {professionID=202,professionName='Engineering',skillLevel=c.skill,maxSkillLevel=75}end)
+ mock.stub(C_TradeSkillUI,'GetAllRecipeIDs',function()return {3919,3923}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeInfo',function(id)
+  if ingredients[id]then return {recipeID=id,name='Recipe '..id,learned=id==3919 or c.skill>=30,relativeDifficulty=id==3919 and c.skill>=30 and 1 or 0,numSkillUps=1,canSkillUp=true}end
+ end)
+ mock.stub(C_TradeSkillUI,'GetRecipeCooldown',function()return nil end)
+ mock.stub(C_TradeSkillUI,'GetRecipeRequirements',function()return {}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeOutputItemData',function(id)return {itemID=id==3919 and 4358 or 4360}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeSchematic',function(id)
+  if not ingredients[id]then return end
+  local slots={};for item,n in pairs(ingredients[id])do slots[#slots+1]={quantityRequired=n,reagents={{itemID=item}}}end
+  return {outputItemID=id==3919 and 4358 or 4360,quantityMin=2,quantityMax=2,reagentSlotSchematics=slots}
+ end)
+ mock.setField(_G,'Auctionator',{API={v1={GetAuctionPriceByItemID=function()return 1 end}}})
+ local native=CreateFrame('Frame',nil,UIParent);native:Show();native.CraftingPage=CreateFrame('Frame',nil,native)
+ native.GetCurrentRecraftingRecipeID=function()return nil end
+ local page=native.CraftingPage;page.SchematicForm={GetRecipeInfo=function()return C_TradeSkillUI.GetRecipeInfo(c.selected or 3919)end}
+ page.SelectRecipe=function(_,r)c.selected=r.recipeID end
+ local input={n=1};function input:SetValue(n)self.n=n end;function input:GetValue()return self.n end
+ page.CreateMultipleInputBox=input;page.CreateButton=CreateFrame('Button',nil,native)
+ page.CreateButton:SetScript('OnClick',function()
+  for i=1,input.n do
+   local id=c.selected;mock.fireEvent('UNIT_SPELLCAST_START','player','bankflow'..i,id)
+   for item,n in pairs(ingredients[id])do
+    local left=n
+    for slot,v in pairs(c.slots[0])do if v.id==item then local take=math.min(left,v.n);v.n=v.n-take;left=left-take;if v.n==0 then c.slots[0][slot]=nil end end end
+    assert(left==0,'fixture reagents missing')
+   end
+   c.add(0,id==3919 and 4358 or 4360,2);c.skill=c.skill+1
+   mock.fireEvent('UNIT_SPELLCAST_SUCCEEDED','player','bankflow'..i,id);mock.fireEvent('BAG_UPDATE_DELAYED')
+  end
+ end)
+ mock.setField(_G,'ProfessionsFrame',native)
+ mock.stub(C_TradeSkillUI,'OpenTradeSkill',function()native:Show();mock.fireEvent('TRADE_SKILL_SHOW');return true end)
+ local session=a.readRecipes(a.readProfession());mock.setField(a,'active',session);mock.setField(a,'sessions',{[202]=session});mock.setField(a,'professionOpen',true)
+ local order={id='saved-bank-flow',owner=a.characterKey,profession=202,target=31,start=23,active=true,forceAH={},terms={},learned={},lastSupply={}}
+ a.saved.routeOrders[order.id]=order;a.saved.routeActive[a.character.identity.realm..':'..a.character.identity.faction]=order.id;c.order=order
+ local stages={{recipe=3919,from=23,to=30,crafts=7},{recipe=3923,from=30,to=31,crafts=1}}
+ local recipes={};for id,values in pairs(ingredients)do recipes[id]={id=id,inputs=values}end
+ local result={model={cap=75,start=23,target=31,recipes=recipes,rawRecipes=session.recipes,providers={},prices={}},best={segments=stages,transfers={},learning={},ranks={},demand={},reasons={},bought={},cashMaterials=20,cashLearning=0,cashTransfer=0,owned=0,vendor=0,knownNet=20},compared=1}
+ mock.setField(a,'routeResult',result);mock.setField(a,'routeDecision',{routeOrder=order.id,profile=session.profile,current={recipe=session.recipes[3919],quote=a.quote(session.recipes[3919],{}),chance=1,unitSkill=2},stop=30,missing=0,unchecked=0})
+ mock.setField(a,'decision',a.routeDecision);order.lastRoute=stages
+ c.flush=function()
+  local commits=c.commits;c.commits={};for _,fn in ipairs(commits)do fn()end
+  mock.fireEvent('BAG_UPDATE_DELAYED');mock.fireEvent('PLAYERBANKSLOTS_CHANGED',1);mock.waitSeconds(.1)
+ end
+ c.bank=function(open)c.open=open;mock.fireEvent(open and 'BANKFRAME_OPENED'or 'BANKFRAME_CLOSED')end
+ c.drain=function()
+  for _=1,20 do c.flush();if a.character.bankTransfer.status=='done'or a.character.bankTransfer.status=='bank_full'then break end end
+ end
+ c.profession=function()mock.fireEvent('TRADE_SKILL_SHOW');mock.waitSeconds(.1);assert(a.currentRouteOrder()==order)end
+ return c
+end
+@afterEach
+local function clean()
+ local a=_G['CraftDeja'];if a.bankTransferFrame then a.bankTransferFrame:Hide()end;a.routeRuntimeFrame:Hide();a.clearNativeCraft();a.craftBatch=nil
+ assert(#mock.errors()==0,table.concat(mock.errors(),'\n'))
+end
+
+local function fixture()
+ local c=setup();local a=c.a;mock.setField(a.options,'language','de');mock.setField(a.options,'scale',.8)
+ local r=a.routeResult;local stages=r.best.segments
+ -- A representative saved engineering order; real source APIs and guide model.
+ stages[3]={recipe=3924,from=31,to=50,crafts=19};r.model.rawRecipes[3924]=a.copy(a.catalog[202][3924]);r.model.rawRecipes[3924].id=3924
+ r.model.target=50;c.order.target=50;r.best.cashMaterials=13420;r.best.cashLearning=200;r.best.knownNet=12800
+ c.profession();a.refreshNextStep(true);return c
+end
+local function visibleAction(a)
+ local g=a.nextStepWindow;assert(g.primaryCTA:IsVisible()and g.workshopStatus:IsVisible())
+ assert(g.primaryCTA:GetText()~=''and g.workshopStatus:GetText()~='')
+ if a.routeWindow and a.routeWindow:IsShown()then
+  local d=a.routeWindow.workshop;assert(d.action:GetText()==g.primaryCTA:GetText())
+  assert(d.boundActionKey==a.workshopActionIdentity(g))
+ end
+end
+@test('Workshop visual: main route dashboard with real order, cost and recipe transitions')
+local function dashboard()
+ local c=fixture();local a=c.a;c.bank(true);a.refreshNextStep(true);a.showRouteWindow(50)
+ local f=a.routeWindow;local d=f.workshop;assert(d and #d.rows==3)
+ assert(d.profession:GetText()==a.professionName(202));assert(d.skill:GetText():find('50',1,true))
+ assert(d.action:GetText()==a.nextStepWindow.primaryCTA:GetText());assert(not d.advanced:IsShown())
+ assert(f:GetWidth()*f:GetEffectiveScale()<=GetPhysicalScreenSize());visibleAction(a)
+end
+@test('Workshop visual: standalone compact bank-full guide with concrete remaining supplies')
+local function fullBank()
+ local c=fixture();local a=c.a;c.bankSlots=1;c.set(6,1,2589,20);c.bank(true)
+ a.startBankTransfer('deposit');c.flush();a.refreshNextStep(true)
+ if a.routeWindow then a.routeWindow:Hide()end
+ assert(a.character.bankTransfer.status=='bank_full');assert(a.nextStepWindow.workshopStatus:GetText():find('Bank voll',1,true))
+ assert(not a.nextStepWindow.primaryCTA.workshopReadyState,'Full bank must stay optically quiet')
+ visibleAction(a)
+end
+@test('Workshop: optional bank deferral stays folded and cannot cover the remaining supplies')
+local function bankDeferral()
+ local c=fixture();local a=c.a;c.bank(true);a.refreshNextStep(true);local g=a.nextStepWindow
+ g.workshopExpanded=false;a.paintWorkshopGuide(g);assert(g.bankLater and not g.bankLater:IsShown())
+ mock.click(g.workshopToggle);assert(g.bankLater:IsShown())
+ assert(g.bankLater:GetTop()<=g.workshopStatus:GetBottom(),'Optional bank action overlaps the concrete status')
+ mock.click(g.workshopToggle);assert(not g.bankLater:IsShown())
+end
+@test('Workshop visual: materials view shows quantities and unknown price explicitly')
+local function materials()
+ local c=fixture();local a=c.a;a.refreshNextStep(true);a.showRouteWindow(50)
+ local d=a.routeWindow.workshop;mock.click(d.navigation.materials);assert(d.page=='materials')
+ local p=d.materialPlan;assert(p,'Material projection unavailable: '..tostring(d.materialReason));local id=p.rows[1].id
+ mock.stub(a,'unitPrice',function(item)if item==id then return nil end;return 1 end);a.renderWorkshopDashboard();mock.click(d.rows[1])
+ assert(d.status:GetText():find(a.caption('ws_no_price'),1,true));visibleAction(a)
+end
+@test('Workshop: cached material requirements use current inventory and prices without re-planning')
+local function liveMaterialProjection()
+ local c=fixture();local a=c.a;a.showRouteWindow(50);local d=a.routeWindow.workshop;mock.click(d.navigation.materials)
+ assert(d.rows[1].item);local id=d.rows[1].item.id
+ c.set(0,1,id,3)
+ mock.stub(a,'materialPlan',function()error('Repainting materials must not re-plan')end)
+ mock.stub(a,'unitPrice',function()return 17 end)
+ a.renderWorkshopDashboard();local item=d.rows[1].item
+ assert(item.id==id and item.locations.bags==3 and item.unit==17)
+ assert(item.buy==math.max(0,item.total-item.locations.total))
+end
+@test('Workshop visual: settings navigation uses saved controls and advanced controls remain accessible')
+local function settings()
+ local c=fixture();local a=c.a;a.showRouteWindow(50);local f=a.routeWindow;local d=f.workshop
+ mock.click(d.navigation.advanced);assert(d.advanced:IsVisible()and f.handover:IsVisible()and f.conditions:IsVisible()and f.teacher:IsVisible())
+ mock.click(d.navigation.settings);assert(d.settings:IsVisible()and not d.advanced:IsVisible())
+ local old=a.options.autoOpenMerchant;mock.click(d.settingsRows[2]);assert(a.options.autoOpenMerchant~=old)
+end
+@test('Workshop: waiting stops glow; one ready transition pulses once and hiding stops the animation')
+local function animation()
+ local c=fixture();local a=c.a;local g=a.nextStepWindow;local p=g.plan
+ a.renderNextStep(p,true,{kind='scan',key='ws:waiting',body='Aktuelle Auktionsdaten werden verarbeitet. Bitte warten.'})
+ assert(not g.primaryCTA:IsEnabled()and not g.primaryCTA.workshopReadyState and not g.primaryCTA.readyAnimation:IsPlaying())
+ a.renderNextStep(p,true,{kind='craft',key='ws:ready',batch=2,available=2,body='Zwei Herstellungen sind bereit.'})
+ local b=g.primaryCTA;local n=b.workshopPulses or 0;assert(b.workshopReadyState)
+ a.renderNextStep(p,true,{kind='craft',key='ws:ready',batch=2,available=2,body='Zwei Herstellungen sind bereit.'})
+ assert((b.workshopPulses or 0)==n,'Repeated render restarted ready pulse')
+ g:Hide();assert(not b.readyAnimation:IsPlaying());assert(b:GetScript('OnUpdate')==nil)
+end
+@test('Workshop: a stale dashboard action cannot execute a newly changed action')
+local function staleAction()
+ local c=fixture();local a=c.a;a.refreshNextStep(true);a.showRouteWindow(50);local d=a.routeWindow.workshop
+ local count=0;local g=a.nextStepWindow;local button=g.primaryCTA;local originalClick=button:GetScript('OnClick')
+ mock.stub(a,'refreshNextStep',function()g.task={kind='mail',key='changed:mail',body='Neue Aufgabe'};g.primaryCTA:SetText('Post abholen');g.primaryCTA:SetScript('OnClick',function()count=count+1 end)end)
+ mock.click(d.action);button:SetScript('OnClick',originalClick);assert(count==0,'Stale action performed a different task without another click')
+end
+@test('Workshop: relevant updates repaint a visible dashboard without rebuilding plans or touching a closed one')
+local function eventProjection()
+ local c=fixture();local a=c.a;a.showRouteWindow(50);local f=a.routeWindow
+ mock.stub(a,'buildRouteModel',function()error('UI must not build route models')end)
+ mock.stub(a,'readRecipes',function()error('UI must not rescan recipes')end)
+ local rows=f.workshop.rows;for _=1,8 do a.renderWorkshopDashboard()end;assert(f.workshop.rows==rows)
+ f:Hide();a.renderWorkshopDashboard();assert(not f:IsShown())
+end
+@test('Workshop: same-order vendor bank native-craft withdrawal flow keeps visible actions correct')
+local function fullOrder()
+ local c=setup();local a=c.a;a.showRouteWindow(31);c.set(0,1,nil);c.profession();a.refreshNextStep(true)
+ mock.openMerchant({name='Vendor',items={{id=2589,price=4,stack=4,available=-1,maxStack=20,usable=true}}})
+ mock.stub(_G,'BuyMerchantItem',function(_,n)c.add(0,2589,n);c.money=c.money-n;mock.fireEvent('BAG_UPDATE_DELAYED')end)
+ a.offerVendorPurchase();visibleAction(a);assert(a.buyVendorMaterial(2589));a.vendorBuyTick();assert(c.count(2589,false)==8)
+ mock.closeMerchant();c.bank(true);a.refreshNextStep(true);visibleAction(a);assert(a.nextStepWindow.task.kind=='route_bank')
+ assert(a.routeWindow.workshop.action:IsEnabled(),'Dashboard bank button disabled; guide enabled='..tostring(a.nextStepWindow.primaryCTA:IsEnabled()))
+ assert(a.routeWindow.workshop.boundActionKey==a.workshopActionIdentity(a.nextStepWindow),'Before click identity differs')
+ mock.click(a.routeWindow.workshop.action);c.drain()
+ local changed=a.routeWindow.workshop.changedAction
+ assert(c.count(2589,false)==7 and a.nextStepWindow.task.kind=='craft','After bank: '..c.count(2589,false)..' / '..a.nextStepWindow.task.kind..' / '..tostring(a.character.bankTransfer.status)..' / '..tostring(changed and changed.before)..' => '..tostring(changed and changed.after));visibleAction(a)
+ c.bank(false);assert(a.craftNext(a.nextStepWindow.plan,true));visibleAction(a)
+ mock.click(ProfessionsFrame.CraftingPage.CreateButton);mock.waitSeconds(.6);a.refresh(true)
+ mock.waitUntil(function()return a.routeResult and a.routeResult.best and not a.routeSearch and not a.routeDirty end)
+ assert(c.skill==30 and a.currentRouteOrder()==c.order)
+ c.bank(true);a.refreshNextStep(true);assert(a.nextStepWindow.task.kind=='route_bank_withdraw');visibleAction(a)
+ mock.click(a.routeWindow.workshop.action);c.drain();a.refreshNextStep(true);visibleAction(a);c.bank(false)
+ assert(a.craftNext(a.nextStepWindow.plan,true));mock.click(ProfessionsFrame.CraftingPage.CreateButton);mock.waitSeconds(.6);a.refresh(true);a.refreshNextStep(true)
+ assert(c.skill==31 and a.currentRouteOrder()==c.order and a.nextStepWindow.task.kind=='done');visibleAction(a)
+end
+@test('Workshop visual: processing is quiet and its reason stays visible')
+local function processing()
+ local c=fixture();local a=c.a;local p=a.materialPlan(a.active.recipes[3919],30)
+ a.renderNextStep(p,true,{kind='scan',key='ws:scan',body='Aktuelle Auktionspreise werden noch verarbeitet. Warte auf das Ende des vollständigen Scans.'})
+ if a.routeWindow then a.routeWindow:Hide()end
+ local g=a.nextStepWindow;assert(not g.primaryCTA:IsEnabled()and not g.primaryCTA.workshopReadyState)
+ assert(g.workshopStatus:IsVisible()and g.workshopStatus:GetText():find('verarbeitet',1,true))
+end
+@test('Workshop: AH mail trainer rank alt and guild use the same visible action projection')
+local function stations()
+ local c=setup();local a=c.a;local p=a.materialPlan(a.active.recipes[3919],30);a.showRouteWindow(31)
+ for _,kind in ipairs({'ah','ah_buy','ah_confirm','ah_wait','mail','learn','rank','route_supply_alt','route_supply_guild'})do
+  local task={kind=kind,key='ws:station:'..kind,body='Konkrete nächste Aufgabe: '..kind,recipe=p.recipe}
+  if kind=='rank'then task.trainer=a.nearestRankTrainer(202,75)end
+  if kind:find('ah_',1,true)==1 then task.offer={phase=kind,id=2589,quantity=7,cost=28,body=task.body,button='Bestätigen'}end
+  if kind=='learn'then task.sourceTarget=a.recipeSourceTarget({id=3924,profession=202})end
+  a.renderNextStep(p,true,task);visibleAction(a)
+  assert(a.nextStepWindow.task.kind==kind)
+ end
+end
+
