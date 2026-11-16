@@ -1,5 +1,10 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## Hinweis zum vorhandenen Tag — Abschlussprüfung 16.11.2026
+
+- refs/tags/v3.9.0-beta.23 existiert bereits lokal und remote als annotierter Tag d42f80fe003d448fb6e99f14f3a87663120ae00c auf Commit 642dc69d40c0e35b76735822f665183dae64d68a; Tagger-Zeit 2026-11-16T21:11:29Z, vor dem neuen Dry-Run-Branchlauf. Nicht durch diesen Lauf erstellt, nicht verschoben/gelöscht/erneut gepusht. Früheres „keine Tags“ bedeutet: von diesem Auftrag keine erstellt oder gepusht.
+- Aktuelle Actions-API listet den einen erfolgreichen Branch-Dry-Run 43959442195; keine neue echte Veröffentlichung. beta.23 ist bereits CurseForge-Datei 9654021. Ausschließlich neue Version für nächstes echtes Update verwenden; keinen erneuten beta.23-Upload auslösen.
+
 ## GitHub-Dry-Run erfolgreich — 16.11.2026, 22:36
 
 - Echter Actions-Lauf https://github.com/DejaBansh/CraftDeja/actions/runs/43959442195 erfolgreich; geprüfter Commit 1a5100095632199fb2272b74abcb2ff39f4216f4 auf codex/curseforge-dry-run. package success, upload skipped, description skipped. Kein Token im Testjob, keine echte Veröffentlichung oder Beschreibungsänderung; Tokenberechtigung damit nicht geprüft.
