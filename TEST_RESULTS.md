@@ -1,5 +1,14 @@
 # Validation — 3.9.0-beta.4
 
+## CurseForge-Dry-Run abgeschlossen — 16.11.2026, 21:58
+
+- Code-/Workflowcommit 25bee977a941f9d44b5ba340c126476214e67c83 auf codex/curseforge-release. Lokaler isolierter Dry Run reports/curseforge-dry-run-20261116, vollständiges Prüfpaket reports/curseforge-dry-run-20261116.zip. Kein GitHub-Actions-Lauf gestartet, kein Push/echter Tag, Upload, Merge oder Spielinstallationswechsel.
+- Vollsuite über Test-CraftDeja.ps1 (nun --locked): 614/0/0, 322 Dateien, 196.67s, WoWLua 0.13.14/Windows/Camelot/Blizzard-UI. Automatischer Bericht source/reports/tests/20261116-215443-589356.zip im Dry-Run-Ordner, auch artifacts/TEST-REPORT.zip. Bekannte W1034-Lazy-Getter-Warnung unverändert.
+- 26 Release-Schutztests bestanden, API vollständig gemockt. Actionlint 1.7.7 ohne Workflowfehler, alle PowerShell-Skripte parsebar. Description-only mit exakt getaggtem Checkout-Text in privater Testkopie geprüft; echte Veröffentlichung stoppt an offener Historienfreigabe vor Netzwerkzugriff.
+- ZIP artifacts/CraftDeja-3.9.0-beta.23.zip: exakt 3.9.0-beta.23, release/16001, CraftDeja/ als einzige Wurzel, 81 Dateien einzeln SHA256-geprüft. SHA256 D53E0DB02C3BD6C12F2732128025ABAE34E9473545E4168874B233B8FD533DE4. Zusätzliche LICENSE, Licenses/ und DATA_SOURCES übernehmen vorhandene Herkunfts-/Lizenzbelege; generiertes LICENSES allein deckte importierte Daten nicht ab. Keine Dev-Instrumentierung/Runtime.
+- DE/EN-Beschreibung, Patchnotes, Metadaten, Code-Diff/Commitliste und Prüfbelege im Artefaktordner. Veröffentlichungsfreigabe weiterhin false: aktueller passender Beta-Kanal benötigt verifizierte alte Datei-/Quellzuordnung; öffentliche beta.18-Datei 9642059 ist Release. Keine angeblich vollständige Beta-Diffprüfung. REVIEW.md enthält nächste Schritte.
+- CF_API_TOKEN später als Repository-Actions-Secret setzen; kein Token erstellt/gelesen/veröffentlicht. Authentifizierte eindeutige Forever-Versions-ID-Auflösung vor Upload noch offen. Hauptbeschreibung über offizielle Author Console manuell, separater Status/description-only-Modus ohne Duplikatdatei. Offizielle API bietet keine dokumentierte Schreiboperation dafür. Keine vollständige Dreifachautomatisierung behaupten.
+
 ## beta.23 — finale UI-/Auftragsprüfung, 16.11.2026
 
 **614 bestanden, 0 fehlgeschlagen, 0 übersprungen; 322 Dateien; 204.95s.** Release-Build bestanden, wowlua 0.13.14, Windows/Camelot/Blizzard-UI. reports/tests/20261116-204829-9f7d8f.zip enthält vollständiges Protokoll, Umgebung, native JSON-Ergebnisse und Quell-/Test-/Inputhashes. Alle 382 erfassten Hashes exakt geprüft: 56 Runtimequellen, 323 Test-/Profilquellen, drei Inputs.

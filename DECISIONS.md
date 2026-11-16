@@ -1,5 +1,11 @@
 # Entscheidungen — Stand 15.11.2026
 
+## CurseForge-Releases — 16.11.2026
+
+- Nur exakte geprüfte Tags, getrennte versionierte DE/EN-Texte, passender tatsächlich veröffentlichter Kanal als Freigabebasis. Bei unklarer Provenienz kein Upload; Dry Run bleibt verfügbar.
+- Offizielle Upload API für Datei/Markdown-Changelog. Keine dokumentierte Beschreibungs-Schreib-API: getrennt gemeldeter manueller Author-Console-Schritt mit unabhängigem description-only-Modus. Keine privaten Endpunkte oder vorgetäuschter Erfolg.
+- Kein automatischer POST-Retry nach unklarem Upload; Datei-ID/Status unmittelbar separat sichern, GitHub-Re-Runs blockieren. Paket enthält eigene und importierte Lizenzen zusätzlich zur WoWLua-Komponentenliste.
+
 ## beta.23 — 16.11.2026
 
 - Routenübersicht als großes Werkstattpult, NextStep als eigenständiger kompakter Guide. Originale Auftrags-/Preis-/Bank-/Lehrer-/Twink-/Gildenskripte beibehalten; zusätzliche Übersichten sind Projektionen, kein zweites Planungsmodell.
