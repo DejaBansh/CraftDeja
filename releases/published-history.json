@@ -1,0 +1,17 @@
+{
+  "projectId": 1796977,
+  "files": [
+    {
+      "version": "3.9.0-beta.23",
+      "fileId": 9654021,
+      "fileName": "CraftDeja-3.9.0-beta.23-release.zip",
+      "channel": "beta",
+      "status": "Approved",
+      "evidence": "User Author Console screenshots: file ID, followed by Beta type and Approved status",
+      "description": "User reports project description updated manually",
+      "sourceCandidate": "e4b8bdcb69dccd71a05b854d446ee7c8b0cf9d9d",
+      "remotePayloadChecksumVerified": false,
+      "note": "Already published; do not upload beta.23 again. Verify downloaded payload against local release before using its source mapping as the next release baseline."
+    }
+  ]
+}

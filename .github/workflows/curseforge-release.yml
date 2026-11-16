@@ -2,6 +2,7 @@ name: CurseForge release
 
 on:
   push:
+    branches: ['codex/curseforge-dry-run'] # Dedicated token-free test branch only.
     tags: ['*'] # Invalid tags fail validation rather than silently publishing.
   workflow_dispatch:
     inputs:
@@ -54,9 +55,10 @@ jobs:
         id: package
         shell: pwsh
         env:
-          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' }}
+          RELEASE_TAG: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.tag }}
+          DRY_RUN: ${{ github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/') }}
         run: |
+          if(-not $env:RELEASE_TAG) { $env:RELEASE_TAG='v'+(Get-Content wowlua.json -Raw | ConvertFrom-Json).package.version }
           ./tools/New-CurseForgeRelease.ps1 -Tag $env:RELEASE_TAG -DryRun:($env:DRY_RUN -eq 'true') -OutputPath reports/ci-release
       - name: Reviewable release artifacts
         if: success()
@@ -77,7 +79,7 @@ jobs:
           if-no-files-found: warn
 
   upload:
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     needs: package
     runs-on: windows-2022
     timeout-minutes: 10

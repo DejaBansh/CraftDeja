@@ -1,5 +1,11 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## GitHub-Dry-Run-Auslöser — 16.11.2026
+
+- Nutzer hat codex/curseforge-release gepusht; beta.23 ist nach Author-Console-Screenshots als Beta Approved, Datei 9654021, bereits veröffentlicht. Hauptbeschreibung laut Nutzer manuell geändert, CF_API_TOKEN laut Nutzer eingerichtet. Tokenberechtigung nicht geprüft; keine erneute beta.23-Veröffentlichung. releases/published-history.json dokumentiert Beobachtung und noch nicht verifizierten Remote-Payloadhash.
+- Eigener Push-Auslöser ausschließlich für codex/curseforge-dry-run ergänzt, damit Actions ohne main-Merge ausgeführt werden kann. Dieser Branch erzwingt DryRun, liest Kandidatenversion aus Manifest, kein Secret im Paketjob. Upload benötigt explizit refs/tags/, Beschreibung wird im Branchlauf übersprungen. Normale Branch-Pushes bleiben ohne Workflowlauf.
+- Actionlint und alle 26 Release-Pipeline-Schutztests erneut bestanden (API gemockt). Runtime-/Testquellen unverändert; die volle 614er-Suite wird jetzt im tatsächlichen GitHub-Dry-Run ausgeführt. Remote-Ergebnis noch ausstehend; nicht als bestanden markieren. Kein neuer Tag, kein CurseForge-Upload, kein main-Merge, keine Spielinstallation.
+
 ## CurseForge-Dry-Run abgeschlossen — 16.11.2026, 21:58
 
 - Code-/Workflowcommit 25bee977a941f9d44b5ba340c126476214e67c83 auf codex/curseforge-release. Lokaler isolierter Dry Run reports/curseforge-dry-run-20261116, vollständiges Prüfpaket reports/curseforge-dry-run-20261116.zip. Kein GitHub-Actions-Lauf gestartet, kein Push/echter Tag, Upload, Merge oder Spielinstallationswechsel.

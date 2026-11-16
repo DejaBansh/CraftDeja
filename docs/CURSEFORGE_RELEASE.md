@@ -2,7 +2,13 @@
 
 ## Current scope and honest limits
 
-The new workflow `.github/workflows/curseforge-release.yml` is tag-only plus manual dispatch. No previous local or remote GitHub workflow existed; normal branch pushes remain unchanged. All tags reach strict validation: only `vX.Y.Z` (release) and `vX.Y.Z-beta.N` (beta, N > 0) are accepted. Package manifest, runtime release string and built TOC must match exactly. Alpha, unknown, dirty and mismatched packages cannot publish.
+The workflow `.github/workflows/curseforge-release.yml` handles tags, manual dispatch and the single dedicated test branch `codex/curseforge-dry-run`. No previous local or remote GitHub workflow existed; normal branch pushes remain unchanged. All tags reach strict validation: only `vX.Y.Z` (release) and `vX.Y.Z-beta.N` (beta, N > 0) are accepted. Package manifest, runtime release string and built TOC must match exactly. Alpha, unknown, dirty and mismatched packages cannot publish.
+
+## Current published file and GitHub test
+
+The user has already published beta.23 as file **9654021**, changed its type to **Beta**, and supplied an **Approved** Author Console screenshot. The user also reports completing the description edit and adding CF_API_TOKEN. These observations are recorded in `releases/published-history.json`; token permissions and the remote payload checksum remain unverified. Do not push a beta.23 release tag or upload it again. The next actual release needs a new version, genuine changes and its own reviewed texts.
+
+To exercise Actions without merging main, push the reviewed workflow commit to the **dedicated** `codex/curseforge-dry-run` branch. That branch runs only package/tests with `-DryRun`; the candidate version comes from wowlua.json. The real upload job requires both a push event and `refs/tags/`, so it cannot receive CF_API_TOKEN on this branch. The description job is skipped too. No release tag is created in the real repository. The private build clone may tag itself for exact package-version validation.
 
 The official Upload API can publish the installable file and its Markdown patch notes. It has **no documented main-description update operation**. The Studios API provides GET description, not a write operation. Therefore the third requested automatic operation cannot honestly be implemented with CF_API_TOKEN. The official supported completion is Author Console → project 1796977 → Description → Edit → Markdown. This workflow exposes `manual_author_console_required`, never a fabricated success.
 
@@ -47,14 +53,14 @@ pwsh -NoProfile -File tools/New-CurseForgeRelease.ps1 -Tag v3.9.0-beta.23 -DryRu
 
 Run from a clean committed worktree. Artifacts live in `<OutputPath>/artifacts/`: installable ZIP, description.md, patchnotes.md, release.json, REVIEW.md, upload-metadata.preview.json, release-evidence.json and TEST-REPORT.zip. The contained source clone/tag stays local and does not affect real refs. Failed tests retain automatic ZIP reports under `<OutputPath>/source/reports/tests/`.
 
-## First actual upload — later, after approval
+## Next actual upload — a new version, later, after approval
 
-Push the reviewed feature branch for code review as appropriate; do not push a release tag while approval/history is incomplete. Once all blockers above are resolved, the secret is configured and the selected commit includes the workflow and both approved texts:
+The beta.24 commands below are an example for the next actual update; beta.24 has not been implemented or approved. Do not run them now. Prepare its new version fields, release directory, baseline and tests first. Push the reviewed feature branch for code review as appropriate; do not push a release tag while approval/history is incomplete. Once all blockers above are resolved, the secret is configured and the selected commit includes the workflow and both approved texts:
 
 ```powershell
 git status --short
-git tag -a v3.9.0-beta.23 -m "CraftDeja 3.9.0-beta.23"
-git push origin refs/tags/v3.9.0-beta.23
+git tag -a v3.9.0-beta.24 -m "CraftDeja 3.9.0-beta.24"
+git push origin refs/tags/v3.9.0-beta.24
 ```
 
 The tag push makes the tagged workflow available even before any separate main merge; do not force or move an existing tag. If this version was already manually uploaded, use the next version with newly reviewed texts instead. A stable release uses `v3.9.0` only after changing both actual version fields, creating that version's approved release directory and testing it; this is not a way to relabel the current beta as stable.
