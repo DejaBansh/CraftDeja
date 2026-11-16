@@ -1,5 +1,13 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## beta.24 installiert — 16.11.2026, 23:45
+
+- Nutzer hat das Beenden von WoW ausdrücklich angefordert. Genau den verifizierten Forever-Wow.exe-Prozess44644 regulär mit CloseMainWindow geschlossen, Exit bestätigt; kein erzwungenes Beenden nötig. Vollständige Prozessprüfungen vor Backup, vor Ersetzen und nach Installation: WoW beendet.
+- Installiert: **3.9.0-beta.24**, **release2968f7b8**, Quellcommit **a52b9cf09f047b4bdcedf596a7007cdc3ba97409**. Ausführung des bestehenden Install-VerifiedCraftDeja.ps1 aus der vollständig getesteten kanonischen Privatkopie; eigener lokaler Prüfbranch nur dort. Tatsächlicher Projektbranch bleibt codex/undercity-guide-fixes; main und Release-Tag unverändert.
+- Vollbackup reports/curseforge-beta24-local/source/reports/install/verified-20261116-234504/CraftDeja-before-install.zip: alle78vorhandenen Dateien SHA256-geprüft, Altinstallation vor Ersatz unverändert bestätigt, Archiv danach erneut geprüft. Alle77installierten Laufzeit-/Grafikdateien identisch zum getesteten Build und zum tatsächlich veröffentlichten CurseForge-Payload9656532. Vier zusätzliche Lizenz-/Herkunftsdateien sind Beigaben der81-Dateien-Distribution. Keine Dev-Runtime/automatische Instrumentierung; WTF/SavedVariables unverändert.
+- Teilbarer Bericht **reports/install/beta24-20261116-234504-bericht.zip**, inklusive zusätzlichem PUBLISHED-PAYLOAD-CHECK.json. Unveränderte634/0/0-Quellprüfung und sämtliche aufgezeichneten Eingaben vor/nach Installation geprüft; keine unnötige neue Vollsuite. Erster Installeraufruf aus detachedHEAD brach vor Backup/Ersetzen an fehlendem Branchnamen ab (Bericht234448); erneuter Lauf mit benanntem privatem Prüfbranch vollständig erfolgreich.
+- Nächster Schritt: WoW starten, /cdj version prüfen und Undercity-Kupferrohr-Ablauf nach docs/UNDERCITY_GUIDE_BETA24.md testen; echte Giftfreischaltung vor/nach Quest separat prüfen. Live-Abnahme weiterhin offen. Wochenabgleich ist analysiert, noch nicht implementiert. Frühere Nicht-installiert-Angaben unten sind historisch.
+
 ## beta.24 veröffentlicht — 16.11.2026, 23:41
 
 - Release-Commit/Tag: **a52b9cf09f047b4bdcedf596a7007cdc3ba97409**, **v3.9.0-beta.24**; Feature codex/undercity-guide-fixes. Remote-Branch und dereferenzierter Tag wurden auf diesen Commit geprüft. main bleibt711d463af4c17f1e711248bb409f1dd5fecfe303, kein Merge; alter beta.23-Tag unverändert.
