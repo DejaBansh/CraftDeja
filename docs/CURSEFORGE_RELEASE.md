@@ -4,7 +4,12 @@
 
 The workflow `.github/workflows/curseforge-release.yml` handles tags, manual dispatch and the single dedicated test branch `codex/curseforge-dry-run`. No previous local or remote GitHub workflow existed; normal branch pushes remain unchanged. All tags reach strict validation: only `vX.Y.Z` (release) and `vX.Y.Z-beta.N` (beta, N > 0) are accepted. Package manifest, runtime release string and built TOC must match exactly. Alpha, unknown, dirty and mismatched packages cannot publish.
 
-## Current published file and GitHub test
+## Current release: beta.24, 16 November 2026
+
+Released tag v3.9.0-beta.24 points to a52b9cf09f047b4bdcedf596a7007cdc3ba97409. Actions run43969872088 passed all634 tests and26 pipeline checks, then performed one official upload: CurseForge file9656532, beta, resolved Forever version17053 (name1.60.1/type88568). The public CDN ZIP was downloaded and its SHA256 matches the uploaded artifact: F16968A9AFD2A33A50E6A6F6DEFC6F6C3B8C3158683D4DA80E5A20AC4AA26116. CF_API_TOKEN's upload access is now proven. Separate moderation approval is not asserted from the POST response.
+
+The description job succeeded in preparing the exact tag text; its status remains manual_author_console_required. Copy releases/3.9.0-beta.24/description.md through the official Author Console. Do not rerun the file upload to change a description. No main merge. Detailed evidence and known live/station/data limits: docs/UNDERCITY_GUIDE_BETA24.md and CONTINUE.md.
+## Previous published file and setup test (history)
 
 The user has already published beta.23 as file **9654021**, changed its type to **Beta**, and supplied an **Approved** Author Console screenshot. The user also reports completing the description edit and adding CF_API_TOKEN. These observations are recorded in `releases/published-history.json`; token permissions remain unverified. The public CDN ZIP has now been downloaded and is byte-identical to the local verified beta.23 release (SHA256 F0633ABFBB186A479ECC85FB33FFE0FE1E194B4C4D6B645B07B0D250052A3A31), establishing source e4b8bdcb69dccd71a05b854d446ee7c8b0cf9d9d as the next Beta baseline. The legacy published TOC still contains 3.9.0-beta.23-alpha+e4b8bdc; future workflow packages require exact tag versions. Do not push a beta.23 release tag or upload it again. The next actual release needs a new version, genuine changes and its own reviewed texts.
 
