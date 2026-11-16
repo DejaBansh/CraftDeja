@@ -2,6 +2,8 @@
 
 ## beta.20 — feste Prüfpunkte, 16.11.2026
 
+- [x] Release nach beendetem WoW mit verifiziertem 73-Dateien-Backup installiert; 73 Payload-Dateien SHA256-identisch. Bericht reports/install/verified-20261116-172135-bericht.zip; Live-Retest bleibt offen.
+
 - [x] Wiederholte Route-Pending-Wechsel aus Nutzerlog und unverändertem beta.19-Code reproduziert; zwei gezielte Reproduktionsfälle schlagen dort fehl.
 - [x] Routenentscheidung bis Abschnitts-/Ranggrenze festhalten; laufende Coroutine bei normalen Beobachtungen erhalten, native Vorbereitung sichtbar lassen. Aktuelle Mengen-/Preis-/Kaufprüfungen bleiben aktiv.
 - [x] Bankhinweis für späteren Bedarf abzüglich aktuellem Bedarf und vorhandener Bankmengen; pro Abschnitt aufschiebbar, keine automatischen Gegenstandsbewegungen.

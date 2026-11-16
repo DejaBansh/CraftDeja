@@ -1,5 +1,14 @@
 # CraftDeja — verbindlicher Projektstand
 
+## beta.20 Release installiert — 16.11.2026, 17:21
+
+- Nach Nutzerfreigabe „WoW ist beendet“ und vollständiger Prozessprüfung installiert: 3.9.0-beta.20-alpha+f7aa05e, Profil release, Quellcommit f7aa05ee0e23ff3b060dc0e1b0238a6880c38cce auf codex/route-checkpoints.
+- Backup reports/install/verified-20261116-172135/CraftDeja-before-install.zip: alle 73 tatsächlich vorhandenen alten Dateien SHA256-verifiziert, vor Ersatz unverändert geprüft und anschließend erneut im Archiv verifiziert. Alle 73 installierten Payload-Dateien SHA256-identisch zum geprüften Release-Kandidaten; wowlua-Verwaltungsmarker zusätzlich. Keine automatische Dev-Instrumentierung/Dev-Runtime. WTF/SavedVariables nicht bearbeitet.
+- Automatischer Installationsbericht reports/install/verified-20261116-172135-bericht.zip, Ergebnis installed_verified. WoW vor Backup, direkt vor Ersetzen und nach Installation vollständig beendet. Alle 48 Laufzeit-, 320 Test-/Profil- und drei Build/Testinput-Hashes stimmen weiterhin mit 572/0/0, 232.55s aus reports/tests/20261116-165128-c7c8c3.zip überein. Kein neuer Testlauf bei unverändertem Addoncode.
+- Nächster Live-Test: /cdj version prüfen, bestehende Route im selben Rezeptabschnitt fortsetzen, mehrfach Herstellung vorbereiten; AH-Kauf und Post abholen ohne CraftDeja neu zu öffnen. Vollvergleich erst an Abschnitts-/Ranggrenze oder bewusstem Neuplanen; Bankhinweis mit zurückgehaltenem aktuellem Bedarf prüfen. Live-Ergebnis weiterhin offen.
+- Kein Merge nach main, kein GitHub-Push und keine Veröffentlichung. Frühere Abschnitte dokumentieren den damaligen Installationsblocker; aktueller Installationsstatus steht hier.
+
+
 ## beta.20 — feste Routenabschnitte / Bankhinweis, 16.11.2026
 
 - Nutzerlog beta.19 belegt wiederholte route_pending-Schritte bei gleichem Rezept/Skill, direkt beim nativen Vorbereitungsklick und nach Mailboxkontakt. Ursache: jeder Refresh/Inventar-/Preisaufruf invalidierte und verwarf auch laufende Routensuchen. Original beta.19 aus a0a6437 separat geprüft: beide identischen Reproduktionsfälle schlagen fehl. Vollständige Analyse und Regressionspfade in docs/ROUTE_CHECKPOINTS.md.
