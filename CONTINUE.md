@@ -1,5 +1,14 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## beta.18 Release installiert und paketiert — 16.11.2026, 04:41
+
+- Nach vorherigem Hinweis und tatsächlicher vollständiger Prozessprüfung bei beendetem WoW installiert: 3.9.0-beta.18-alpha+9a65820, Buildprofil release, Quellcommit 9a65820eee5db5cf0ee2e89ba5eea60ee7474c39, Branch codex/plan-cost-overview. Funktionaler Stand beta.18.
+- Backup reports/install/beta18-release-20261116-044059/CraftDeja-before-beta18.zip: alle 74 bisherigen Dateien verifiziert, vor Ersatz nochmals gegen unveränderte Installation geprüft. Alle 73 installierten Payload-Dateien SHA256-identisch zum neuen Release-Build. Gegen gesicherten geprüften Build nur TOC-Buildmetadaten verändert. Keine automatische Entwicklungsinstrumentierung/Dev-Runtime; WTF/SavedVariables unverändert.
+- Automatischer Installationsbericht reports/install/beta18-release-20261116-044059-bericht.zip, Ergebnis installed_verified. 38 Quellhashes passen weiterhin zur finalen 529/0/0-Suite (208.60s); neue DE/EN-Detailanzeige noch live zu bestätigen. Grundsatz Release-only für Spieler/Uploads in AGENTS.md ergänzt.
+- Uploadkandidat dist/packages/CraftDeja-3.9.0-beta.18-release.zip mit 73 im Archiv geprüften Dateien, SHA256 BA35BFEA97F80005FEC685A7F31A196F66E9AA2CD9912114E44187A0392FC6A1. Eigene beta.18-DE/EN-Patchnotes und UPLOAD_HINWEISE_beta18.txt daneben. Beta.17-Uploadarchiv unverändert gegen ursprünglichen Hash geprüft; vorhandene beta.17-Uploadhinweise bleiben für dieses Paket gültig. Kein automatischer CurseForge-Upload und kein Merge nach main.
+- Nächster Nutzercheck: 60–90s Leerlauf mit gleichem Addonset, dann Rezept-/Materialdetails öffnen und Berechnen. Eigenbestand senkt Zukauf, Gesamtmaterialwert bleibt vollständig; bei unbekanntem Bestand klare Schätzung. Neuer Kostenblock gilt für diese angezeigte Craft-Anzahl, nicht für eine vollständige Mehrrezeptroute. Produktanalyse/Abnahmeprioritäten in docs/PRODUCT_PLAN.md.
+
+
 ## beta.18 Kostenübersicht und Produktanalyse — 16.11.2026
 
 - Ausstehende beta.17-Uploadnotizen auf codex/performance-refresh gesichert: 03d1b9bb749515f1cbe93b93c2ecd47edd50afaf, Remote bestätigt. Upload-ZIP und DE/EN-Patchnotes unverändert in dist/packages; kein CurseForge-Upload durch den Agenten.
