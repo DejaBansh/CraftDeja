@@ -45,10 +45,11 @@ function Assert-Map($expected,$actual,[string]$label) {
 function Zip-Map([string]$path) {
     $map=@{};$zip=[IO.Compression.ZipFile]::OpenRead($path)
     try{foreach($entry in $zip.Entries){
-        if($entry.FullName.EndsWith('/')){continue}
-        if(-not $entry.FullName.StartsWith('CraftDeja/')){throw 'Unexpected backup root'}
+        $entryName=$entry.FullName.Replace('\','/')
+        if($entryName.EndsWith('/')){continue}
+        if(-not $entryName.StartsWith('CraftDeja/')){throw 'Unexpected backup root'}
         $stream=$entry.Open();$sha=[Security.Cryptography.SHA256]::Create()
-        try{$map[$entry.FullName.Substring(10)]=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','')}finally{$stream.Dispose();$sha.Dispose()}
+        try{$map[$entryName.Substring(10)]=[BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-','')}finally{$stream.Dispose();$sha.Dispose()}
     }}finally{$zip.Dispose()}
     return $map
 }
