@@ -36,3 +36,6 @@
 
 | Unmögliche Kandidaten vor Wahrscheinlichkeit prüfen | Gleiche Auswahl, weniger unnötige Live-/Lookahead-Auswertungen; ungeprüfte Quellen getrennt erhalten | beta.17, 480 differenzielle Vergleiche und 520/0/0 |
 | Metadateninteresse je Rezepttabelle indizieren | Keine wiederholte Vollsuche für jedes Gegenstandsereignis; bei readRecipes invalidieren | beta.17; Event-/Sitzungswechselregression bestanden |
+
+| Einkaufsbedarf vom Materialverbrauch trennen | Eigener Bestand ist wirtschaftlich nicht wertlos; späterer Erlös bezahlt nicht den Einkauf davor | beta.18-Rezeptdetails, 529/0/0; unbekannter Bestand ausdrücklich markiert |
+| Vollständige Route in begrenzten Stufen entwickeln | Lokaler Skillpunktpreis ist kein Beweis des günstigsten Gesamtziels | docs/PRODUCT_PLAN.md, zunächst bekannte Rezepte, später Erwerbs-/Ressourcenzustand |

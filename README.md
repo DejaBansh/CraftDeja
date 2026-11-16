@@ -12,9 +12,9 @@ Compare recipes by **estimated net cost per skill point**, then follow one clear
 
 | Current source | Automated validation | Status |
 |---|---|---|
-| 3.9.0-beta.11 (development) | Routing fix: 42 focused cases passed; full Windows run pending | Recipe sources prefer current map; beta.10 previously passed 372/372 |
+| 3.9.0-beta.18 (feature branch) | Release build passed; 529 source-emulator tests passed, 0 failed, 0 skipped | New DE/EN material-plan cost breakdown; live UI check pending |
 
-The earlier beta.9 302-case run used Windows, wowlua 0.13.14 and Blizzard UI build 1.60.1.70938. These are automated tests with the game's UI code, not 302 live-server tests. [Full test record](TEST_RESULTS.md#gaming-pc-validation--2026-11-14).
+The current run uses Windows/Camelot, wowlua 0.13.14 and configured Blizzard UI: 529 tests in 313 files, 208.60 seconds. Source emulation is not execution of the bundled release artifact or a complete live-server test. The earlier beta.17 release comparison was reported smooth in game. [Full test record](TEST_RESULTS.md) · [Product priorities](docs/PRODUCT_PLAN.md).
 
 ## English
 
@@ -36,6 +36,7 @@ Green can therefore be the cheaper option when enabled and the recipe data suppo
 - **Recipe comparison:** ranks eligible candidates by estimated net cost per skill point and looks ahead for a cheaper recipe or a learning step.
 - **A clear guide:** a prominent next-action button; details remain in optional views and tooltips.
 - **Material planning:** deducts available holdings and distinguishes missing purchases, storage and confirmed incoming purchases where data is available.
+- **Plan cost details (beta.18):** separates full material value, owned reagents, estimated missing-material purchases and net material value after credited vendor resale. Unknown inventory stays explicit; learning and prerequisite costs may be extra.
 - **Auctionator shopping:** searches missing materials and prepares quantities. TSM can optionally supply suitable price values; it does not replace the Auctionator workflow.
 - **Recipe sources:** considers usable unlearned recipes and shows recorded trainers, vendors and map markers when coordinates are known.
 - **Workstations and tools:** specific instructions such as cooking fire, anvil or forge, using requirements the client reports.
@@ -71,10 +72,10 @@ Alchemy, Blacksmithing, Leatherworking, Tailoring, Engineering, Enchanting, Cook
 - Orange is modelled as certain; yellow/green chances use estimates. Threshold or availability data may be incomplete.
 - Unknown prices do not mean free materials. Prices are cached observations, not a continuous live AH feed.
 - Skill and inventory changes update the guide. During a native crafting batch, lightweight progress updates continue while full recipe/market work waits for completion or interruption.
-- **Vendor resale value is credited only for confirmed minimum physical output, assuming you sell it. AH resale, recipe purchases, trainer fees, travel and tool-acquisition costs are not included.** A tool task in the guide is not the same as pricing that task into the route.
+- **Vendor resale value is credited only for confirmed minimum physical output, assuming you sell it.** Supported unlearned-recipe comparisons additionally consider observed/quoted one-time acquisition costs against known alternatives; unknown fees stay provisional. AH resale, travel and general tool-acquisition costs are not included. A tool task in the guide is not the same as pricing that task into the route.
 - The current comparison is **not a demonstrated globally optimal complete 1–300 route**. Recipe/source coverage depends on confirmed data.
 
-Gross reagent purchase budgets stay unchanged. [Net-cost examples, rules and tests](docs/NET_COSTS.md). [Complete beta.10 Windows test record](docs/evidence/net-costs-windows-2026-11-14.txt). The new beta.10 code is a development update; the existing beta.9 release ZIP is unchanged.
+Gross reagent purchase budgets stay unchanged. [Net-cost examples, rules and tests](docs/NET_COSTS.md) · [Current test record](TEST_RESULTS.md). Feature-branch code and locally prepared packages do not automatically update the public CurseForge download.
 
 See [the calculation and its limits](docs/ALGORITHM.md), [the tests](tests/) and [the roadmap](ROADMAP.md).
 
@@ -108,7 +109,7 @@ Käufe bestätigst du selbst; die Herstellung startest du über den originalen H
 
 Die Rangfolge verwendet Materialkosten abzüglich bestätigtem Mindest-Händlerwert bei Verkauf des Ergebnisses, geteilt durch erwarteten Skillgewinn. Der Einkauf benötigt weiterhin den vollen Betrag. Gelbe und grüne Skillchancen bleiben Schätzungen. Vollständige Vergleiche werden während einer laufenden Craft-Serie aus Performancegründen verschoben; gezielte Fortschrittsupdates bleiben aktiv.
 
-**AH-Verkaufserlöse, Rezeptkauf, Trainergebühren, Reise und Werkzeugbeschaffung sind noch nicht in die wirtschaftliche Rangfolge eingerechnet.** Ohne bestätigte Ausgabedaten oder Händlerwert gibt es keinen Erlösabzug. Eine global günstigste vollständige Route von 1–300 ist nicht bewiesen. [Berechnungslogik](docs/ALGORITHM.md).
+Bei unterstützten Vergleichen unbekannter Rezepte werden beobachtete oder bepreiste einmalige Erwerbskosten gegen bekannte Alternativen geprüft; unbekannte Gebühren bleiben ausdrücklich vorläufig. **AH-Verkaufserlöse, Reise und allgemeine Werkzeugbeschaffung sind nicht eingerechnet.** Ohne bestätigte Ausgabedaten oder Händlerwert gibt es keinen Erlösabzug. Eine global günstigste vollständige Route von 1–300 ist nicht bewiesen. Ab beta.18 trennen die Rezeptdetails Materialwert, verwendeten eigenen Bestand, geschätzten Zukauf und Nettomaterialwert. Lern-/Voraussetzungskosten können zusätzlich anfallen. [Berechnungslogik](docs/ALGORITHM.md) · [Produktplan](docs/PRODUCT_PLAN.md).
 
 Beta.10: 87 gezielte Wirtschaftsfälle bestanden; vollständiger Windows-/Blizzard-UI-Lauf: **372 bestanden, 0 fehlgeschlagen, 0 übersprungen**. [Neue Netto-Berechnung](docs/NET_COSTS.md). Die fertige beta.9-Downloadversion ist unverändert.
 

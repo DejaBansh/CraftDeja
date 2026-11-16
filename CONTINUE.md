@@ -1,5 +1,16 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## beta.18 Kostenübersicht und Produktanalyse — 16.11.2026
+
+- Ausstehende beta.17-Uploadnotizen auf codex/performance-refresh gesichert: 03d1b9bb749515f1cbe93b93c2ecd47edd50afaf, Remote bestätigt. Upload-ZIP und DE/EN-Patchnotes unverändert in dist/packages; kein CurseForge-Upload durch den Agenten.
+- Neue Arbeit isoliert auf codex/plan-cost-overview, Basis 03d1b9b. Ziel: zuverlässiges, günstiges Forever-Leveln; kein unbelegtes Bestes-Addon-/Globaloptimum-Versprechen. Code und primäre Projektseiten geprüft. Priorisierte Analyse samt Abnahmebedingungen: docs/PRODUCT_PLAN.md.
+- Erster implementierter Baustein beta.18: Rezeptdetails trennen Materialwert des angezeigten Plans, verwendeten eigenen Bestand, geschätzten Zukauf und Nettomaterialwert mit bestätigtem Händlererlös. Bei unbekanntem Bestand explizite Schätzung; Lern-/Rezept-/Voraussetzungskosten können extra sein. Post/Pendenzen und Packungsreste erklärt. Kein neues Kaufbudget, keine Änderung von Rankings/Kaufmengen/Spielaktionen.
+- Kosten werden aus vorhandener Quote und Materialplanung berechnet: keine zusätzlichen Preis-/Inventarabfragen, keine neuen Timer/Scans. Details DE/EN, Gifte-Sonderpläne ohne Kostenblock unverändert. Produktion ab 300 und vollständige Mehrrezeptroute damit noch nicht erweitert.
+- Neun neue fokussierte Tests: 9/0/0, reports/tests/20261116-043301-ae0b92.zip. Finaler Release-Build erfolgreich; komplette Windows/Camelot-Quellsuite 529/0/0, 313 Dateien, 208.60s, wowlua 0.13.14: reports/tests/20261116-043439-116912.zip. Quellhashes vollständig aufgezeichnet. Native Quellemulation bleibt von Ausführung des kompilierten Release-Bundles getrennt; keine neue Live-Bestätigung behaupten. W1034 unverändert bekannt.
+- README-Version/Teststand und widersprüchliche alte Erwerbskostenangaben korrigiert. Produktziel-Roadmap: P0 Release-Betrieb, P1 Kostenklarheit (erster Baustein umgesetzt), danach vollständiger Zielskill-Vergleich bekannter Rezepte, mehrstufige Erwerbs-/Voraussetzungskosten, Zwischenprodukte, Budget/Preistiefe, Datenvertrauen und wiederaufnehmbare Mehrschritt-Aufträge.
+- Installationsstatus separat anhand aktuellem Bericht prüfen; bis zur bestätigten Installation bleibt beta.17 Release im Spiel. Nächster Live-Check beta.18: gleiche Addons, 60–90s Leerlauf, Rezeptdetail mit Teil-/Vollbestand; Zukauf ändert sich mit Bestand, Materialwert nicht. Keine weitere Profession/Quelle als garantiert geprüft ausgeben.
+
+
 ## Uploadpaket beta.17 vorbereitet, Live-Release flüssig — 15.11.2026
 
 - Nutzer bestätigt nach Installation des Release-Vergleichs keine Lags und keine Freezes. Das grenzt die automatische Dev-Instrumentierung als beteiligten Faktor stark ein; kein Beweis eines bestimmten Speicherlecks/GC-Mechanismus oder universeller FPS-Gewinne.

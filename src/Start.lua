@@ -3,7 +3,7 @@
 local identifier,app=...
 _G.CraftDeja=app
 app.identifier=identifier
-app.release="3.9.0-beta.17"
+app.release="3.9.0-beta.18"
 app.sessions={}
 app.catalog={}
 app.names={}

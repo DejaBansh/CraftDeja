@@ -316,6 +316,14 @@ function app.renderDetails(materials)
     if plan then
         lines[#lines+1]=app.caption('plan_summary',plan.from,plan.target,plan.estimated and app.caption('approx')or '',plan.crafts)
         if plan.capped then lines[#lines+1]=app.caption('plan_capped')end
+        if plan.costs then
+            local c=plan.costs
+            lines[#lines+1]=app.caption('plan_value',app.money(c.material))
+            lines[#lines+1]=c.owned~=nil and app.caption('plan_owned_value',app.money(c.owned))or app.caption('plan_owned_unknown')
+            lines[#lines+1]=c.purchase~=nil and app.caption('plan_upfront',app.money(c.purchase))or app.caption('plan_upfront_upper',app.money(c.purchaseUpper))
+            lines[#lines+1]=app.caption('plan_net_value',app.money(c.vendor),app.money(c.net))
+            lines[#lines+1]=app.caption('plan_value_scope')
+        end
         for _,row in ipairs(plan.rows)do
             lines[#lines+1]=app.caption('ingredient',row.name,row.total,row.owned and tostring(row.owned)or '?',row.buy)
         end

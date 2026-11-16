@@ -1,0 +1,94 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+local function setup()
+ local a=_G['CraftDeja'];local c={priceCalls=0,inventoryCalls=0,stock={[991001]=2,[991002]=1},sale=40}
+ local r={id=991003,profession=185,confirmed=true,learned=true,complete=true,skill=1,
+  yellow=110,green=120,grey=130,colour='orange',points=1,
+  outputItemID=991004,outputMin=2,outputMax=6,outputFromClient=true,
+  groups={{amount=2,choices={991001}},{amount=1,choices={991002}}}}
+ mock.setField(a,'active',{profile={id=185,skill=100,cap=150},recipes={[r.id]=r}})
+ mock.setField(a,'decision',nil)
+ mock.stub(a,'canRecommend',function()return true,'known'end)
+ mock.stub(a,'unitPrice',function(id)c.priceCalls=c.priceCalls+1;return id==991001 and 100 or 50,'fixture'end)
+ mock.stub(a,'vendorSellPrice',function()return c.sale end)
+ mock.stub(a,'inventoryFor',function(id)c.inventoryCalls=c.inventoryCalls+1;return {total=c.stock[id]}end)
+ mock.stub(a,'owned',function(id)return c.stock[id]end)
+ mock.stub(a,'itemName',function(id)return tostring(id)end)
+ c.a=a;c.recipe=r;c.plan=function()return a.materialPlan(r,103)end
+ return c
+end
+
+@afterEach
+local function clean()assert(#mock.errors()==0,'Unexpected emulator error')end
+
+@test('Plan costs: inventory lowers purchases but keeps full material value')
+local function owned()
+ local c=setup();local p=c.plan();local v=p.costs
+ assert(p.crafts==3 and p.purchase==500 and p.stockKnown)
+ assert(v.material==750 and v.owned==250 and v.purchase==500)
+ assert(v.vendor==240 and v.net==510,'Credit must use confirmed minimum output')
+ assert(c.priceCalls==2 and c.inventoryCalls==2,'Cost display introduced extra scans')
+end
+
+@test('Plan costs: empty stock needs full upfront value before resale')
+local function empty()
+ local c=setup();c.stock[991001]=0;c.stock[991002]=0;local p=c.plan()
+ assert(p.costs.material==750 and p.costs.owned==0 and p.costs.purchase==750)
+ assert(p.purchase==750 and p.costs.net==510)
+end
+
+@test('Plan costs: sufficient stock is not economically free')
+local function full()
+ local c=setup();c.stock[991001]=100;c.stock[991002]=100;local p=c.plan()
+ assert(p.costs.owned==750 and p.costs.material==750 and p.purchase==0)
+ assert(p.costs.purchase==0 and p.costs.net==510)
+end
+
+@test('Plan costs: unknown stock gives upper estimate, not exact purchase value')
+local function unknown()
+ local c=setup();c.stock[991002]=nil;local p=c.plan()
+ assert(not p.stockKnown and p.costs.owned==nil and p.costs.purchase==nil)
+ assert(p.costs.purchaseUpper==550 and p.costs.material==750)
+end
+
+@test('Plan costs: unknown vendor value grants no invented credit')
+local function noCredit()
+ local c=setup();c.sale=nil;local p=c.plan()
+ assert(p.costs.vendor==0 and p.costs.net==750 and p.purchase==500)
+end
+
+@test('Plan costs: negative net material value does not reduce cash purchase')
+local function negative()
+ local c=setup();c.sale=200;local p=c.plan()
+ assert(p.costs.vendor==1200 and p.costs.net==-450)
+ assert(p.costs.purchase==500 and p.purchase==500)
+end
+
+@test('Plan costs: enchants receive no item credit')
+local function enchant()
+ local c=setup();c.recipe.isEnchantingRecipe=true;local p=c.plan()
+ assert(p.costs.vendor==0 and p.costs.net==750 and p.purchase==500)
+end
+
+@test('Plan costs: displayed count and cap determine all totals')
+local function cap()
+ local c=setup();c.a.active.profile.cap=102;local p=c.plan()
+ assert(p.crafts==2 and p.target==102 and p.capped)
+ assert(p.costs.material==500 and p.costs.vendor==160 and p.costs.net==340)
+ assert(p.costs.purchase==250 and p.costs.owned==250)
+end
+
+@test('Plan costs: details render both English and German cost explanations')
+local function details()
+ local c=setup()
+ for _,lang in ipairs({'en','de'})do
+  mock.setField(c.a.options,'language',lang)
+  c.a.showDetails(c.recipe,true)
+  local text=c.a.detailsWindow.body:GetText()
+  local phrase=lang=='de'and 'Materialwert dieses Plans'or 'Material value of this plan'
+  assert(text:find(phrase,1,true),'Cost explanation missing in '..lang)
+  local scope=lang=='de'and 'kein Kaufangebot'or 'not a purchase quote'
+  assert(text:find(scope,1,true),'Scope missing in '..lang)
+ end
+end

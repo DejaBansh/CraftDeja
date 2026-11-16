@@ -159,6 +159,16 @@ function app.expectedCraftAttempts(recipe,skill,target)
     return math.ceil(expected[skill]-0.00000001),estimated
 end
 
+-- Values refer to this material plan only, not a complete multi-recipe route.
+-- Owned reagents still have value. A resale credit never pays the upfront bill.
+function app.planCostBreakdown(plan,quote)
+    local material=quote.cost*plan.crafts
+    local vendor=(quote.vendorRevenue or 0)*plan.crafts
+    return {material=material,owned=plan.stockKnown and material-plan.purchase or nil,
+        purchase=plan.stockKnown and plan.purchase or nil,purchaseUpper=plan.purchase,
+        vendor=vendor,net=material-vendor}
+end
+
 function app.materialPlan(recipe,requested)
     local session=app.active
     if not session or session.profile.id~=recipe.profession then return nil,"other_prof"end
@@ -199,7 +209,10 @@ function app.materialPlan(recipe,requested)
         rows[#rows+1]=item
     end
     table.sort(rows,function(a,b)return a.id<b.id end)
-    return{recipe=recipe,from=skill,target=target,crafts=crafts,estimated=estimated,rows=rows,purchase=sum,stockKnown=complete,capped=tonumber(requested)and target<tonumber(requested)}
+    local plan={recipe=recipe,from=skill,target=target,crafts=crafts,estimated=estimated,rows=rows,purchase=sum,stockKnown=complete,capped=tonumber(requested)and target<tonumber(requested)}
+    plan.costs=app.planCostBreakdown(plan,quote)
+    plan.costs=app.planCostBreakdown(plan,quote)
+    return plan
 end
 
 function app.rangeText(recipe)
