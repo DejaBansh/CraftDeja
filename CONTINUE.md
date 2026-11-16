@@ -1,5 +1,16 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## beta.21 — bestätigte Bankbewegungen und Händleroption, 16.11.2026
+
+- Aktueller Feature-Branch codex/bank-flow, Basis d57fe6875ce81cf35a88b80ec5c755219d04d168; vorher sauber. Originalauftrag docs/tasks/BANK_FLOW_REQUEST.md, Analyse und Live-Test docs/BANK_FLOW.md. Keine Veröffentlichung, kein Push, kein Merge nach main.
+- beta.20 hatte nur Bankempfehlung und Detailsknopf, keine ausführende Bewegung. Unveränderte Basis reproduziert den Stillstand: reports/bank-flow-baseline/beta20/reports/tests/20261116-183822-0efa7f.zip, 0/1/0 (erwarteter Fehler: Bank action stayed on the details-only step).
+- beta.21: expliziter Einlagerungs-/Entnahmeklick, vorhandene Stapel vor freien kompatiblen Plätzen, exakte Teilmengen, Bestätigung beider Bestände, konkrete Restmengen/Status für Platzmangel, Sperre, Ablehnung, geschlossene Bank und ausstehenden Nachweis. Keine blind wiederholten Mengen; verspätete Bestätigung während Craftserie löst keinen schweren Inventarcapture aus. Bankzugriff unabhängig von sichtbarem Blizzard-BankFrame, persönliche Bankgrenzen aus Forever-API geprüft; TSM live weiterhin offen.
+- Gespeicherter DE/EN-Schalter unter Allgemein: Beim Händler automatisch öffnen. Standard an; aus unterdrückt Wiederöffnung eines geschlossenen Guides auch bei Updates/Folgepoll. Manuelle Anzeige, Berufsaufruf, Händlererkennung und bestätigte Einkäufe bleiben möglich. Berufsaufruf setzt denselben Auftrag fort.
+- Finale breite Prüfung: reports/tests/20261116-183835-968304.zip, Build bestanden, 589/0/0, 320 Dateien, 290.54s, wowlua 0.13.14, Windows/Camelot/Blizzard-UI. Alle 50 Laufzeitquellen, 321 Test-/Profilquellen und drei Inputs SHA256-identisch. Native Source-Emulation, keine Live-Abnahme des kompilierten Bundles.
+- 17 neue Regressionen; drei vollständige echte Modulabläufe über Händlerbeschaffung, Bankeinlagerung, native Herstellung, spätere Entnahme und Zielabschluss: Option an, aus sowie Teilentnahme bei vollen Taschen. UI-Belege separat reports/tests/20261116-183335-c8011c.zip: 16/0/0 mit gerendertem Bankknopf/DE-EN-Einstellungen (vor ergänzter direkter Reproduktionsregression).
+- Aktuell NICHT installiert: vollständige Prozessprüfung fand Wow.exe und WowVoiceProxy.exe. Installiert bleibt beta.20-alpha+f7aa05e. Erst nach vollständig beendetem WoW mit tools/Install-VerifiedCraftDeja.ps1, erfolgreichem finalem Test-ZIP und sauberem Quellcommit installieren; Script prüft Backup/Build/Payload und erzeugt Bericht. Keine Änderung an WTF/SavedVariables.
+- Nächster Schritt: Release beta.21 mit persönlicher Bank/TSM live prüfen: Händleroption aus/an plus Reload, Berufsaufruf vor/nach Bank, 8 Stoff → 7 behalten/1 einlagern, Stapel/Teilkapazität/Schließen/Reopen, Herstellung und spätere Entnahme. Schutzmeldung oder weiterer benötigter Klick ehrlich erfassen. Kein Nachweis einer neuen FPS-Verbesserung.
+
 ## beta.20 Release installiert — 16.11.2026, 17:21
 
 - Nach Nutzerfreigabe „WoW ist beendet“ und vollständiger Prozessprüfung installiert: 3.9.0-beta.20-alpha+f7aa05e, Profil release, Quellcommit f7aa05ee0e23ff3b060dc0e1b0238a6880c38cce auf codex/route-checkpoints.

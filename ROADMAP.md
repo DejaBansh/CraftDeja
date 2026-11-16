@@ -1,5 +1,13 @@
 # Roadmap — Stand 15.11.2026
 
+## beta.21 — Bankablauf, 16.11.2026
+
+- [x] Bankstillstand auf unverändertem beta.20 reproduziert: Detailsaktion führte keine Bewegung aus.
+- [x] Gespeicherte Händleroption DE/EN; geschlossenen Guide bei Option aus geschlossen halten, manuellen/Berufsaufruf und aktiven Auftrag erhalten.
+- [x] Explizit gestartete Einlagerung/Entnahme, Teilstapel und kompatible Ziele, beidseitige Bestandsbestätigung, genaue Restmengen und sichere Fortsetzung bei Unterbrechung.
+- [x] 17 Regressionen einschließlich drei vollständiger Modulabläufe; finale breite Suite 589/0/0, 290.54s, reports/tests/20261116-183835-968304.zip. UI gerendert geprüft. Release-Source-Validierung bestanden.
+- [ ] Installation erst bei beendetem WoW. Live mit persönlicher Bank/TSM: konkrete Mengen, Teilkapazität, Schutz-/Klickanforderungen, Berufsaufruf und spätere Entnahme nach docs/BANK_FLOW.md bestätigen.
+
 ## beta.20 — feste Prüfpunkte, 16.11.2026
 
 - [x] Release nach beendetem WoW mit verifiziertem 73-Dateien-Backup installiert; 73 Payload-Dateien SHA256-identisch. Bericht reports/install/verified-20261116-172135-bericht.zip; Live-Retest bleibt offen.

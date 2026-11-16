@@ -1,5 +1,10 @@
 # Entscheidungen — Stand 15.11.2026
 
+## beta.21 — 16.11.2026
+
+- Die beta.20-Bankempfehlung wird auf ausdrücklichen Nutzerwunsch durch einen explizit gestarteten Containerauftrag ergänzt. Jede Menge anhand beider tatsächlichen Bestände bestätigen; Timeout ist kein Ablehnungsnachweis und erlaubt keine blinde Wiederholung. Nur persönliche Bank, keine Account-/Gildenbank. Aktuelle Craftzutaten behalten. Bankzugriff nicht an sichtbares Blizzard-BankFrame koppeln; TSM-Kompatibilität benötigt noch Live-Test.
+- Händleranzeige als gespeicherte Option (Standard an), Anzeigeunterdrückung getrennt von Modell-/Inventarfortschritt. Berufsaufruf bleibt explizites Öffnen desselben Auftrags. Belege und Grenzen: docs/BANK_FLOW.md.
+
 ## beta.20 — 16.11.2026
 
 - Auf Nutzerwunsch Route innerhalb eines Rezeptabschnitts festhalten; vollständiger Vergleich am Rezept-/Rangwechsel oder auf ausdrücklichen Auftrag, nicht nach jedem Preis-/Inventar-/Fortschrittsereignis. Laufende Suche nicht für normale Beobachtungen verwerfen. Neue Daten weiterhin vor Käufen/Herstellung prüfen; alte Vergleichskosten nicht als aktuelle Ersparnis darstellen.

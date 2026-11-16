@@ -340,7 +340,7 @@ function app.renderDetails(materials)
 end
 function app.showOptions()
     if not app.optionsWindow then
-        local f=window('CraftDejaOptions',550,390);app.optionsWindow=f
+        local f=window('CraftDejaOptions',550,431);app.optionsWindow=f
         f.language=button(f,18,-60,514,'',function()
             local nextLanguage={auto='de',de='en',en='auto'};app.options.language=nextLanguage[app.options.language]or 'auto';app.refreshUI()
         end)
@@ -351,7 +351,8 @@ function app.showOptions()
         f.unverified=button(f,18,-183,514,'',function()app.options.unverifiedSources=not app.options.unverifiedSources;app.refresh()end)
         f.scan=button(f,18,-224,250,'',function()app.refresh(true)end)
         f.center=button(f,281,-224,250,'',function()app.main:ClearAllPoints();app.main:SetPoint('CENTER');app.options.position=nil end)
-        f.help=text(f,11,18,-271,512)
+        f.merchant=button(f,18,-265,514,'',function()app.options.autoOpenMerchant=not(app.options.autoOpenMerchant~=false);app.renderOptions()end)
+        f.help=text(f,11,18,-312,512)
     end
     app.renderOptions();app.optionsWindow:Show()
 end
@@ -363,6 +364,7 @@ function app.renderOptions()
     f.green:SetText(app.caption('green_toggle')..': '..app.caption(app.options.green and 'enabled'or 'disabled'))
     f.unverified:SetText(app.caption('unknown_toggle')..': '..app.caption(app.options.unverifiedSources and 'enabled'or 'disabled'))
     f.scan:SetText(app.caption('reload'));f.center:SetText(app.caption('reset_position'));f.help:SetText(app.caption('help'))
+    f.merchant:SetText(app.caption('merchant_auto')..': '..app.caption(app.options.autoOpenMerchant~=false and 'enabled'or 'disabled'))
 end
 function app.refreshUI()
     app.renderMain();if app.catalogWindow and app.catalogWindow:IsShown()then app.renderCatalogue()end;app.renderOptions();if app.refreshNextStep then app.refreshNextStep()end

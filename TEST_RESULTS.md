@@ -1,5 +1,15 @@
 # Validation — 3.9.0-beta.4
 
+## beta.21 — finale Bank-/Händlerprüfung, 16.11.2026
+
+**589 bestanden, 0 fehlgeschlagen, 0 übersprungen; 320 ausgeführte Dateien; 290.54s.** Build release bestanden; wowlua 0.13.14, Windows/Camelot, Blizzard-UI an. reports/tests/20261116-183835-968304.zip. Alle 50 Laufzeitquellen, 321 erfassten Test-/Profilquellen und drei Inputs SHA256 gegen aktuellen Stand geprüft (374 Hashes).
+
+17 neue Regressionen, drei vollständige reale CraftDeja-Modulabläufe: Händleroption an, aus sowie aus mit vollen Taschen und Teilentnahme/Fortsetzung. Leinenstoff 8→7+1, Auftragserhalt vor/nach Bank und bei verspäteter Bestätigung, mehrere Materialien, Stapel, Kapazität, Cursor-/Zielrennen, verzögerte/doppelte Ereignisse und Craft-Capture-Sperre geprüft. Gerenderte UI-Belege: reports/tests/20261116-183335-c8011c.zip, 16/0/0, vor zusätzlicher direkter Benutzeraktionsregression.
+
+Dieselbe direkte Aktionsregression auf archiviertem unverändertem beta.20 d57fe6875ce81cf35a88b80ec5c755219d04d168 scheitert erwartungsgemäß: 0/1/0, 27.08s, reports/bank-flow-baseline/beta20/reports/tests/20261116-183822-0efa7f.zip; tatsächliche Assertion Bank action stayed on the details-only step. Der frühere Baselineversuch 183646-3f8bc8 scheiterte an unsichtbarem Test-UI-Knopf und ist ausdrücklich kein Ursachenbeleg. Andere Zwischenberichte mit Fixture-/Ladefehlern sind keine Freigabe.
+
+Source-Emulation mit kontrollierten Clientantworten, keine Ausführung des kompilierten Bundles und keine Live-Abnahme der Forever-/TSM-Bank. Unterschiedliche Umfänge/Laufzeiten sind kein Performancevergleich. Analyse, Client-API-Prüfung, konkrete Live-Schritte und Grenzen: docs/BANK_FLOW.md.
+
 ## beta.20 — finale Checkpoint-/Bankprüfung, 16.11.2026
 
 **572 bestanden, 0 fehlgeschlagen, 0 übersprungen; 319 Dateien; 232.55s.** Release-Build bestanden, Windows/Camelot/Blizzard-UI, wowlua 0.13.14. ZIP reports/tests/20261116-165128-c7c8c3.zip. Alle 48 Laufzeit-, 320 erfassten Test-/Profilquellen und drei Build/Testinput-Hashes passen exakt zum finalen Code. Neun neue Checkpoint-/Bank-/Bootregressionen, bisherige Suites mitgeprüft.

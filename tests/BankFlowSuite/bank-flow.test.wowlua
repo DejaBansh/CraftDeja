@@ -1,0 +1,269 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+-- Only client/API boundaries are simulated. Route, stock, quote, merchant,
+-- native preparation, bank queue and guide functions are production modules.
+local function setup()
+ local a=_G['CraftDeja'];local c:any={a=a,slots={[0]={},[6]={}},bagSlots=20,bankSlots=8,open=false,cursor=nil,skill=23,money=10000,moves=0,delayed=false,commits={}}
+ for _,key in ipairs({'routeSearch','routeDirty','routeSuggestion','nativeCraftHandoff','craftBatch','routeApplyBlocked'})do mock.setField(a,key,nil)end
+ mock.setField(a,'craftQuietUntil',0);mock.setField(a.shopping,'open',false);mock.setField(a.shopping,'goal','next')
+ mock.setField(a.character,'inventory',{items={}});mock.setField(a.character,'bankTransfer',{})
+ mock.setField(a.character,'vendor',{});mock.setField(a.saved,'sharedInventory',{[a.character.identity.realm]={items={}}})
+ mock.setField(a.saved,'routeOrders',{});mock.setField(a.saved,'routeActive',{})
+ mock.setField(a.options,'autoOpenMerchant',true);mock.setField(a.options,'green',true);mock.setField(a.options,'prices','auctionator');mock.setField(a.options,'guideSeenV1',true)
+ mock.setField(a.inventoryState,'bankOpen',false)
+ local function count(bag,id)local n=0;for _,v in pairs(c.slots[bag]or {})do if v.id==id then n=n+v.n end end;return n end
+ c.count=function(id,bank)return count(0,id)+(bank and count(6,id)or 0)end
+ c.add=function(bag,id,n)
+  for _,v in pairs(c.slots[bag])do if v.id==id and v.n+n<=20 then v.n=v.n+n;return end end
+  for i=1,(bag==0 and c.bagSlots or c.bankSlots)do if not c.slots[bag][i]then c.slots[bag][i]={id=id,n=n};return end end
+  error('fixture full')
+ end
+ c.set=function(bag,slot,id,n)c.slots[bag][slot]=id and {id=id,n=n}or nil end
+ c.set(0,1,2589,8);c.set(0,2,4357,9);c.set(0,3,2840,1);c.set(0,4,4359,1)
+ mock.stub(C_Container,'GetContainerNumSlots',function(id)return id==0 and c.bagSlots or id==6 and c.bankSlots or 0 end)
+ mock.stub(C_Container,'GetContainerItemInfo',function(bag,slot)local v=(c.slots[bag]or {})[slot];if v then return {itemID=v.id,stackCount=v.n,isLocked=v.locked,hyperlink='item:'..v.id}end end)
+ mock.stub(C_Container,'GetContainerItemID',function(bag,slot)local v=(c.slots[bag]or {})[slot];return v and v.id end)
+ mock.stub(C_Container,'GetContainerNumFreeSlots',function(bag)local used=0;for _ in pairs(c.slots[bag]or {})do used=used+1 end;return (bag==0 and c.bagSlots or c.bankSlots)-used,c.family or 0 end)
+ mock.stub(C_Bank,'CanUseBank',function()return c.open end)
+ mock.stub(C_Bank,'FetchPurchasedBankTabData',function()return {{ID=6}}end)
+ mock.stub(C_Bank,'CanViewBank',function()return false end)
+ mock.stub(C_Item,'GetItemCount',function(id,bank)return c.count(id,bank)end)
+ mock.stub(C_Item,'GetItemFamily',function()return 0 end)
+ mock.stub(C_Item,'GetItemInfo',function(id)return 'Item '..id,'item:'..id,1,1,1,'Trade Goods','Reagent',20,'',134400,id==4360 and 500 or 0,7,0,0 end)
+ mock.stub(C_Item,'GetItemNameByID',function(id)return id==2589 and 'Leinenstoff'or 'Item '..id end)
+ mock.stub(_G,'GetMoney',function()return c.money end)
+ mock.stub(_G,'GetCursorInfo',function()if c.cursor then return 'item',c.cursor.id,'item:'..c.cursor.id end end)
+ mock.stub(C_Container,'SplitContainerItem',function(bag,slot,n)
+  if c.reject then error('client rejected')end
+  local v=c.slots[bag][slot];assert(v and v.n>n and not c.cursor);v.n=v.n-n;c.cursor={id=v.id,n=n}
+ end)
+ mock.stub(C_Container,'PickupContainerItem',function(bag,slot)
+  if c.reject then error('client rejected')end
+  local v=c.slots[bag][slot]
+  if not c.cursor then assert(v);c.cursor={id=v.id,n=v.n};c.slots[bag][slot]=nil
+  else
+   local held=c.cursor;c.cursor=nil
+   local function commit()
+    local dest=c.slots[bag][slot]
+    if dest then assert(dest.id==held.id and dest.n+held.n<=20);dest.n=dest.n+held.n else c.slots[bag][slot]={id=held.id,n=held.n}end
+   end
+   c.moves=c.moves+1
+   if c.delayed then c.commits[#c.commits+1]=commit else commit()end
+  end
+ end)
+ local ingredients={[3919]={[2589]=1,[4357]=1},[3923]={[2589]=1,[4357]=2,[2840]=1,[4359]=1}}
+ mock.stub(C_TradeSkillUI,'GetBaseProfessionInfo',function()return {professionID=202,professionName='Engineering',skillLevel=c.skill,maxSkillLevel=75}end)
+ mock.stub(C_TradeSkillUI,'GetAllRecipeIDs',function()return {3919,3923}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeInfo',function(id)
+  if ingredients[id]then return {recipeID=id,name='Recipe '..id,learned=id==3919 or c.skill>=30,relativeDifficulty=id==3919 and c.skill>=30 and 1 or 0,numSkillUps=1,canSkillUp=true}end
+ end)
+ mock.stub(C_TradeSkillUI,'GetRecipeCooldown',function()return nil end)
+ mock.stub(C_TradeSkillUI,'GetRecipeRequirements',function()return {}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeOutputItemData',function(id)return {itemID=id==3919 and 4358 or 4360}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeSchematic',function(id)
+  if not ingredients[id]then return end
+  local slots={};for item,n in pairs(ingredients[id])do slots[#slots+1]={quantityRequired=n,reagents={{itemID=item}}}end
+  return {outputItemID=id==3919 and 4358 or 4360,quantityMin=2,quantityMax=2,reagentSlotSchematics=slots}
+ end)
+ mock.setField(_G,'Auctionator',{API={v1={GetAuctionPriceByItemID=function()return 1 end}}})
+ local native=CreateFrame('Frame',nil,UIParent);native:Show();native.CraftingPage=CreateFrame('Frame',nil,native)
+ native.GetCurrentRecraftingRecipeID=function()return nil end
+ local page=native.CraftingPage;page.SchematicForm={GetRecipeInfo=function()return C_TradeSkillUI.GetRecipeInfo(c.selected or 3919)end}
+ page.SelectRecipe=function(_,r)c.selected=r.recipeID end
+ local input={n=1};function input:SetValue(n)self.n=n end;function input:GetValue()return self.n end
+ page.CreateMultipleInputBox=input;page.CreateButton=CreateFrame('Button',nil,native)
+ page.CreateButton:SetScript('OnClick',function()
+  for i=1,input.n do
+   local id=c.selected;mock.fireEvent('UNIT_SPELLCAST_START','player','bankflow'..i,id)
+   for item,n in pairs(ingredients[id])do
+    local left=n
+    for slot,v in pairs(c.slots[0])do if v.id==item then local take=math.min(left,v.n);v.n=v.n-take;left=left-take;if v.n==0 then c.slots[0][slot]=nil end end end
+    assert(left==0,'fixture reagents missing')
+   end
+   c.add(0,id==3919 and 4358 or 4360,2);c.skill=c.skill+1
+   mock.fireEvent('UNIT_SPELLCAST_SUCCEEDED','player','bankflow'..i,id);mock.fireEvent('BAG_UPDATE_DELAYED')
+  end
+ end)
+ mock.setField(_G,'ProfessionsFrame',native)
+ mock.stub(C_TradeSkillUI,'OpenTradeSkill',function()native:Show();mock.fireEvent('TRADE_SKILL_SHOW');return true end)
+ local session=a.readRecipes(a.readProfession());mock.setField(a,'active',session);mock.setField(a,'sessions',{[202]=session});mock.setField(a,'professionOpen',true)
+ local order={id='saved-bank-flow',owner=a.characterKey,profession=202,target=31,start=23,active=true,forceAH={},terms={},learned={},lastSupply={}}
+ a.saved.routeOrders[order.id]=order;a.saved.routeActive[a.character.identity.realm..':'..a.character.identity.faction]=order.id;c.order=order
+ local stages={{recipe=3919,from=23,to=30,crafts=7},{recipe=3923,from=30,to=31,crafts=1}}
+ local recipes={};for id,values in pairs(ingredients)do recipes[id]={id=id,inputs=values}end
+ local result={model={cap=75,start=23,target=31,recipes=recipes,rawRecipes=session.recipes,providers={},prices={}},best={segments=stages,transfers={},learning={},ranks={},demand={},reasons={},bought={},cashMaterials=20,cashLearning=0,cashTransfer=0,owned=0,vendor=0,knownNet=20},compared=1}
+ mock.setField(a,'routeResult',result);mock.setField(a,'routeDecision',{routeOrder=order.id,profile=session.profile,current={recipe=session.recipes[3919],quote=a.quote(session.recipes[3919],{}),chance=1,unitSkill=2},stop=30,missing=0,unchecked=0})
+ mock.setField(a,'decision',a.routeDecision);order.lastRoute=stages
+ c.flush=function()
+  local commits=c.commits;c.commits={};for _,fn in ipairs(commits)do fn()end
+  mock.fireEvent('BAG_UPDATE_DELAYED');mock.fireEvent('PLAYERBANKSLOTS_CHANGED',1);mock.waitSeconds(.1)
+ end
+ c.bank=function(open)c.open=open;mock.fireEvent(open and 'BANKFRAME_OPENED'or 'BANKFRAME_CLOSED')end
+ c.drain=function()
+  for _=1,20 do c.flush();if a.character.bankTransfer.status=='done'or a.character.bankTransfer.status=='bank_full'then break end end
+ end
+ c.profession=function()mock.fireEvent('TRADE_SKILL_SHOW');mock.waitSeconds(.1);assert(a.currentRouteOrder()==order)end
+ return c
+end
+@afterEach
+local function clean()
+ local a=_G['CraftDeja'];if a.bankTransferFrame then a.bankTransferFrame:Hide()end;a.routeRuntimeFrame:Hide();a.clearNativeCraft();a.craftBatch=nil
+ assert(#mock.errors()==0,table.concat(mock.errors(),'\n'))
+end
+
+@test('Bank screenshot: exactly 1 of 8 linen is deposited while 7 remain; duplicate replies do not move twice')
+local function linen()
+ local c=setup();c.bank(true);assert(c.a.startBankTransfer('deposit'));c.drain()
+ assert(c.count(2589,false)==7 and c.count(2589,true)==8 and c.a.character.bankTransfer.status=='done')
+ local moves=c.moves;c.flush();c.flush();assert(c.moves==moves)
+ c.a.refreshNextStep(true);assert(c.a.nextStepWindow.task.kind=='craft')
+end
+
+@test('Bank merges matching stacks before empty slots and handles all planned materials')
+local function merge()
+ local c=setup();c.a.routeResult.best.segments[2].crafts=20;c.set(6,1,2589,19);c.set(0,1,2589,20);c.set(0,5,2589,8)
+ c.bank(true);assert(c.a.startBankTransfer('deposit'));c.drain()
+ assert(c.slots[6][1].n==20 and c.count(2589,false)==27,'existing bank stock must reduce later demand; only still-required stock moves')
+end
+
+@test('Bank partial capacity: transfer what fits, show exact remainder, resume after free space')
+local function partial()
+ local c=setup();c.bankSlots=1;c.set(6,1,4357,19)
+ -- Existing powder is already sufficient; force a genuinely different planned material into the only compatible slot.
+ c.set(6,1,2589,20);c.bank(true);c.a.startBankTransfer('deposit');c.flush()
+ assert(c.a.character.bankTransfer.status=='bank_full'and c.moves==0)
+ c.set(6,1,nil);c.flush();c.drain();assert(c.moves>=1 and c.a.character.bankTransfer.status=='bank_full')
+end
+
+@test('Bank closed during delayed transfer: late reply confirms once on reopen, never duplicates')
+local function delayed()
+ local c=setup();c.delayed=true;c.bank(true);c.a.startBankTransfer('deposit');local moves=c.moves
+ assert(c.a.character.bankTransfer.pending);c.profession();assert(c.a.character.bankTransfer.pending);c.bank(false);c.flush();assert(c.moves==moves)
+ c.bank(true);c.flush();assert(not c.a.character.bankTransfer.pending and c.moves==moves)
+ c.delayed=false;c.a.startBankTransfer('deposit');c.drain();assert(c.count(2589,false)==7)
+end
+
+@test('Bank unconfirmed, locked, cursor occupied and rejected are distinct from bank full')
+local function problems()
+ local c=setup();c.bank(true);c.cursor={id=999,n=1};c.a.startBankTransfer('deposit');assert(c.a.character.bankTransfer.status=='bank_cursor')
+ c.cursor=nil;c.reject=true;c.a.startBankTransfer('deposit');assert(c.a.character.bankTransfer.status=='bank_rejected'and not c.a.character.bankTransfer.pending)
+ c.reject=false;c.delayed=true;c.a.startBankTransfer('deposit');mock.waitSeconds(6)
+ assert(c.a.character.bankTransfer.status=='bank_unconfirmed');local moves=c.moves;c.a.startBankTransfer('deposit');assert(c.moves==moves)
+ c.flush();c.delayed=false;c.a.startBankTransfer('deposit');c.drain()
+end
+
+@test('Merchant option: off remains closed across visits and updates; manual and profession opening resume same order')
+local function merchant()
+ local c=setup();local a=c.a;a.options.autoOpenMerchant=false;a.showCentralGuide();a.nextStepWindow:Hide()
+ for _=1,2 do
+  mock.openMerchant({name='Vendor',items={{id=2589,price=4,stack=4,available=-1,maxStack=20,usable=true}}})
+  mock.fireEvent('MERCHANT_UPDATE');assert(not a.nextStepWindow:IsShown())
+  assert(a.vendorPurchase.open and a.character.vendor[2589]);mock.closeMerchant();mock.waitSeconds(1.2);assert(not a.nextStepWindow:IsShown())
+ end
+ mock.openMerchant({name='Vendor',items={}});a.command('');assert(a.nextStepWindow:IsShown())
+ a.nextStepWindow:Hide();c.profession();assert(a.nextStepWindow:IsShown()and a.currentRouteOrder()==c.order)
+ a.options.autoOpenMerchant=false;a.initialize();assert(a.options.autoOpenMerchant==false and a.currentRouteOrder()==c.order)
+ mock.closeMerchant()
+ a.nextStepWindow:Hide();mock.openMerchant({name='Vendor',items={}});mock.fireEvent('MERCHANT_UPDATE');assert(not a.nextStepWindow:IsShown());mock.closeMerchant()
+end
+
+@test('Merchant option enabled: default and reloaded value open on a new visit without resetting route')
+local function enabled()
+ local c=setup();local a=c.a;a.options.autoOpenMerchant=true;a.showCentralGuide();a.nextStepWindow:Hide()
+ mock.openMerchant({name='Vendor',items={{id=2589,price=4,stack=4,available=-1,maxStack=20,usable=true}}})
+ assert(a.nextStepWindow:IsShown()and a.currentRouteOrder()==c.order);mock.closeMerchant()
+ a.initialize();assert(a.options.autoOpenMerchant==true);a.nextStepWindow:Hide()
+ mock.openMerchant({name='Vendor',items={}});assert(a.nextStepWindow:IsShown());mock.closeMerchant()
+end
+
+@test('Bank locked items are not called full; account-only access cannot receive personal supplies')
+local function access()
+ local c=setup();for _,v in pairs(c.slots[0])do v.locked=true end;c.bank(true);c.a.startBankTransfer('deposit')
+ assert(c.a.character.bankTransfer.status=='bank_locked'and c.moves==0)
+ mock.stub(C_Bank,'CanUseBank',function()return false end);assert(not c.a.startBankTransfer('deposit'))
+ assert(c.a.bankTransferTask().body:find(c.a.caption('bank_access'),1,true))
+end
+
+@test('Bank partial merge proceeds even when a different earlier item has no space')
+local function someFit()
+ local c=setup();c.a.routeResult.best.segments[2].crafts=10;c.bankSlots=1;c.set(6,1,4357,19)
+ c.bank(true);c.a.startBankTransfer('deposit');c.flush()
+ assert(c.slots[6][1].n==20 and c.count(4357,false)==8 and c.a.character.bankTransfer.status=='bank_full')
+ assert(c.a.character.bankTransfer.left[4357]==0 and c.a.character.bankTransfer.left[2589]>0)
+end
+
+@test('Bank destination race returns owned cursor to source without swapping other items')
+local function destinationRace()
+ local c=setup();c.bank(true);local split=C_Container.SplitContainerItem
+ mock.stub(C_Container,'SplitContainerItem',function(bag,slot,n)split(bag,slot,n);c.set(6,1,999,1)end)
+ c.a.startBankTransfer('deposit');assert(c.a.character.bankTransfer.status=='bank_rejected'and c.slots[6][1].id==999)
+ assert(c.count(2589,false)==8 and c.cursor==nil and not c.a.character.bankTransfer.pending)
+end
+
+local function runFlow(auto,tight)
+ local c=setup();local a=c.a;a.options.autoOpenMerchant=auto;c.set(0,1,nil);c.profession();a.refreshNextStep(true)
+ mock.openMerchant({name='Vendor',items={{id=2589,price=4,stack=4,available=-1,maxStack=20,usable=true}}})
+ mock.stub(_G,'BuyMerchantItem',function(_,n)c.add(0,2589,n);c.money=c.money-n;mock.fireEvent('BAG_UPDATE_DELAYED')end)
+ a.offerVendorPurchase();assert(a.buyVendorMaterial(2589));a.vendorBuyTick();assert(not a.vendorPurchase.pending and c.count(2589,false)==8)
+ mock.closeMerchant();c.bank(true);a.refreshNextStep(true);assert(a.nextStepWindow.task.kind=='route_bank')
+ mock.click(a.nextStepWindow.primaryCTA);c.drain();assert(c.count(2589,false)==7 and a.nextStepWindow.task.kind=='craft')
+ c.profession();assert(a.nextStepWindow.task.kind=='craft')
+ c.bank(false);local plan=a.nextStepWindow.plan;assert(a.craftNext(plan,true));assert(a.nativeCraftHandoff.count==7)
+ mock.click(ProfessionsFrame.CraftingPage.CreateButton);mock.waitSeconds(.6);a.refresh(true)
+ mock.waitUntil(function()return a.routeResult and a.routeResult.best and not a.routeSearch and not a.routeDirty end)
+ assert(c.skill==30 and a.currentRouteOrder()==c.order and a.decision.current.recipe.id==3923)
+ if tight then c.bagSlots=2 end
+ c.bank(true);a.refreshNextStep(true);assert(a.nextStepWindow.task.kind=='route_bank_withdraw')
+ mock.click(a.nextStepWindow.primaryCTA);c.drain()
+ if tight then
+  assert(a.character.bankTransfer.status=='bank_bags_full'and a.nextStepWindow.task.kind=='route_bank_withdraw')
+  c.bagSlots=20;c.flush();c.drain()
+ end
+ assert(c.count(2589,false)==1)
+ a.refreshNextStep(true);assert(a.nextStepWindow.task.kind=='craft')
+ c.bank(false);assert(a.craftNext(a.nextStepWindow.plan,true));mock.click(ProfessionsFrame.CraftingPage.CreateButton)
+ mock.waitSeconds(.6);a.refresh(true);a.refreshNextStep(true)
+ assert(c.skill==31 and a.currentRouteOrder()==c.order and a.nextStepWindow.task.kind=='done')
+end
+
+@test('Complete production flow enabled: profession, vendor, bank split, native crafting, withdrawal, same route')
+local function fullOn()runFlow(true,false)end
+@test('Complete production flow disabled: profession, vendor, bank split, native crafting, withdrawal, same route')
+local function fullOff()runFlow(false,false)end
+@test('Complete production flow: partial withdrawal with full bags resumes after freeing space')
+local function fullTight()runFlow(false,true)end
+
+@test('Bank late confirmation during crafting defers full inventory capture')
+local function lateDuringCraft()
+ local c=setup();local a=c.a;c.delayed=true;c.bank(true);a.startBankTransfer('deposit')
+ local captures=0;local capture=a.captureInventory
+ mock.stub(a,'captureInventory',function(...)captures=captures+1;return capture(...)end)
+ mock.stub(a,'craftRefreshBusy',function()return true end)
+ c.flush();assert(not a.character.bankTransfer.pending and captures==0 and a.inventoryState.dirty)
+ mock.stub(a,'craftRefreshBusy',function()return false end);mock.setField(a.inventoryState,'ready',true)
+ a.inventoryTick(.3);assert(captures==1)
+end
+
+@test('Bank action UI: open bank shows deposit action, not a details-only dead end')
+local function bankScreen()
+ local c=setup();c.bank(true);c.a.refreshNextStep(true)
+ assert(c.a.nextStepWindow.task.kind=='route_bank'and c.a.nextStepWindow.primaryCTA:GetText()==c.a.caption('bank_deposit'))
+end
+
+@test('Bank user-button regression: deposit click completes bank step and returns to crafting')
+local function userButton()
+ local c=setup();c.bank(true);c.a.refreshNextStep(true);assert(c.a.nextStepWindow.task.kind=='route_bank')
+ -- Dispatch the production button action directly so the old-client repro
+ -- is independent of startup tutorial overlays. Complete flows click the UI.
+ c.a.unifiedAction(c.a.nextStepWindow);c.drain();c.a.refreshNextStep(true)
+ assert(c.count(2589,false)==7 and c.a.nextStepWindow.task.kind=='craft','Bank action stayed on the details-only step')
+end
+
+@test('Merchant settings UI: saved toggle is available with German and English labels')
+local function settingsScreen()
+ local c=setup();local a=c.a
+ for _,language in ipairs({'de','en'})do
+  mock.setField(a.options,'language',language);a.showUnifiedGeneral()
+  assert(a.optionsWindow.merchant:GetText():find(language=='de'and 'Beim Händler automatisch öffnen'or 'Automatically open at merchants',1,true))
+ end
+end

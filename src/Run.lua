@@ -141,8 +141,10 @@ events:SetScript('OnEvent',function(_,event,arg,castGUID,spellID)
         -- independent and keeps the last fully read profession for shopping.
         app.refresh(false)
     elseif event=='MERCHANT_SHOW'or event=='MERCHANT_UPDATE'then
+        app.merchantUIEvent=true
         if event=='MERCHANT_SHOW'then app.guideOnly=nil end
         app.observeMerchant();app.vendorBuyEvent(event);if open then schedule()end
+        app.merchantUIEvent=nil
     elseif event=='MERCHANT_CLOSED'then app.vendorBuyEvent(event)
     elseif event=='AUCTION_HOUSE_SHOW'then
         if app.nativeProfessionVisible()==true then open=true;app.professionOpen=true;schedule()else professionClosed()end

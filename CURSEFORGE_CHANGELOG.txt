@@ -1,17 +1,15 @@
-# CraftDeja 3.9.0-beta.20
+# CraftDeja 3.9.0-beta.21
 
 ## Deutsch
 
-- **Ruhigerer Ablauf:** Eine gewählte Levelroute bleibt bis zum nächsten Rezept- oder Rangwechsel bestehen. Normale AH-, Inventar- und Fortschrittsmeldungen starten keinen vollständigen Vergleich mehr.
-- **Zuverlässiger weiterarbeiten:** Laufende Routenberechnungen bleiben bei neuen Bestandsmeldungen erhalten. Nach der Postabholung kann der Guide selbstständig mit dem nächsten Schritt fortfahren.
-- **Herstellung klar im Blick:** Eine bereits vorbereitete native Craft-Serie wird nicht mehr durch eine unnötige Berechnungsanzeige verdeckt.
-- **Vorräte für später schützen:** Der Guide nennt Gegenstand und Menge für die Bank, wenn Materialien erst in späteren Routenabschnitten gebraucht werden. Der aktuelle Materialbedarf bleibt in den Taschen; auf Wunsch kannst du zunächst weiterherstellen.
-- **Aktuelle Kaufkontrollen:** Preise, Mengen und Bestände werden vor dem Kauf weiterhin geprüft. Ein neuer vollständiger Routenvergleich bleibt bewusst über „Route planen“ erreichbar.
+- **Händleranzeige nach Wunsch:** Mit „Beim Händler automatisch öffnen“ entscheidest du dauerhaft, ob ein Händlerbesuch das geschlossene Addon öffnet. Manuelles Öffnen und Einkäufe bleiben verfügbar.
+- **Bankvorräte direkt verarbeiten:** Der Bank-Schritt bietet Einlagern und späteres Entnehmen an. Passende Stapel werden zuerst aufgefüllt; Teilmengen schützen die Zutaten des aktuellen Abschnitts.
+- **Klar weiter nach der Bank:** Bestätigte Bewegungen führen zum nächsten Schritt im selben Auftrag. Volle Bank, volle Taschen und offene Verschiebungen zeigen ihren tatsächlichen Restbedarf.
+- **Unterbrechungen besser abfangen:** Verzögerte und doppelte Ereignisse, Bank schließen und erneutes Öffnen werden berücksichtigt. Erneutes Öffnen des Berufs erhält den laufenden Auftrag.
 
 ## English
 
-- **A smoother workflow:** Your selected leveling route stays in place until the next recipe or profession-rank boundary. Routine AH, inventory and progress notifications no longer trigger a full comparison.
-- **Keep moving forward:** Running route calculations survive new inventory updates, allowing the guide to continue after collecting mail without reopening CraftDeja.
-- **Clear crafting guidance:** An already prepared native crafting batch is no longer hidden behind an unnecessary calculation screen.
-- **Protect supplies for later:** The guide names items and quantities to bank for later route sections while keeping the current material requirement in your bags. You can also choose to keep crafting for now.
-- **Current purchase checks:** Prices, quantities and inventory are still checked before purchases. Start a fresh full comparison explicitly with “Plan route”.
+- **Merchant visibility your way:** The saved “Automatically open at merchants” setting lets you choose whether a merchant visit opens the closed addon. Manual access and purchases remain available.
+- **Process bank supplies directly:** Deposit planned supplies and withdraw them when needed later. Existing stacks are filled first, while split quantities protect the current section’s reagents.
+- **Continue after banking:** Confirmed transfers advance the same order. Full banks, full bags and outstanding transfers show what remains to be done.
+- **Handle interruptions more reliably:** Delayed or duplicate events, closing and reopening the bank, and reopening your profession preserve the ongoing workflow.

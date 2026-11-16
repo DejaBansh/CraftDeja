@@ -1,5 +1,11 @@
 # CraftDeja 3.9.0-beta.20
 
+# CraftDeja 3.9.0-beta.21
+
+- DE: Geplante Bankmaterialien gezielt einlagern und später entnehmen, bestätigte Mengen und klare Fortsetzung bei Platzmangel. Automatisches Öffnen beim Händler dauerhaft einstellbar.
+- EN: Deposit planned bank supplies and withdraw them later, with confirmed quantities and clear continuation when space is limited. Persistent setting for automatically opening at merchants.
+- Spielertexte: docs/PATCHNOTES_beta21_DE_EN.md. Analyse und offene Live-Prüfung: docs/BANK_FLOW.md. Automatisierte Prüfung: 589/0/0, TEST_RESULTS.md.
+
 - DE: Feste Routenabschnitte, zuverlässiger Abschluss laufender Vergleiche bei Inventarereignissen und Bankhinweise für spätere Materialien. Native Herstellung bleibt sichtbar; aktuelle Kaufprüfungen erhalten.
 - EN: Fixed route sections, route searches that finish despite inventory updates, and bank guidance for later supplies. Native crafting stays visible while purchase checks remain current.
 - Player notes: docs/PATCHNOTES_beta20_DE_EN.md. Cause, regression evidence and live retest: docs/ROUTE_CHECKPOINTS.md.
