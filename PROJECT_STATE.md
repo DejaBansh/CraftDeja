@@ -11,6 +11,9 @@
 - Aktuell NICHT installiert: vollständige Prozessprüfung fand Wow.exe und WowVoiceProxy.exe. Installiert bleibt beta.20-alpha+f7aa05e. Erst nach vollständig beendetem WoW mit tools/Install-VerifiedCraftDeja.ps1, erfolgreichem finalem Test-ZIP und sauberem Quellcommit installieren; Script prüft Backup/Build/Payload und erzeugt Bericht. Keine Änderung an WTF/SavedVariables.
 - Nächster Schritt: Release beta.21 mit persönlicher Bank/TSM live prüfen: Händleroption aus/an plus Reload, Berufsaufruf vor/nach Bank, 8 Stoff → 7 behalten/1 einlagern, Stapel/Teilkapazität/Schließen/Reopen, Herstellung und spätere Entnahme. Schutzmeldung oder weiterer benötigter Klick ehrlich erfassen. Kein Nachweis einer neuen FPS-Verbesserung.
 
+
+- Finaler lokaler Quellcommit: ec0a1883ef91d0ff558018fb8d946a33b8f33824. Release 3.9.0-beta.21-alpha+ec0a188 gebaut; alle 73 Payload-Dateien einzeln SHA256 gegen portable ZIP geprüft, keine Dev-Runtime/automatische Instrumentierung. Paket: dist/packages/CraftDeja-3.9.0-beta.21-release.zip; Manifest und DE/EN-Patchnotes daneben. Gesamtbericht: reports/bank-flow-beta21.zip (Analyse, finale Tests, gültige beta.20-Reproduktion, UI-Belege und Release-Manifest). Kein Upload/Push. Spielinstallation wegen laufendem WoW unverändert.
+
 ## beta.20 Release installiert — 16.11.2026, 17:21
 
 - Nach Nutzerfreigabe „WoW ist beendet“ und vollständiger Prozessprüfung installiert: 3.9.0-beta.20-alpha+f7aa05e, Profil release, Quellcommit f7aa05ee0e23ff3b060dc0e1b0238a6880c38cce auf codex/route-checkpoints.
