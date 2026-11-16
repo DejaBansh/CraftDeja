@@ -1,5 +1,13 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## beta.22 Release installiert — 16.11.2026, 19:54
+
+- Installiert: 3.9.0-beta.22-alpha+a2cbb07, release, Quellcommit a2cbb07fb129b995196f91b0784b9ce072db0c03 auf codex/trainer-navigation. Nutzer wurde zum Beenden von WoW aufgefordert; vollständige Prozesssicht vor Backup, direkt vor Ersatz und danach bestätigte WoW beendet.
+- Vollbackup reports/install/verified-20261116-195436/CraftDeja-before-install.zip: 74 vorhandene Dateien vollständig SHA256-geprüft, unveränderte Altinstallation vor Ersatz und Archiv anschließend erneut geprüft. Alle 73 installierten Payload-Dateien SHA256-identisch zum Release-Kandidaten und Installationsbuild. Keine Dev-Runtime/automatische Instrumentierung; WTF/SavedVariables nicht bearbeitet.
+- Automatischer Installationsbericht reports/install/verified-20261116-195436-bericht.zip: installed_verified. Finale 600/0/0 aus reports/tests/20261116-194918-dbcd1e.zip weiterhin durch alle 379 Hashes abgesichert: 54 Runtimequellen, 322 Test-/Profilquellen und drei Inputs. Native Source-Emulation; tatsächlicher Live-Test steht aus.
+- Paket dist/packages/CraftDeja-3.9.0-beta.22-release.zip: 73 portable CraftDeja/-Einträge einzeln SHA256-geprüft und identisch zum installierten Kandidaten. Manifest und DE/EN-Patchnotes daneben. Gesamtbericht reports/trainer-navigation-beta22.zip enthält Analyse, finale Suite/JSON/Prüfsummen, korrekte A/B-Reproduktionen, gerenderte native Einstellungen/Minimap sowie Installationsbericht. Frühere Pakete unverändert belassen.
+- Ein erster erneuter Release-Build nach Commit scheiterte beim atomaren Austausch des lokalen Ausgabeverzeichnisses mit Zugriff verweigert. Keine manuelle Löschung/Prozessbeendigung; erneuter Build erfolgreich. Danach vollständiger Installationslauf erfolgreich, keine blockierte Spielinstallation.
+- Live nächster Schritt: /cdj version, Unterstadt/Kupferrohr-Quelle prüfen; Guide schließen, Beruf erneut öffnen/anklicken; gleicher Auftrag. Minimap links Guide/rechts Einstellungen/ziehen und Reload; Optionen → Addons → CraftDeja. Referenzdaten bleiben begrenzt, keine weltweite Vollständigkeit oder kürzeste Reisezeit zugesagt. Kein Push/Upload und kein Merge nach main. Ältere Nicht-installiert-Angaben unten sind historischer Stand.
 ## beta.22 — Trainer und Zugriff, 16.11.2026
 
 - Lokaler Branch codex/trainer-navigation, sauberer Ausgangsstand 2d94f64388827a977f76aa005242fcbe08fdc48c. Nutzerfall: Kupferrohr 3924 wurde in Unterstadt zu Thund/Orgrimmar geführt; fehlender lokaler Rezeptquelleneintrag. Details, technische Quellen, Umfang und Live-Plan: docs/TRAINER_NAVIGATION_BETA22.md.
