@@ -1,5 +1,14 @@
 # Entscheidungen — Stand 15.11.2026
 
+## beta.24 — 16.11.2026
+
+- Ein aktiver Berufsauftrag hat Vorrang vor Händler-Sonderangeboten. Gifte benötigen Schurkenklasse und aktuelle native Freischaltung; gespeicherte Jobs, Level oder Händlerbestand genügen nicht. Keine erfundenen Quest-Abschluss-IDs.
+- Auctionator-Liste nur über öffentliche APIs und nur unveränderte eigene Einträge synchronisieren. Keine automatische erneute Suche, keine Änderung manueller Kaufmengen; bei inkompatibler Liste ausdrücklicher Aktualisierungsklick.
+- Letzte noch gültige AH-Preise bleiben nach AH-Schließen erhalten. Ältere Datenbankpreise dürfen keinen aktuellen Händlervergleich umkehren.
+- Stationen nur aus nativen Erfüllt-Beobachtungen, exakt passende Anforderung und konservative Karte/Ebene/Instanz-Auswahl. Fehlende Daten sichtbar benennen. Keine fremden Classic-Koordinaten als verifizierte Forever-Standorte darstellen; kein Pathfinding behaupten.
+- Wochenpflege von Händlerrezept-Referenzen ist eine externe Datenaufgabe mit Herkunftsprüfung, kein im Leerlauf laufender Komplettscan. Vorhandene 7-Tage-Lernkostengültigkeit ist kein globaler Händlerabgleich.
+
+
 ## CurseForge-Releases — 16.11.2026
 
 - Nur exakte geprüfte Tags, getrennte versionierte DE/EN-Texte, passender tatsächlich veröffentlichter Kanal als Freigabebasis. Bei unklarer Provenienz kein Upload; Dry Run bleibt verfügbar.

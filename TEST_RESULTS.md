@@ -1,5 +1,13 @@
 # Validation — 3.9.0-beta.4
 
+## beta.24 — geprüfter Guidefix, 16.11.2026
+
+- Branch codex/undercity-guide-fixes, Basis 5b87da2bee376ec4aa842b68cd414f01908f27c1. Guide-/AH-/Händler-/Stations-/Grafikfix und Giftfreischaltung fertig; Analyse und exakter Live-Plan docs/UNDERCITY_GUIDE_BETA24.md. Nutzer hat Veröffentlichung der neuen Beta nach Fix ausdrücklich freigegeben. main und alter beta.23-Tag unverändert.
+- Finale Vollsuite reports/tests/20261116-231943-98a8e1.zip: **634/0/0**, 323 Dateien, **209.27s**, release Build bestanden, WoWLua 0.13.14/Windows/Camelot/Blizzard-UI. Zwanzig neue Fälle, einschließlich AH→Kauf/Post→Daniel Bartlett/Fluxus→Ambossmarker→erfüllt→native Herstellung sowie echte/gesperrte Giftzugänge. Alle erfassten Quell-/Test-/Inputhashes erneut geprüft. Bekannte W1034-Lazy-Getter-Warnung unverändert. Keine Live-/FPS-Abnahme daraus ableiten.
+- Gezielte Schlussprüfung 21/0/0 in 7.17s, reports/tests/20261116-231920-ab34fe.zip. Matrix reports/workshop-matrix/20261116-232018: 1920x1080 und 3440x1440, jeweils UI65%/100%, je14/0/0. Proportionale Ecken/UVs zusätzlich bei drei Größen und drei Guidescalings geprüft. Gelieferte PNGs sind ausschließlich Quellemulation mit Fixtures, keine echten Undercity-Aufnahmen.
+- Release-Schutztests:26/0, API ausschließlich gemockt; Actionlint ohne Fehler. Preis99AH<100Händler bleibt zulässig; aktuelles106AH>100Händler überlebt AH-Schließen. skill60→65 benötigt5Crafts/10Barren/5Fluxus; skill65→75 benötigt10Crafts/20Barren/10Fluxus vor Bestand/Post. Manueller Einkauf/list edits bleiben geschützt; kein neuer Such-/Vollscan-Timer.
+- Grenzen: kein verifizierter globaler Forever-Stationsatlas/Pathfinding; Marker nutzen aktuelle nativ bestätigte Bereiche derselben Karte/Ebene/Instanz, sonst konkrete Fehlermeldung. Gifte nur Schurke plus native Freischaltung. Wöchentlicher globaler Händlerrezept-Abgleich fehlt; lokale Händlerangebote werden pro Besuch/Update gelesen. Nächster Schritt: offiziellen getaggten Release bauen/hochladen, verifizierte Installation bei beendetem WoW und tatsächlichen Undercity-/Gift-Livefall prüfen. Beschreibungsupdate bleibt manueller Author-Console-Schritt.
+
 ## GitHub-Dry-Run erfolgreich — 16.11.2026, 22:36
 
 - Echter Actions-Lauf https://github.com/DejaBansh/CraftDeja/actions/runs/43959442195 erfolgreich; geprüfter Commit 1a5100095632199fb2272b74abcb2ff39f4216f4 auf codex/curseforge-dry-run. package success, upload skipped, description skipped. Kein Token im Testjob, keine echte Veröffentlichung oder Beschreibungsänderung; Tokenberechtigung damit nicht geprüft.

@@ -1,17 +1,29 @@
-# CraftDeja 3.9.0-beta.23
+# CraftDeja 3.9.0-beta.24 — Dein Auftrag bleibt auf Kurs
 
 ## Deutsch
 
-- **Dein neues Goblin-Werkstattpult:** Dunkles Rauchglas, blau-violette Lichtkanten, Messingdetails und ein eigenes Goblin-Motiv geben CraftDeja eine klare neue Oberfläche.
-- **Route und Materialien im Blick:** Navigation, Skillfortschritt, Rezeptwechsel und ausgewählte Schrittdetails helfen dir, deinen Auftrag leichter zu überblicken.
-- **Ein klarer nächster Schritt:** Der kompakte Guide hebt die konkrete Aktion mit einem grünen Hauptbutton hervor. Ein kurzer Lichtimpuls zeigt neu bereite Aktionen; Wartezeiten und fehlende Voraussetzungen bleiben ruhig.
-- **Wichtige Angaben direkt sichtbar:** Mengen, Kaufpreise, Werkzeugnamen und konkrete Statusmeldungen stehen bei der Aufgabe. Weitere Informationen und seltene Aktionen kannst du aufklappen.
-- **Sicher weiterarbeiten:** Aktuelle Bestände und Preise fließen in die Materialansicht ein. Ändert sich die nächste Aktion vor einem Klick, zeigt CraftDeja zuerst den aktualisierten Button.
+**Vom Auktionshaus bis zum Amboss: CraftDeja führt deinen Berufsauftrag jetzt zuverlässiger weiter.** Einkauf, Händlerbesuch und Herstellung greifen sauberer ineinander — mit klaren Mengen und einer eindeutigen nächsten Aktion.
+
+- **Passende Einkaufsmengen:** Die CraftDeja-Auctionator-Liste folgt dem aktuellen Skillabschnitt. Bestätigte Käufe und Post zählen mit; manuell bearbeitete Listeneinträge bleiben geschützt.
+- **Der richtige Händlerkauf:** Aktuelle AH-Preise bleiben beim Verlassen des Auktionshauses erhalten. Der Guide nennt benötigte Händlerzutaten direkt mit Menge und Preis — etwa Schwachen Fluxus für Kupferrohr.
+- **Dein Beruf bleibt im Fokus:** Gemischte Händler lösen keinen unerwünschten Gift-Schritt mehr aus. Gifte werden nur für Schurken mit nachgewiesener Freischaltung angeboten.
+- **Arbeitsstationen wiederfinden:** Vom Client bestätigte Arbeitsbereiche lassen sich auf der aktuellen Karte und Ebene markieren. Sobald die Rezeptvoraussetzung erfüllt ist, geht es zur Herstellung weiter und der Stationsmarker verschwindet.
+- **Ein sauberer Werkstatt-Look:** Proportionale Hintergründe, formstabile Rahmenecken und ein klar reagierender Hauptbutton verbessern den kompakten und aufgeklappten Guide.
+
+*Beta für World of Warcraft: Forever. Stationshinweise nutzen bestätigte Beobachtungen; fehlt ein verlässlicher Standort, nennt der Guide die konkrete Anforderung.*
+
+---
+
+# CraftDeja 3.9.0-beta.24 — Keep your crafting order on track
 
 ## English
 
-- **Your new goblin workshop console:** Dark smoke glass, blue-violet light edges, brass details and a dedicated goblin motif give CraftDeja a clear new interface.
-- **Keep routes and supplies in view:** Navigation, skill progress, recipe transitions and selected-step details make your order easier to follow.
-- **One clear next step:** The compact guide highlights the concrete action with a green primary button. A brief pulse marks newly ready actions, while waiting and unmet requirements stay calm.
-- **Key information beside the task:** Quantities, purchase prices, tool names and concrete status messages are visible where you need them. Expand additional information and occasional actions when useful.
-- **Continue with current information:** The materials view reflects current inventory and prices. If the next action changes before a click, CraftDeja shows the updated button first.
+**From auction house to anvil: CraftDeja now guides your profession order more reliably.** Shopping, vendor visits and crafting connect more smoothly, with clear quantities and one concrete next action.
+
+- **Shopping quantities that fit:** CraftDeja's Auctionator list follows the current skill stage, accounting for confirmed purchases and mail while protecting manually edited entries.
+- **The right vendor purchase:** Current auction house prices remain available after leaving the AH. The guide names the required vendor reagent with quantity and cost — such as Weak Flux for Copper Tube.
+- **Your profession stays in focus:** Mixed-stock vendors no longer interrupt another profession with a poison prompt. Poisons are offered only to Rogues with confirmed access.
+- **Find crafting areas again:** Mark client-confirmed crafting areas on the current map and floor. Once the recipe requirement is met, the guide advances to crafting and removes its station marker.
+- **A cleaner workshop look:** Proportional backgrounds, stable frame corners and responsive primary-button feedback improve both compact and expanded guide layouts.
+
+*Beta for World of Warcraft: Forever. Station guidance uses confirmed observations; when no reliable location exists, the guide states the exact requirement.*

@@ -1,5 +1,10 @@
 # CraftDeja 3.9.0-beta.20
 
+## 3.9.0-beta.24
+
+Consistent Auctionator stage quantities and confirmed-mail budgets; retain current AH prices across vendor visits; protect profession orders from mixed-vendor poison prompts; require native Rogue Poison unlock; mark client-confirmed crafting areas; preserve guide/button proportions. DE/EN player notes: releases/3.9.0-beta.24/patchnotes.md. Tests: 634/0/0; live Undercity acceptance pending.
+
+
 # CraftDeja 3.9.0-beta.23
 
 - DE: Neues Goblin-Werkstattpult mit Navigation, Rezeptabschnitten und Schrittdetails; eigenständiger Guide mit sichtbaren Gründen, aufklappbaren Details und neuem grünen Hauptbutton. Eigene hochauflösende Smoke-Glass-/Messing-/Goblin-Assets, aktuelle Materialprojektion und abgesicherte Aktionswechsel.

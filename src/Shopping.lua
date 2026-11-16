@@ -19,7 +19,7 @@ local function hide()if app.shoppingWindow then app.shoppingWindow:Hide()end end
 local function clear()
     local carry=shop.autoCarry
     if app.pauseManagedPurchaseUI then app.pauseManagedPurchaseUI()end
-    shop.ready=nil;shop.readyWall=nil;shop.pendingScan=nil;shop.prices=nil;shop.livePrices=nil;shop.plan=nil;shop.searched=nil;shop.started=nil;shop.scanKind=nil;shop.notice=nil;shop.sentSummary=nil;hide()
+    shop.ready=nil;shop.readyWall=nil;shop.pendingScan=nil;shop.prices=nil;shop.livePrices=nil;shop.plan=nil;shop.searched=nil;shop.started=nil;shop.scanKind=nil;shop.notice=nil;shop.sentSummary=nil;shop.listPlanKey=nil;shop.managedItems=nil;shop.listStale=nil;hide()
     if carry then shop.searched=carry.searched;shop.sentSummary=carry.sentSummary end
 end
 local function message(key)
@@ -54,6 +54,11 @@ local function reusableScan()
 end
 function app.shoppingFresh()
     return shop.open and shop.ready and not shop.started and not shop.pendingScan and not app.nativeScanBusy()and reusableScan()
+end
+function app.shoppingPricesCurrent()
+    -- Closing the AH is not a new market observation. Keep the latest valid
+    -- live quote until its original scan expires; never resurrect an old DB price.
+    return not shop.started and not shop.pendingScan and not app.nativeScanBusy()and reusableScan()
 end
 function app.scanWaitText()
     if shop.pendingScan then return app.caption('scan_processing')end
@@ -225,12 +230,14 @@ end
 function app.completeShoppingPlan(plan)
     plan.scanSerial=shop.scanSerial
     plan.ahTotal=0;plan.vendorTotal=0;plan.ahRows=0;plan.vendorRows=0;plan.ownedRows=0
-    local observedPrices=shop.prices or {}
+    local current=app.shoppingPricesCurrent()
+    local observedPrices=current and shop.prices or {}
     for _,row in ipairs(plan.rows)do
         local vendor,kind=app.vendorPrice(row.id)
-        local live=shop.livePrices and shop.livePrices[row.id]
-        local ah=live and live.unit or observedPrices[row.id]
+        local live=current and shop.livePrices and shop.livePrices[row.id]
+        local ah=live and live.unit or observedPrices[row.id]or row.unit
         row.vendor=vendor and (not ah or vendor<=ah)or false
+        if row.vendor then row.unit=vendor elseif ah then row.unit=ah end
         row.vendorUnit=vendor;row.vendorKind=kind
         local ceiling=row.unit*(1+shop.tolerance/100)
         -- A zero advanced maxPrice means "no ceiling" in Auctionator. Preserve
@@ -248,6 +255,72 @@ function app.completeShoppingPlan(plan)
     end
     return plan
 end
+function app.shoppingTerms(plan)
+    local terms,items={},{}
+    for _,row in ipairs(plan.rows)do if row.buy>0 and not row.vendor then
+        local quantity=math.max(0,app.purchaseBudget(plan,row.id,math.max(0,row.buy-app.confirmedMail(row.id)))-app.purchaseReserved(row.id))
+        if quantity>0 then
+            local name=app.itemName(row.id)
+            if not name or name:sub(1,1)=='#'then return end
+            local term={searchString=name,isExact=true,categoryKey='',quantity=quantity,maxPrice=row.maxUnit}
+            terms[#terms+1]=term;items[row.id]=term
+        end
+    end end
+    return terms,items
+end
+local function rememberList(plan,items)
+    shop.listPlanKey=app.purchaseKey(plan);shop.listStale=nil;shop.managedItems=nil
+    local a=api();local temporary=AUCTIONATOR_L_TEMPORARY_LOWER_CASE
+    if not a or type(temporary)~='string'or type(a.ConvertToSearchString)~='function'or type(a.GetShoppingListItems)~='function'then return end
+    local name=app.identifier..' ('..temporary..')'
+    local actual=app.try(a.GetShoppingListItems,app.identifier,name)
+    if type(actual)~='table'then return end
+    local present={};for _,s in ipairs(actual)do present[s]=true end
+    local managed={}
+    for id,t in pairs(items)do
+        local s=app.try(a.ConvertToSearchString,app.identifier,t)
+        if type(s)~='string'or not present[s]then return end
+        managed[id]={text=s,quantity=t.quantity}
+    end
+    shop.listName=name;shop.managedItems=managed
+end
+function app.syncShoppingList(plan)
+    if not shop.open or not shop.searched or not shop.listPlanKey or not plan or not app.shoppingFresh()then return end
+    -- List editing never starts searches and never writes the buyer quantity.
+    -- Confirmations/pending purchases keep their native state until resolved.
+    if app.purchasePending()then return end
+    local a=api();local key=app.purchaseKey(plan)
+    local terms,items=app.shoppingTerms(plan);if not terms then shop.listStale=true;return end
+    if not shop.managedItems or not a or type(a.AlterShoppingListItem)~='function'or type(a.DeleteShoppingListItem)~='function'then
+        if key~=shop.listPlanKey then shop.listStale=true end;return
+    end
+    local actual=app.try(a.GetShoppingListItems,app.identifier,shop.listName)
+    if type(actual)~='table'then shop.listStale=true;return end
+    local present={};for _,s in ipairs(actual)do present[s]=true end
+    for _,old in pairs(shop.managedItems)do if not present[old.text]then shop.listStale=true;return end end -- preserve user edits
+    shop.listStale=nil
+    for id,old in pairs(shop.managedItems)do
+        local wanted=items[id]
+        if not wanted then
+            if not pcall(a.DeleteShoppingListItem,app.identifier,shop.listName,old.text)then shop.listStale=true;return end
+            shop.managedItems[id]=nil
+        elseif old.quantity~=wanted.quantity then
+            local s=app.try(a.ConvertToSearchString,app.identifier,wanted)
+            if type(s)~='string'or not pcall(a.AlterShoppingListItem,app.identifier,shop.listName,old.text,s)then shop.listStale=true;return end
+            old.text=s;old.quantity=wanted.quantity
+            app.flowLog('shopping.list_quantity',{item=id,quantity=wanted.quantity,from=plan.from,target=plan.target})
+        end
+    end
+    for id in pairs(items)do if not shop.managedItems[id]then shop.listStale=true end end
+    shop.listPlanKey=key
+end
+function app.refreshShoppingList()
+    if app.purchasePending()then return false end
+    shop.searched=nil;return app.searchShopping()
+end
+app.words.de.shopping_list_update='Einkaufsliste aktualisieren';app.words.en.shopping_list_update='Update shopping list'
+app.words.de.shopping_list_changed='Der Skillplan hat sich geändert. Aktualisiere die Liste einmal vor dem nächsten Kauf.'
+app.words.en.shopping_list_changed='The skill plan changed. Update the list once before the next purchase.'
 function app.searchShopping()
     if not app.shoppingFresh()then message(shop.reason or 'shop_wait_scan');hide();return app.blockShoppingAction()end
     -- Re-read quantities/prices and the decision immediately before hand-off.
@@ -256,15 +329,8 @@ function app.searchShopping()
     if not plan then message(reason or 'none');return false end
     if not plan.stockKnown then message('shop_unknown_stock');return false end
     if shop.searched then message('shop_in_mail');return false end
-    local terms={}
-    for _,row in ipairs(plan.rows)do
-        if row.buy>0 and not row.vendor then
-            local name=app.itemName(row.id)
-            if not name or name:sub(1,1)=='#'then message('shop_item_loading');return false end
-            local quantity=app.purchaseBudget(plan,row.id,math.max(0,row.buy-app.confirmedMail(row.id)))
-            if quantity>0 then terms[#terms+1]={searchString=name,isExact=true,categoryKey='',quantity=quantity,maxPrice=row.maxUnit}end
-        end
-    end
+    local terms,items=app.shoppingTerms(plan)
+    if not terms then message('shop_item_loading');return false end
     if #terms==0 then
         if plan.vendorRows>0 then message('shop_vendor_only')else message('shop_nothing')end
         return false
@@ -277,6 +343,7 @@ function app.searchShopping()
     -- Won auctions may still be in the mailbox, so do not silently submit the
     -- same estimated shopping quantity repeatedly. Unlock explicitly or rescan.
     shop.searched=true;shop.plan=plan;shop.sentSummary={ah=#terms,vendor=plan.vendorRows,owned=plan.ownedRows}
+    rememberList(plan,items)
     hide();message('shop_sent')
     return true
 end

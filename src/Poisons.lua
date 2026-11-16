@@ -25,6 +25,24 @@ app.words.en.poison_merchant_title='Poison vendor';app.words.de.poison_merchant_
 app.words.en.poison_merchant_read='Poison supplies detected. Open your Poisons profession once to read the learned recipes. Then choose your quantities and return to the vendor.';app.words.de.poison_merchant_read='Giftzutaten erkannt. Öffne Gifte einmal, damit CraftDeja deine gelernten Rezepte einliest. Wähle danach die Mengen und sprich den Händler erneut an.'
 app.words.en.poison_merchant_open='Open Poisons';app.words.de.poison_merchant_open='Gifte öffnen'
 function app.isPoison()return app.active and app.active.profile.id==40 end
+function app.poisonUnlocked()
+    local _,class=app.try(UnitClass,'player')
+    if class~='ROGUE'then return false end
+    -- The learned profession ability is the result of unlocking Poisons. Do
+    -- not infer completion from level, vendor stock, cached jobs or quest IDs.
+    if app.try(IsPlayerSpell,2842)==true or app.try(IsSpellKnown,2842)==true then return true end
+    for _,index in pairs({app.try(GetProfessions)})do
+        local _,_,rank,_,_,_,id=app.try(GetProfessionInfo,index)
+        if id==40 and type(rank)=='number'and rank>0 then return true end
+    end
+    -- A live native profession also proves access when the legacy ability
+    -- APIs are absent. A saved CraftDeja session alone is not such evidence.
+    if app.nativeProfessionVisible()==true then
+        local profile=app.readProfession()
+        if profile and profile.id==40 and profile.skill>0 then return true end
+    end
+    return false
+end
 local function state()
     app.character.poisons=app.character.poisons or {targets={},serial=0,restock=true}
     app.character.poisons.stockTargets=app.character.poisons.stockTargets or {}
@@ -415,6 +433,7 @@ function app.showPoisonMerchantPrompt()
     app.applyProfessionTheme(f,40);f:Show()
 end
 function app.autoOpenPoisonMerchant()
+    if not app.poisonMerchantEligible()then return false end
     if not app.vendorPurchase.open or app.poisonMerchantShownEpoch==app.poisonMerchantEpoch or not app.isPoisonMerchant()then return false end
     app.poisonMerchantShownEpoch=app.poisonMerchantEpoch;app.poisonMerchantRetries=0
     local cached=app.sessions[40]
@@ -430,6 +449,15 @@ function app.autoOpenPoisonMerchant()
     end
     app.options.visible=true;app.showGuide(false);app.main:Show()
     app.observeMerchant();app.refresh(false);app.showPoisonPlanner();app.offerVendorPurchase();app.refreshNextStep(true)
+    return true
+end
+function app.poisonMerchantEligible()
+    if not app.poisonUnlocked()then return false end
+    -- A mixed reagent merchant is not an instruction to change the user's job.
+    if app.active and app.active.profile.id~=40 then return false end
+    local order=app.currentRouteOrder and app.currentRouteOrder()
+    if order and order.active and order.profession~=40 then return false end
+    if app.isPoison()or app.character and app.character.poisons and app.character.poisons.job then return true end
     return true
 end
 local oldVendorEvent=app.vendorBuyEvent
@@ -509,6 +537,7 @@ function app.renderPoisonStockRow(row)
     row.stock:SetText(app.caption('poison_stock_line',stock.bags,stock.goal,stock.missing,stock.crafts*stock.yield)..'\n'..app.caption('poison_stock_elsewhere',loc.bank~=nil and tostring(loc.bank)or '?',loc.altTotal or 0))
 end
 function app.showPoisonPlanner()
+    if not app.poisonUnlocked()then return notice('poison_open')end
     if not app.isPoison()then return notice('poison_open')end
     if not app.poisonWindow then
         local f=app.createWindow('CraftDejaPoisons',580,386);app.poisonWindow=f;f.rows={}

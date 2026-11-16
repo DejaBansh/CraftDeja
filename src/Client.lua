@@ -275,7 +275,7 @@ function app.unitPrice(id,memo)
     if memo and memo[id]~=nil then local entry=memo[id];return entry.value,entry.provider end
     local value,provider
     local policy=app.options.prices
-    if app.shoppingFresh and app.shoppingFresh()then
+    if app.shoppingPricesCurrent and app.shoppingPricesCurrent()then
         local live=app.shopping.livePrices and app.shopping.livePrices[id]
         value=live and live.unit or app.shopping.prices[id];provider=value and (live and 'Auctionator · Live'or 'Auctionator · Scan')or nil
     elseif policy=="auto"or policy=="auctionator"then

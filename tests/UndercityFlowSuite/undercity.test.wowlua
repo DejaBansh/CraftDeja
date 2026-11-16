@@ -1,0 +1,274 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+-- Native Forever requirements/materials are explicit fixtures; planning,
+-- purchase ledger, merchant events, guide and Auctionator handoff are real modules.
+local function setup()
+ local a=_G['CraftDeja'];local c:any={a=a,skill=60,met=false,terms={},edits=0,searches=0,bag={},prices={[2840]=150,[2880]=99},x=.65,y=.4,map=1458}
+ for _,key in ipairs({'routeSearch','routeResult','routeDecision','nativeCraftHandoff','craftBatch','poisonMerchantNeedsRead','poisonMerchantShownEpoch'})do mock.setField(a,key,nil)end
+ mock.setField(a,'expectedProfession',nil);mock.setField(a,'craftQuietUntil',0);mock.setField(a,'sessions',{});mock.setField(a.character,'craftStations',{});mock.setField(a.vendorPurchase,'open',false);mock.setField(a.shopping,'livePrices',nil);mock.setField(a.shopping,'listPlanKey',nil);mock.setField(a.shopping,'managedItems',nil);mock.setField(a.shopping,'listStale',nil);mock.setField(a,'poisonDone',nil);mock.setField(a,'mapTarget',nil);mock.setField(a.character,'mapTarget',nil)
+ mock.setField(a.saved,'routeOrders',{});mock.setField(a.saved,'routeActive',{});mock.setField(a.character,'poisons',{targets={}})
+ mock.setField(a.character,'ahPurchase',{sequence=0,log={}});mock.setField(a.character,'ahMail',{});mock.setField(a.character,'vendor',{[2880]={unit=100,when=time(),limited=false}})
+ mock.setField(a.character,'inventory',{items={}});mock.setField(a.options,'language','de');mock.setField(a.options,'autoOpenMerchant',true);mock.setField(a.options,'prices','auctionator');mock.setField(a.options,'guideSeenV1',true)
+ mock.setField(a.shopping,'goal','next');mock.setField(a.shopping,'searched',nil);mock.setField(a.shopping,'open',false)
+ mock.stub(C_TradeSkillUI,'GetBaseProfessionInfo',function()return {professionID=202,professionName='Engineering',skillLevel=c.skill,maxSkillLevel=75}end)
+ mock.stub(C_TradeSkillUI,'GetAllRecipeIDs',function()return {3924}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeInfo',function(id)if id==3924 then return {recipeID=id,name='Kupferrohr',learned=true,relativeDifficulty=0,numSkillUps=1,canSkillUp=true}end end)
+ mock.stub(C_TradeSkillUI,'GetRecipeCooldown',function()return nil end)
+ mock.stub(C_TradeSkillUI,'GetRecipeRequirements',function()return {{name=c.focus or 'Amboss',type=Enum.RecipeRequirementType.SpellFocus,met=c.met},{name='Schmiedehammer',type=Enum.RecipeRequirementType.Totem,met=true}}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeOutputItemData',function()return {itemID=4361}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeSchematic',function()return {outputItemID=4361,quantityMin=1,quantityMax=1,reagentSlotSchematics={{quantityRequired=2,reagents={{itemID=2840}}},{quantityRequired=1,reagents={{itemID=2880}}}}}end)
+ for id,name in pairs({[2840]='Kupferbarren',[2880]='Schwacher Fluxus',[4361]='Kupferrohr',[2928]='Staub des Verfalls'})do mock.defineItem(id,{name=name,stackCount=20})end
+ mock.setBag(0,{slots=20,items={}});mock.player:setMoney(100000);mock.setLatency(.1)
+ mock.stub(C_Map,'GetBestMapForUnit',function()return c.map end)
+ mock.stub(C_Map,'GetPlayerMapPosition',function()return CreateVector2D(c.x,c.y)end)
+ mock.stub(_G,'GetSubZoneText',function()return 'Handwerkerviertel' end)
+ local native=CreateFrame('Frame',nil,UIParent);native:Show();native.GetCurrentRecraftingRecipeID=function()return nil end;native.CraftingPage=CreateFrame('Frame',nil,native)
+ local p=native.CraftingPage;p.SelectRecipe=function()end;p.SchematicForm={GetRecipeInfo=function()return C_TradeSkillUI.GetRecipeInfo(3924)end}
+ local input={n=1};function input:SetValue(n)self.n=n end;function input:GetValue()return self.n end
+ p.CreateMultipleInputBox=input;p.CreateButton=CreateFrame('Button',nil,p)
+ p.CreateButton:SetScript('OnClick',function()c.crafted=input.n end)
+ mock.setField(_G,'ProfessionsFrame',native)
+ local function encode(t)return t.searchString..'|'..t.quantity..'|'..tostring(t.maxPrice or 0)end
+ local api:any={GetAuctionPriceByItemID=function(_,id)return c.prices[id]or 1 end}
+ api.ConvertToSearchString=function(_,t)return encode(t)end
+ api.GetShoppingListItems=function()local t={};for i,v in ipairs(c.terms)do t[i]=v end;return t end
+ api.AlterShoppingListItem=function(_,_,old,new)for i,v in ipairs(c.terms)do if v==old then c.terms[i]=new;c.edits=c.edits+1;return end end;error('unmanaged list item')end
+ api.DeleteShoppingListItem=function(_,_,old)for i,v in ipairs(c.terms)do if v==old then table.remove(c.terms,i);c.edits=c.edits+1;return end end end
+ api.MultiSearchAdvanced=function(_,terms)c.searches=c.searches+1;c.terms={};for _,t in ipairs(terms)do c.terms[#c.terms+1]=encode(t)end end
+ mock.setField(_G,'Auctionator',{API={v1=api}});mock.setField(_G,'AUCTIONATOR_L_TEMPORARY_LOWER_CASE','temporär')
+ c.read=function()local s=a.readRecipes(a.readProfession());a.active=s;a.sessions[s.profile.id]=s;a.professionOpen=true;a.professionLoading=false;a.refresh(false)end
+ c.ah=function()a.shopping.open=true;a.shopping.ready=GetTime();a.shopping.readyWall=time();a.shopping.scanSerial=1;a.shopping.prices=c.prices;a.shopping.started=nil;a.shopping.pendingScan=nil;c.read()end
+ c.plan=function()return a.shoppingFresh()and a.shoppingPlan()or a.materialPlan(a.decision.current.recipe,a.planningTarget())end
+ c.vendor=function()mock.openMerchant({name='Daniel Bartlett',items={{id=2880,price=100,stack=1,available=-1,maxStack=20},{id=2928,price=10,stack=1,available=-1,maxStack=20}}});mock.waitSeconds(.3);a.refreshNextStep(true)end
+ c.bags=function(copper,flux)mock.setBag(0,{slots=20,items={[1]=copper>0 and {id=2840,count=copper}or nil,[2]=flux>0 and {id=2880,count=flux}or nil}});a.captureInventory();a.refresh(false)end
+ -- Recorded next-action boundary is an input: the log does not contain all 275 recipe quotes.
+ mock.stub(a,'nextActionBoundary',function()return {target=c.skill<65 and 65 or 75,kind='review'}end)
+ c.native=native;c.input=input;c.read();return c
+end
+@afterEach
+local function errors()local e=mock.errors();assert(#e==0,table.concat(e,'\n'))end
+@test('Undercity: mixed poison vendor cannot replace engineering guide even with cached poisons')
+local function merchant()
+ local c=setup();local a=c.a;c.skill=65;c.prices[2880]=106;c.read();c.bags(20,0)
+ a.sessions[40]={profile={id=40,skill=100,cap=150},recipes={},confirmed=1}
+ c.vendor();assert(a.active.profile.id==202,'Poison merchant stole active profession')
+ assert(a.nextStepWindow.task.kind=='vendor','Expected missing flux vendor, received '..a.nextStepWindow.task.kind)
+ assert(a.nextStepWindow.primaryCTA:GetText():find('Schwacher Fluxus',1,true),'Vendor action does not name flux')
+ assert(a.nextStepWindow.vendorOffer.quantity==10,'65 to 75 needs ten flux')
+end
+@test('Undercity: 60 to 65 and 65 to 75 share quantities with Auctionator without restarting searches')
+local function quantities()
+ local c=setup();local a=c.a;c.ah();assert(a.searchShopping());local p=c.plan()
+ assert(p.crafts==5 and p.rows[1].total==10,'60 to 65 recipe arithmetic')
+ c.skill=65;c.read();a.refreshNextStep(true)
+ local updated=false;for _,s in ipairs(c.terms)do if s:find('Kupferbarren|20|',1,true)then updated=true end end
+ assert(updated or a.nextStepWindow.task.kind=='ah_list','Stale x10 list silently offers twenty')
+ assert(c.searches==1,'A state update started another search')
+end
+@test('Undercity: latest observed vendor choice survives leaving the auction house')
+local function choice()
+ local c=setup();local a=c.a;c.ah();a.updateLiveAHPrice(2880,106,'results');a.refresh(false)
+ local p=c.plan();for _,r in ipairs(p.rows)do if r.id==2880 then assert(r.vendor,'Live 106 must prefer vendor 100')end end
+ a.shopping.open=false;a.refresh(false);a.refreshNextStep(true)
+ for _,r in ipairs(a.nextStepWindow.plan.rows)do if r.id==2880 then assert(r.vendor and r.unit==100,'Closing AH reverted to old 99 scan instead of latest price: '..tostring(r.vendor)..' / '..tostring(r.unit)..' / '..tostring(a.shoppingPricesCurrent())..' / '..tostring(a.shopping.livePrices and a.shopping.livePrices[2880]and a.shopping.livePrices[2880].unit))end end
+end
+@test('Undercity: confirmed mail and pending buys are not listed a second time')
+local function receipts()
+ local c=setup();local a=c.a;c.ah();assert(a.searchShopping());local plan=c.plan()
+ a.ensurePurchaseBatch(plan);local dialog={};assert(a.observeAHQuote(dialog,{itemID=2840,quantity=10,total=1500}));assert(a.markAHConfirm(dialog))
+ local searches=c.searches;a.refreshNextStep(true);assert(c.searches==searches)
+ a.purchaseSignal('COMMODITY_PURCHASE_SUCCEEDED');assert(a.confirmedMail(2840)==10)
+ a.refreshNextStep(true);for _,s in ipairs(c.terms)do assert(not s:find('Kupferbarren',1,true),'Purchased mail is listed again')end
+ c.bags(10,0);a.ahMailPoll();assert(a.confirmedMail(2840)==0)
+ a.refreshNextStep(true);assert(c.searches==searches,'Receiving mail restarted the search')
+end
+@test('Undercity: observed anvil marker is removed when native readiness becomes true')
+local function station()
+ local c=setup();local a=c.a;c.skill=65;c.prices[2880]=106;c.read();c.bags(20,10)
+ c.met=true;assert(not a.craftRequirementTask(a.decision.current.recipe))
+ local n=0;for _ in pairs(a.character.craftStations)do n=n+1 end;assert(n>0,'No native confirmed station captured')
+ c.met=false;c.x=.2;a.refreshNextStep(true);local g=a.nextStepWindow
+ assert(g.task.kind=='station'and g.task.station,'Known station target absent')
+ mock.click(g.primaryCTA);assert(a.mapTarget and a.mapTarget.stationKey)
+ assert(WorldMapFrame:IsShown()and WorldMapFrame:GetMapID()==1458)
+ c.met=true;a.refreshNextStep(true)
+ assert(g.task.kind=='craft'and not a.mapTarget,'Fulfilled station left a stale marker')
+ assert(not C_Map.GetUserWaypoint(),'Fulfilled station left its native waypoint')
+end
+@test('Undercity: already standing at an anvil on profession open needs no travel step')
+local function alreadyThere()
+ local c=setup();local a=c.a;c.skill=65;c.met=true;c.read();c.bags(20,10)
+ mock.fireEvent('TRADE_SKILL_SHOW');mock.waitSeconds(.3);a.refreshNextStep(true)
+ assert(a.nextStepWindow.task.kind=='craft'and not a.mapTarget)
+end
+@test('Undercity: station matching rejects other floors faction blocked and expired locations')
+local function stationSelection()
+ local c=setup();local a=c.a;c.met=true;c.x=.7;a.craftRequirementTask(a.decision.current.recipe)
+ c.x=.3;a.craftRequirementTask(a.decision.current.recipe);c.met=false;c.x=.31
+ local requirement={name='Amboss',type=Enum.RecipeRequirementType.SpellFocus,met=false}
+ local near=a.nearestCraftStation(requirement);assert(near and math.abs(near.x-30)<.1)
+ for _,s in pairs(a.character.craftStations)do if s.x<50 then s.blocked=true end end
+ local far=a.nearestCraftStation(requirement);assert(far and far.x>50,'Blocked closest point selected')
+ for _,s in pairs(a.character.craftStations)do s.blocked=nil;s.floor=999 end
+ assert(not a.nearestCraftStation(requirement),'Other floor was treated as reachable')
+ for _,s in pairs(a.character.craftStations)do s.floor=0;s.side='NotPlayerFaction'end
+ assert(not a.nearestCraftStation(requirement),'Incompatible faction selected')
+ for _,s in pairs(a.character.craftStations)do s.side=a.playerFaction();s.expires=time()-1 end
+ assert(not a.nearestCraftStation(requirement),'Expired observation selected')
+end
+@test('Undercity: a special alchemy table cannot borrow generic alchemy lab coordinates')
+local function laboratory()
+ local c=setup();local a=c.a;c.focus='Alchemy Lab';c.met=true;a.craftRequirementTask(a.decision.current.recipe)
+ c.met=false;c.focus='Alchemy Table';local t=a.craftRequirementTask(a.decision.current.recipe)
+ assert(t.kind=='station'and not t.station and t.body:find('kein verifizierter',1,true))
+ c.focus='Alchemy Lab';t=a.craftRequirementTask(a.decision.current.recipe);assert(t.station,'Exact observed laboratory not selected')
+end
+@test('Undercity: unknown station location is explicit and never guessed from trainer coordinates')
+local function unknown()
+ local c=setup();local a=c.a;c.skill=65;c.prices[2880]=106;c.read();c.bags(20,10);a.refreshNextStep(true)
+ local g=a.nextStepWindow;assert(g.task.kind=='station'and not g.task.station)
+ assert(g.workshopStatus:GetText():find('kein verifizierter',1,true),'Missing-coordinate reason hidden')
+ assert(not a.mapTarget,'A trainer or generic city coordinate was substituted')
+end
+@test('Undercity: station completion preserves a waypoint set by the player')
+local function externalWaypoint()
+ local c=setup();local a=c.a;c.met=true;a.craftRequirementTask(a.decision.current.recipe)
+ c.met=false;local t=a.craftRequirementTask(a.decision.current.recipe);assert(a.showCraftStation(t,false))
+ C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(1458,.85,.85))
+ c.met=true;a.clearStationMarker();local p=C_Map.GetUserWaypoint();assert(p and p.uiMapID==1458,'Player waypoint cleared')
+ assert(math.abs(p.position.x-.85)<.001 and math.abs(p.position.y-.85)<.001)
+end
+@test('Undercity: complete AH receipt mail vendor flux anvil and native create sequence')
+local function completeFlow()
+ local c=setup();local a=c.a;c.skill=65;c.prices[2880]=106;c.ah();assert(a.searchShopping())
+ local p=c.plan();assert(p.crafts==10)
+ a.ensurePurchaseBatch(p);local dialog={};assert(a.observeAHQuote(dialog,{itemID=2840,quantity=20,total=3000}));assert(a.markAHConfirm(dialog))
+ a.purchaseSignal('COMMODITY_PURCHASE_SUCCEEDED');a.refreshNextStep(true);assert(a.nextStepWindow.task.kind=='mail')
+ mock.fireEvent('AUCTION_HOUSE_CLOSED');c.bags(20,0);a.ahMailPoll();assert(a.confirmedMail(2840)==0)
+ c.vendor();local g=a.nextStepWindow;assert(g.task.kind=='vendor'and g.vendorOffer.quantity==10)
+ mock.click(g.primaryCTA);mock.waitSeconds(.4);a.vendorBuyTick();a.refresh(false);a.refreshNextStep(true)
+ assert(C_Item.GetItemCount(2880,false)==10,'Flux not purchased by original vendor action')
+ assert(g.task.kind=='station'and a.active.profile.id==202)
+ -- The log supplies no station coordinates. This is a controlled client
+ -- observation fixture, not a shipped claim about Undercity coordinates.
+ c.met=true;a.craftRequirementTask(a.decision.current.recipe);c.met=false;c.x=.2;a.refreshNextStep(true)
+ assert(g.task.station);mock.click(g.primaryCTA);assert(a.mapTarget and a.mapTarget.stationKey)
+ c.met=true;a.refreshNextStep(true);assert(g.task.kind=='craft'and not a.mapTarget)
+ mock.click(g.primaryCTA);assert(a.nativeCraftHandoff and not c.crafted,'Craft must still require the native player click')
+ local count=c.input.n
+ c.native.CraftingPage.CreateButton:SetScript('OnClick',function()
+  for i=1,count do
+   mock.fireEvent('UNIT_SPELLCAST_START','player','uc-craft-'..i,3924)
+   mock.setBag(0,{slots=20,items={[1]=20-2*i>0 and {id=2840,count=20-2*i}or nil,[2]=10-i>0 and {id=2880,count=10-i}or nil,[3]={id=4361,count=i}}})
+   c.skill=c.skill+1;mock.fireEvent('UNIT_SPELLCAST_SUCCEEDED','player','uc-craft-'..i,3924);mock.fireEvent('BAG_UPDATE_DELAYED')
+  end
+  c.crafted=count
+ end)
+ mock.click(c.native.CraftingPage.CreateButton);mock.waitSeconds(.6)
+ assert(c.crafted==10 and c.skill==75,'Native series did not complete the planned ten crafts')
+ assert(C_Item.GetItemCount(2840,false)==0 and C_Item.GetItemCount(2880,false)==0)
+end
+@test('Undercity visual: guide corners and cropped background keep aspect at compact expanded and resized dimensions')
+local function proportions()
+ local c=setup();local a=c.a;c.skill=65;c.prices[2880]=106;c.read();c.bags(20,0);c.vendor();local g=a.nextStepWindow
+ for _,expanded in ipairs({false,true})do
+  g.workshopExpanded=expanded;a.paintWorkshopGuide(g)
+  for _,scale in ipairs({.5,.8,1.2})do
+   g:SetScale(scale)
+   for _,size in ipairs({{420,300},{520,500},{360,650}})do
+    g:SetSize(size[1],size[2]);local t=g.workshopSlices[1];local uv={t:GetTexCoord()}
+    local minU,maxU,minV,maxV=1,0,1,0;for i=1,8,2 do minU=math.min(minU,uv[i]);maxU=math.max(maxU,uv[i]);minV=math.min(minV,uv[i+1]);maxV=math.max(maxV,uv[i+1])end
+    assert(math.abs((maxU-minU)*2048-(maxV-minV)*1024)<.01,'Corner source has unequal pixel sides')
+    assert(t:GetWidth()==22 and t:GetHeight()==22,'Border corner stretches with window')
+    local center=g.workshopSlices[5];local u={center:GetTexCoord()};local sourceW=math.abs(u[7]-u[1])*2048;local sourceH=math.abs(u[8]-u[2])*1024
+    assert(math.abs(sourceW/sourceH-(size[1]-44)/(size[2]-44))<.02,'Background motif is stretched')
+   end
+  end
+ end
+ a.paintWorkshopGuide(g);g:SetScale(.8);assert(g.primaryCTA.label:GetText():find('Fluxus',1,true))
+ assert(g.workshopStatus:GetTop()<g.primaryCTA:GetBottom(),'Status overlaps primary action')
+end
+@test('Undercity: genuine active poison order still offers poison ingredients at a mixed merchant')
+local function poison()
+ local c=setup();local a=c.a
+ mock.stub(_G,'UnitClass',function()return 'Schurke','ROGUE',4 end)
+ c.prices[2928]=20
+ mock.stub(C_TradeSkillUI,'GetBaseProfessionInfo',function()return {professionID=40,professionName='Poisons',skillLevel=1,maxSkillLevel=75}end)
+ mock.stub(C_TradeSkillUI,'GetAllRecipeIDs',function()return {8681}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeInfo',function(id)if id==8681 then return {recipeID=id,name='Instant Poison',learned=true,relativeDifficulty=0,numSkillUps=1,canSkillUp=true}end end)
+ mock.stub(C_TradeSkillUI,'GetRecipeRequirements',function()return {}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeOutputItemData',function()return {itemID=6947}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeSchematic',function()return {outputItemID=6947,quantityMin=1,quantityMax=1,reagentSlotSchematics={{quantityRequired=1,reagents={{itemID=2928}}}}}end)
+ mock.defineItem(6947,{name='Instant Poison',stackCount=20})
+ mock.setField(a.character,'poisons',{targets={[8681]=2},serial=0})
+ c.read();a.sessions[40]=a.active;assert(a.startPoisonOrder(),'Genuine poison order not created')
+ c.vendor();assert(a.isPoison()and a.nextStepWindow.task.kind=='vendor','Poison order lost its vendor step: '..tostring(a.nextStepWindow.task.kind)..' / '..tostring(a.active.profile.id)..' / '..tostring(a.problem)..' / '..tostring(a.character.poisons.job~=nil)..' / expected='..tostring(a.expectedProfession)..' / confirmed='..tostring(a.active.confirmed)..' / profile='..tostring((a.readProfession()or {}).id))
+ local q=a.poisonVendorQuote();assert(q and q.cost==20,'Wrong poison ingredient quote')
+ assert(a.character.poisons.job.remaining[8681]==2)
+end
+@test('Undercity: explicit poison planner choice remains available during engineering')
+local function explicitPoison()
+ local c=setup();local a=c.a
+ mock.stub(_G,'UnitClass',function()return 'Schurke','ROGUE',4 end)
+ mock.stub(_G,'IsPlayerSpell',function(id)return id==2842 end)
+ a.showPoisonPlanner()
+ assert(a.nextStepWindow.task.kind=='poison_open','Explicit user order change was blocked')
+end
+@test('Undercity: genuinely cheaper AH flux is retained until its price observation expires')
+local function cheaper()
+ local c=setup();local a=c.a;c.ah();assert(a.searchShopping())
+ local found=false;for _,s in ipairs(c.terms)do if s:find('Schwacher Fluxus',1,true)then found=true end end;assert(found,'99-copper AH offer incorrectly removed against 100 vendor')
+ a.shopping.open=false;c.bags(10,0);a.refreshNextStep(true);assert(a.nextStepWindow.task.kind=='ah','Cheaper AH was overridden by vendor')
+ a.shopping.readyWall=time()-1801;a.shopping.ready=GetTime()-1801
+ c.prices[2880]=106;a.refresh(false);a.refreshNextStep(true)
+ assert(a.nextStepWindow.task.kind=='vendor','Expired 99 observation kept overriding current vendor price')
+end
+@test('Undercity: automatic list sync preserves manual edits and requests one explicit rebuild')
+local function manualList()
+ local c=setup();local a=c.a;c.ah();assert(a.searchShopping());c.terms[1]='User edited item'
+ c.skill=65;c.read();a.refreshNextStep(true)
+ assert(c.terms[1]=='User edited item'and a.nextStepWindow.task.kind=='ah_list')
+ local searches=c.searches;mock.click(a.nextStepWindow.primaryCTA)
+ assert(c.searches==searches+1,'Explicit update did not rebuild the search once')
+ for _=1,5 do a.refreshNextStep(true)end;assert(c.searches==searches+1,'State polling restarts searches')
+end
+@test('Poisons unlock: rogue without learned ability cannot trigger from a merchant or stale saved data')
+local function lockedRogue()
+ local c=setup();local a=c.a
+ mock.stub(_G,'UnitClass',function()return 'Schurke','ROGUE',4 end)
+ mock.stub(_G,'IsPlayerSpell',function()return false end);mock.stub(_G,'IsSpellKnown',function()return false end)
+ mock.stub(_G,'GetProfessions',function()return nil end)
+ a.active=nil;a.sessions[40]={profile={id=40,skill=100},confirmed=1,recipes={}}
+ a.character.poisons.job={remaining={[8681]=1}}
+ assert(not a.poisonUnlocked()and not a.poisonMerchantEligible(),'Old saved data unlocked Poisons')
+ a.showPoisonPlanner();assert(not a.poisonMerchantNeedsRead)
+ assert(not a.openCraftProfession(nil,40),'Locked profession opened')
+ c.vendor();assert(not a.poisonMerchantNeedsRead,'Mixed merchant unlocked Poisons')
+end
+@test('Poisons unlock: other classes cannot unlock through known spell or saved data')
+local function otherClass()
+ local c=setup();local a=c.a
+ mock.stub(_G,'UnitClass',function()return 'Krieger','WARRIOR',1 end)
+ mock.stub(_G,'IsPlayerSpell',function()return true end)
+ assert(not a.poisonUnlocked());a.showPoisonPlanner();assert(not a.poisonMerchantNeedsRead)
+end
+@test('Poisons unlock: learned profession ability permits rogue prompt without cached recipes')
+local function learnedAbility()
+ local c=setup();local a=c.a
+ mock.stub(_G,'UnitClass',function()return 'Schurke','ROGUE',4 end)
+ mock.stub(_G,'IsPlayerSpell',function(id)return id==2842 end)
+ c.native:Hide();a.professionOpen=false;a.active=nil
+ mock.stub(C_TradeSkillUI,'GetBaseProfessionInfo',function()return nil end)
+ mock.stub(_G,'GetTradeSkillLine',function()return nil end)
+ assert(a.poisonUnlocked()and a.poisonMerchantEligible())
+ c.vendor();assert(a.poisonMerchantNeedsRead,'Unlocked rogue has no recipe-read prompt')
+end
+@test('Poisons unlock: native profession rank proves access when spell APIs have no result')
+local function nativeRank()
+ local c=setup();local a=c.a
+ mock.stub(_G,'UnitClass',function()return 'Schurke','ROGUE',4 end)
+ mock.stub(_G,'IsPlayerSpell',function()return false end);mock.stub(_G,'IsSpellKnown',function()return false end)
+ mock.stub(_G,'GetProfessions',function()return 7 end)
+ mock.stub(_G,'GetProfessionInfo',function()return 'Poisons',nil,1,75,nil,nil,40 end)
+ assert(a.poisonUnlocked(),'Live profession rank did not unlock Poisons')
+end

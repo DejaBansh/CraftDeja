@@ -29,5 +29,5 @@ local function scenario()
 local a,r=setup();a.active.profile.id=185;r.profession=185;a.professionOpen=true
 mock.stub(a,"nativeProfessionVisible",function()return true end)
 mock.stub(C_TradeSkillUI,"GetRecipeRequirements",function()return {{type=Enum.RecipeRequirementType.SpellFocus,name="Cooking Fire",met=false}}end)
-local task=a.craftRequirementTask(r);assert(task and task.kind=="station" and task.body==a.caption("station_cooking"),"Go to cooking fire step absent")
+local task=a.craftRequirementTask(r);assert(task and task.kind=="station" and task.body:find(a.caption("station_cooking"),1,true)==1,"Go to cooking fire step absent")
 end

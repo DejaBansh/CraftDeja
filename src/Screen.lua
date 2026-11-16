@@ -174,6 +174,7 @@ function app.showCatalogue()
         local f=window('CraftDejaCatalogue',710,589);app.catalogWindow=f;f.page=1;f.profession=app.active and app.active.profile.id or 333;f.factionOnly=true
         f.profButton=button(f,18,-48,315,'',function()
             local nextIndex=1;for i,id in ipairs(app.professionOrder)do if id==f.profession then nextIndex=i%#app.professionOrder+1 end end
+            if app.professionOrder[nextIndex]==40 and app.poisonUnlocked and not app.poisonUnlocked()then nextIndex=nextIndex%#app.professionOrder+1 end
             f.profession=app.professionOrder[nextIndex];f.page=1;app.renderCatalogue()
         end)
         f.faction=button(f,345,-48,168,'',function()f.factionOnly=not f.factionOnly;f.page=1;app.renderCatalogue()end)

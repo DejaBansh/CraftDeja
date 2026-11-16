@@ -1,5 +1,13 @@
 # Roadmap — Stand 15.11.2026
 
+## beta.24 — nächste Abnahme und Datenpflege, 16.11.2026
+
+- Umgesetzt: Ingenieursauftrag vor automatischen Gift-Prompts schützen; echte Giftfreischaltung prüfen; aktuelle Teilmengen, Post und offene Käufe für AH-Liste vereinheitlichen; Livepreis nach AH-Schließen behalten; benannter Händlerkauf; proportionale Guidegrafik. Automatisierter vollständiger Ablauf mit zwanzig neuen Regressionen; Live-Abnahme siehe docs/UNDERCITY_GUIDE_BETA24.md noch offen.
+- Stationsanforderungen und beobachtete Arbeitsbereiche sicher markieren/aufräumen. OFFEN: verifizierter Forever-Stationsatlas für Erstbesuche, verlässlicher Zugangs-/Ebenengraph und tatsächliche begehbare Reisewege. Aktuell nur bestätigte Punkte derselben Karte/Ebene/Instanz; keine Vollständigkeitszusage.
+- Nutzerwunsch geprüft: wöchentlicher Händlerrezept-Abgleich fehlt. OFFEN: autoritative Forever-Datenquelle, Herkunfts-/Lizenzprüfung, wöchentlicher Daten-Diff und fachliche Freigabe; gegebenenfalls Besuchserinnerung für alte lokale Beobachtungen. Ungeöffnete Händler lassen sich im Addon nicht weltweit abfragen. Nicht mit vorhandener 7-Tage-Lernkostengültigkeit verwechseln; keine wiederkehrenden Vollscans im Spiel einführen.
+- Nach bestandenen Prüfungen neue beta.24 über bestehenden Feature-/Tag-Workflow veröffentlichen. Kein main-Merge. Hauptbeschreibung benötigt weiterhin offiziellen manuellen Author-Console-Schritt; Datei-/Changelog-Upload separat nachweisbar.
+
+
 ## Hinweis zum vorhandenen Tag — Abschlussprüfung 16.11.2026
 
 - refs/tags/v3.9.0-beta.23 existiert bereits lokal und remote als annotierter Tag d42f80fe003d448fb6e99f14f3a87663120ae00c auf Commit 642dc69d40c0e35b76735822f665183dae64d68a; Tagger-Zeit 2026-11-16T21:11:29Z, vor dem neuen Dry-Run-Branchlauf. Nicht durch diesen Lauf erstellt, nicht verschoben/gelöscht/erneut gepusht. Früheres „keine Tags“ bedeutet: von diesem Auftrag keine erstellt oder gepusht.

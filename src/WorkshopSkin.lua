@@ -6,12 +6,18 @@ local actions={de={ws_bank_visit='Bankbedarf anzeigen',ws_alt='Twink-Auftrag vor
 for lang,t in pairs(actions)do for k,v in pairs(t)do app.words[lang][k]=v end end
 local function point(w,x,y)w:ClearAllPoints();w:SetPoint('TOPLEFT',x,-y)end
 -- Nine slices preserve rounded corners instead of stretching rivets with a card.
-function app.workshopCard(f)
+function app.workshopCard(f,asset,width,height,border,pixels,layer)
     if f.workshopSlices then return end
     f.workshopSlices={}
-    local cuts={0,.12,.88,1};local size=22
+    width,height=width or 2048,height or 1024
+    local size=border or 22;local p=pixels or 112
+    -- Equal source-pixel corner dimensions are essential: .12 of a 2048x1024
+    -- image is a 2:1 rectangle and used to squash each rivet into a square.
+    local xs={0,p/width,1-p/width,1};local ys={0,p/height,1-p/height,1}
+    local center
     for row=1,3 do for col=1,3 do
-        local t=f:CreateTexture(nil,'BACKGROUND',nil,-6);t:SetTexture(app.uiPath('WorkshopCard'));t:SetTexCoord(cuts[col],cuts[col+1],cuts[row],cuts[row+1])
+        local t=f:CreateTexture(nil,layer or 'BACKGROUND',nil,-6);t:SetTexture(app.uiPath(asset or 'WorkshopCard'));t:SetTexCoord(xs[col],xs[col+1],ys[row],ys[row+1])
+        if row==2 and col==2 then center=t end
         local left=col==1 and 0 or size;local right=col==3 and 0 or size
         local top=row==1 and 0 or size;local bottom=row==3 and 0 or size
         if col==1 then t:SetPoint(row==3 and 'BOTTOMLEFT'or 'TOPLEFT',0,row==3 and 0 or -top);t:SetWidth(size)
@@ -20,6 +26,15 @@ function app.workshopCard(f)
         if row==2 then t:SetPoint(col==3 and 'BOTTOMRIGHT'or 'BOTTOMLEFT',col==3 and 0 or left,bottom)else t:SetHeight(size)end
         f.workshopSlices[#f.workshopSlices+1]=t
     end end
+    local function crop()
+        local w,h=math.max(1,f:GetWidth()-2*size),math.max(1,f:GetHeight()-2*size)
+        local u0,u1,v0,v1=xs[2],xs[3],ys[2],ys[3]
+        local source=(width-2*p)/(height-2*p);local target=w/h
+        if target>source then local span=(v1-v0)*source/target;v0=.5-span/2;v1=.5+span/2
+        else local span=(u1-u0)*target/source;u0=.5-span/2;u1=.5+span/2 end
+        center:SetTexCoord(u0,u1,v0,v1)
+    end
+    f:HookScript('OnSizeChanged',crop);crop()
 end
 function app.workshopFit(f,w,h,desired)
     -- Keep physical text size stable across the game's UI Scale setting.
@@ -43,6 +58,7 @@ app.styleButton=function(b,role,iconOnly)
         app.try(b['Set'..kind..'Texture'],b,'Interface\\Buttons\\WHITE8X8')
         local t=app.try(b['Get'..kind..'Texture'],b)
         if t then
+            t:SetAlpha(1)
             local c=kind=='Highlight'and {.18,.45,.59,.5}or kind=='Pushed'and {.08,.28,.29,1}or kind=='Disabled'and {.06,.08,.12,.95}or {.055,.085,.14,.95}
             t:SetColorTexture(unpack(c))
         end
@@ -57,21 +73,32 @@ app.createButton=function(...)
     app.styleButton(b,b.role,b.iconOnly);return b
 end
 local cta=app.styleCTAButton
+function app.workshopTint(b)
+    local ready=b:IsEnabled()and b.workshopReadyState~=false
+    local c=not ready and {.38,.46,.52,1}or b.workshopPointer=='pressed'and {.6,.8,.65,1}or b.workshopPointer=='hover'and {1,1,1,1}or {.85,1,.92,1}
+    for _,t in ipairs(b.workshopSlices or {})do t:SetDesaturated(not ready);t:SetVertexColor(unpack(c))end
+end
 app.styleCTAButton=function(b,primary)
     cta(b,primary)
+    if b.workshopSlices then for _,t in ipairs(b.workshopSlices)do t:SetShown(primary==true)end end
     if primary then
-        for _,kind in ipairs({'Normal','Pushed','Highlight','Disabled'})do
-            b['Set'..kind..'Texture'](b,app.uiPath('WorkshopAction'))
-            local t=b['Get'..kind..'Texture'](b)
-            if t then t:SetDesaturated(not b:IsEnabled());t:SetVertexColor(unpack(kind=='Disabled'and {.34,.38,.45,1}or kind=='Pushed'and {.64,.85,.68,1}or kind=='Highlight'and {1,1,1,.5}or {.85,1,.92,1}))end
+        for _,kind in ipairs({'Normal','Pushed','Highlight','Disabled'})do b['Set'..kind..'Texture'](b,'Interface\\Buttons\\WHITE8X8');b['Get'..kind..'Texture'](b):SetAlpha(0)end
+        app.workshopCard(b,'WorkshopAction',2048,512,12,112,'ARTWORK')
+        if not b.workshopStateHooks then
+            b.workshopStateHooks=true
+            b:HookScript('OnEnter',function()b.workshopPointer='hover';app.workshopTint(b)end)
+            b:HookScript('OnLeave',function()b.workshopPointer=nil;app.workshopTint(b)end)
+            b:HookScript('OnMouseDown',function()b.workshopPointer='pressed';app.workshopTint(b)end)
+            b:HookScript('OnMouseUp',function()b.workshopPointer='hover';app.workshopTint(b)end)
         end
+        app.workshopTint(b)
         b:SetHeight(60);if b.label then b.label:SetFont(STANDARD_TEXT_FONT or 'Fonts\\FRIZQT__.TTF',15,'OUTLINE');b.label:SetWidth(b:GetWidth()-38);b.label:SetHeight(42);b.label:SetWordWrap(true)end
         if b.ctaBorder then b.ctaBorder:Hide()end
     end
 end
 function app.workshopReady(b,ready,key)
     if not b.workshopGlow then
-        local t=b:CreateTexture(nil,'ARTWORK');b.workshopGlow=t;t:SetAllPoints();t:SetTexture(app.uiPath('WorkshopAction'));t:SetBlendMode('ADD');t:SetAlpha(0)
+        local t=b:CreateTexture(nil,'ARTWORK');b.workshopGlow=t;t:SetPoint('TOPLEFT',12,-12);t:SetPoint('BOTTOMRIGHT',-12,12);t:SetColorTexture(.08,.8,.25,.22);t:SetBlendMode('ADD');t:SetAlpha(0)
         local g=t:CreateAnimationGroup();b.readyAnimation=g
         local up=g:CreateAnimation('Alpha');up:SetFromAlpha(0);up:SetToAlpha(.38);up:SetDuration(.22);up:SetOrder(1)
         local down=g:CreateAnimation('Alpha');down:SetFromAlpha(.38);down:SetToAlpha(0);down:SetDuration(.65);down:SetOrder(2)
@@ -80,6 +107,7 @@ function app.workshopReady(b,ready,key)
     end
     local changed=ready and (not b.workshopReadyState or b.workshopActionKey~=key)
     b.workshopReadyState=ready;b.workshopActionKey=key
+    app.workshopTint(b)
     if not ready then b.readyAnimation:Stop();b.workshopGlow:SetAlpha(0)
         for _,kind in ipairs({'Normal','Pushed','Highlight'})do local t=b['Get'..kind..'Texture'](b);if t then t:SetDesaturated(true);t:SetVertexColor(.42,.52,.63,1)end end
     elseif changed and b:IsVisible()then b.readyAnimation:Play();b.workshopPulses=(b.workshopPulses or 0)+1 end
@@ -162,6 +190,10 @@ function app.paintWorkshopGuide(f)
     point(f.workshopToggle,20,y);f.workshopToggle:SetText(app.caption(f.workshopExpanded and 'ws_less'or 'ws_details'));f.workshopToggle:Show()
     point(f.changeOrder,217,y);f.changeOrder:SetWidth(183);f.changeOrder.label:SetWidth(143)
     f:SetHeight(y+48);app.workshopFit(f,420,f:GetHeight(),app.options.windowScales and app.options.windowScales.CraftDejaNextStep or app.options.scale)
+    if f.surface then
+        f.surface:ClearAllPoints();f.surface:SetPoint('TOPLEFT',12,-48);f.surface:SetPoint('BOTTOMRIGHT',-12,12)
+        f.surface:SetColorTexture(.014,.025,.045,.3)
+    end
     app.workshopReady(b,app.workshopActionReady(f),app.workshopActionIdentity(f))
 end
 local render=app.renderNextStep

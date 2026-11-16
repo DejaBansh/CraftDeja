@@ -1,5 +1,6 @@
 -- SPDX-License-Identifier: MIT
 local _,app=...
+app.words.en.vendor_named_action='Buy %s · %d';app.words.de.vendor_named_action='%s kaufen · %d'
 app.unifiedUI=true
 local words={en={ui_change='Change order',ui_options='Options',ui_back='Back to guide',ui_apply='Apply order',ui_draft='%d poison types / %d units selected.\nApply the order to plan the ingredients.',ui_draft_button='Apply order: %d units',ui_open_poison='Open Poisons once to read your learned recipes.',ui_settings='Settings',ui_lookup='Reference',ui_help='Help',ui_general='General settings',ui_limit='Price limit: scan +%d%%',ui_alts='Deduct alt materials: %s',ui_unlock='Allow a new AH search',ui_center='Reset guide position',ui_catalog='Recipe catalogue',ui_materials='Materials & storage',ui_source='Recipe details & sources',ui_merchants='Vendor locations',ui_tutorial='Getting started',ui_audit='Recipe observations (%d)',ui_log='Diagnostic log',ui_diagnostic='Purchase diagnostics',ui_vendor_all='Buy ingredients: %s',ui_vendor_one='Buy %d: %s',ui_vendor_running='Buying ingredients...',ui_skill='Skill target',ui_goal_next='Until next action',ui_goal_manual='Manual: +%d skill points',ui_no_recipe='No current recipe. Open your profession first.',ui_price_info='Prices and skill-up quantities are estimates.'},de={ui_change='Auftrag ändern',ui_options='Optionen',ui_back='Zurück zum Guide',ui_apply='Auftrag übernehmen',ui_draft='%d Giftarten / %d Stück gewählt.\nAuftrag übernehmen, um die Zutaten zu planen.',ui_draft_button='Auftrag übernehmen: %d Stück',ui_open_poison='Öffne Gifte einmal, damit deine gelernten Rezepte eingelesen werden.',ui_settings='Einstellungen',ui_lookup='Nachschlagen',ui_help='Hilfe',ui_general='Allgemeine Einstellungen',ui_limit='Preislimit: Scan +%d%%',ui_alts='Alt-Materialien abziehen: %s',ui_unlock='Neue AH-Suche freigeben',ui_center='Guide-Position zurücksetzen',ui_catalog='Rezeptkatalog',ui_materials='Materialien & Lagerorte',ui_source='Rezeptdetails & Herkunft',ui_merchants='Händlerstandorte',ui_tutorial='Einstiegsleitfaden',ui_audit='Rezeptbeobachtungen (%d)',ui_log='Diagnoseprotokoll',ui_diagnostic='Kaufdiagnose',ui_vendor_all='Zutaten kaufen: %s',ui_vendor_one='%d kaufen: %s',ui_vendor_running='Zutaten werden gekauft...',ui_skill='Skillziel',ui_goal_next='Bis zur nächsten Aktion',ui_goal_manual='Manuell: +%d Skillpunkte',ui_no_recipe='Kein aktuelles Rezept. Öffne zuerst deinen Beruf.',ui_price_info='Preise und Skillmengen sind Schätzungen.'}}
 for lang,entries in pairs(words)do for k,v in pairs(entries)do app.words[lang][k]=v end end
@@ -140,7 +141,8 @@ end
 local oldNext=app.renderNextStep
 app.renderNextStep=function(plan,keep,task)
     local s=app.character and app.character.poisons
-    if not app.professionLoading and app.poisonMerchantNeedsRead and app.vendorPurchase.open and not app.isPoison()then
+    if app.poisonMerchantNeedsRead and (not app.poisonUnlocked()or app.poisonMerchantNeedsRead~='explicit'and not app.poisonMerchantEligible())then app.poisonMerchantNeedsRead=nil end
+    if not app.professionLoading and app.poisonMerchantNeedsRead and (app.vendorPurchase.open or app.poisonMerchantNeedsRead=='explicit')and not app.isPoison()then
         task={kind='poison_open',key='poison_open',body=app.caption('ui_open_poison')}
     elseif not app.professionLoading and app.isPoison()then
         app.poisonMerchantNeedsRead=nil
@@ -228,6 +230,7 @@ function app.applyGuideCTA(f,plan)
     local primary,secondary=f.action,nil
     if kind=='ah'then title=app.shopping.open and 'cta_ah_search'or 'cta_ah_visit';label=app.shopping.open and 'cta_ah_search'or 'cta_ah_check'
     elseif kind=='scan'or kind=='ah_scan'then title,label='cta_scan','cta_wait'
+    elseif kind=='ah_list'then title,label='shopping_list_update','shopping_list_update'
     elseif kind=='ah_buy'then title,label='cta_material','cta_buy'
     elseif kind=='ah_confirm'then title,label='cta_confirm','cta_confirm'
     elseif kind=='ah_load'then title,label='cta_ah_search','cta_ah_search'
@@ -264,7 +267,7 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='poison'then title,label='cta_poison','cta_poison'
     elseif kind=='production_choose'then title,label='cta_production','cta_production'end
     local stationCTA=kind=='station'and app.craftStationCTA(task)
-    primary:SetText(stationCTA or app.caption(label))
+    primary:SetText(stationCTA or kind=='vendor'and task.atVendor and f.vendorOffer and app.caption('vendor_named_action',f.vendorOffer.name,f.vendorOffer.quantity)or app.caption(label))
     if kind=='cooldown'or kind=='rod_wait'then primary:Disable()end
     local cost=task.offer and task.offer.cost
     if kind=='vendor'and task.atVendor then local offer=app.isPoison()and f.vendorQuote or f.vendorOffer;cost=offer and offer.cost end
@@ -339,7 +342,7 @@ app.offerVendorPurchase=function()
     if app.unifiedViewKey=='vendor'then app.renderVendorBuy()end
 end
 app.showShopping=function()app.refreshNextStep(true)end
-app.showPoisonMerchantPrompt=function()app.poisonMerchantNeedsRead=true;app.refreshNextStep(true)end
+app.showPoisonMerchantPrompt=function()if app.poisonMerchantEligible()then app.poisonMerchantNeedsRead=true;app.refreshNextStep(true)end end
 local oldNextRefresh=app.refreshNextStep
 app.refreshNextStep=function(force)
     if force and root()then root().dismissed=nil end
@@ -365,7 +368,8 @@ app.renderPoisonPlanner=function()
     if app.unifiedView==f then paintView()end
 end
 app.showPoisonPlanner=function()
-    if not app.isPoison()then app.poisonMerchantNeedsRead=true;app.refreshNextStep(true);return end
+    if not app.poisonUnlocked()then app.poisonMerchantNeedsRead=nil;return false end
+    if not app.isPoison()then app.poisonMerchantNeedsRead='explicit';app.refreshNextStep(true);return end
     oldPlanner();local f=app.poisonWindow
     if not f.unifiedApply then
         f.unifiedApply=true

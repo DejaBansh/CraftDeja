@@ -28,6 +28,7 @@ function app.nextStep(plan)
     local ahRows=plan.ahRows
     if ahRows==nil then ahRows=0;for _,r in ipairs(plan.rows)do if r.buy>0 and not r.vendor then ahRows=ahRows+1 end end end
     if ahRows>0 then
+        if app.shopping.open and app.shopping.listStale then return {kind='ah_list',key='ah_list',body=app.caption('shopping_list_changed')}end
         local due,items,keys=nil,{},{}
         for _,r in ipairs(plan.rows)do
             if r.buy>0 and not r.vendor then
@@ -109,10 +110,11 @@ function app.renderNextStep(plan,keepVisible,override)
                 elseif t.vendor then f.marked=app.markMerchant(t.vendor);app.renderNextStep(f.plan,true)
                 else app.showMerchants()end
             elseif t.kind=='ah'then if app.shoppingFresh()then app.searchShopping()else app.requestShopping()end
+            elseif t.kind=='ah_list'then app.refreshShoppingList();app.refreshNextStep(true)
             elseif t.kind=='scan'then app.autoScanTick(true)
             elseif t.kind=='review'then app.showCatalogue()
             elseif t.kind=='learn'then f.marked=app.showRecipeSource(t.recipe or app.decision.current.recipe)
-            elseif t.kind=='station'then app.refresh(false);app.refreshNextStep(true)
+            elseif t.kind=='station'then app.refresh(false);app.refreshNextStep(true);if f.task and f.task.kind=='station'then app.showCraftStation(f.task,true)end
             elseif t.kind=='rod_collect'then app.refresh(false);app.refreshNextStep(true)
             elseif t.kind=='tool'then if not app.professionOpen then app.openCraftProfession(t.recipe and t.recipe.id)else app.refresh(false);app.refreshNextStep(true)end
             elseif t.kind=='production_choose'then app.editUnifiedOrder()
@@ -128,6 +130,8 @@ function app.renderNextStep(plan,keepVisible,override)
     end
     if app.craftBatch then plan=app.craftBatch.plan elseif app.nativeCraftHandoff then plan=app.nativeCraftHandoff.plan end
     local f=app.nextStepWindow;local task=override or app.nextStep(plan)
+    if (task.kind~='station'or not task.station)and app.clearStationMarker then app.clearStationMarker()end
+    if plan and app.syncShoppingList then app.syncShoppingList(plan);if not override and app.shopping.listStale then task=app.nextStep(plan)end end
     if app.shopping.open and not app.shoppingFresh()and app.active and not app.craftBatch and task.kind~='open'and task.kind~='loading'then
         task={kind='scan',key='scan',body=app.scanWaitText()};plan=nil
     end
@@ -137,6 +141,7 @@ function app.renderNextStep(plan,keepVisible,override)
         if task.vendor then f.marked=app.markMerchant(task.vendor)end
         if task.trainer and not task.levelBlocked then f.marked=app.markMerchant(task.trainer)end
         if task.sourceTarget then f.marked=app.markMerchant(task.sourceTarget)end
+        if task.station then f.marked=app.showCraftStation(task,false)end
     end
     local important=app.isImportantTask(task)
     f.route:SetText(plan and app.routeSummary()or '')
@@ -237,7 +242,7 @@ function app.refreshNextStep(force)
     elseif rodActive then
         plan=rod;task=rodTask
         if plan then
-            if app.shoppingFresh()then plan=app.completeShoppingPlan(plan)end
+            plan=app.completeShoppingPlan(plan)
             task=app.nextStep(plan)
         end
     elseif app.productionEnabled()then
@@ -248,7 +253,7 @@ function app.refreshNextStep(force)
         local tool=recipe and app.craftRequirementTask(recipe,true)
         if tool then task=tool;plan=nil
         elseif plan then
-            if app.shoppingFresh()then plan=app.completeShoppingPlan(plan)end
+            plan=app.completeShoppingPlan(plan)
             task=app.nextStep(plan)
         elseif reason=='requirement_cooldown'then task={kind='cooldown',key='cooldown',body=app.caption(reason)}
         else task={kind='production_choose',key='production:'..tostring(reason),body=app.caption(reason or 'production_choose')}end
@@ -273,12 +278,7 @@ function app.refreshNextStep(force)
         else
             plan,reason=app.materialPlan(d.current.recipe,target)
             if plan then
-                plan.ahRows=0;plan.vendorRows=0
-                for _,r in ipairs(plan.rows)do
-                    local vendor=app.vendorPrice(r.id)
-                    r.vendor=vendor and vendor<=r.unit;r.vendorUnit=vendor
-                    if r.buy>0 then if r.vendor then plan.vendorRows=plan.vendorRows+1 else plan.ahRows=plan.ahRows+1 end end
-                end
+                plan=app.completeShoppingPlan(plan)
             end
         end
         if plan and app.craftAvailability(plan)==0 and not app.craftBatch and app.shopping.open and not app.shoppingFresh()then task={kind='scan',key='scan',body=app.caption(app.shopping.started and 'step_auto_scanning'or app.shopping.autoReason or 'step_auto_scan')}end

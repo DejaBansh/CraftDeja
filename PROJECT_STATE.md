@@ -1,5 +1,16 @@
 # CraftDeja — verbindlicher Projektstand
 
+## beta.24 — Guidekorrekturen, 16.11.2026 (aktueller Stand)
+
+Branch codex/undercity-guide-fixes aus sauberem 5b87da2bee376ec4aa842b68cd414f01908f27c1. Version beta.24. Originale Nutzeränderungen waren keine vorhanden. main unverändert; bestehender beta.23-Tag bleibt unverändert.
+
+Loggestützt korrigiert: veraltete Auctionator-Teilmengen nach Skillwechsel; Verlust aktueller AH-Preise beim Schließen; Gift-Prompt durch gemischten Händler trotz Ingenieursauftrag. Konkreter Fall skill60→65: 5 Crafts/10 Barren/5 Fluxus, skill65→75: 10 Crafts/20 Barren/10 Fluxus, jeweils vor Bestand/Post. Gifte nur für Schurken mit nativ belegter Freischaltung, kein Unlock durch Klasse oder gespeicherte Aufträge allein. Proportionale Guidegrafik und eigener Buttonrahmen. Analyse, Grenzen und Live-Prüfung: docs/UNDERCITY_GUIDE_BETA24.md.
+
+Stationsmarker aus aktuellen nativen Erfüllt-Beobachtungen; exakte Anforderung, Karte/Ebene/Instanz/Fraktion und Ablaufzeit. Keine geratenen Forever-Koordinaten, kein verifizierter globaler Stationsatlas und kein kürzester Laufweg. Ohne Nachweis klare Anforderung/Standort-fehlt-Meldung. Live-Durchlauf beta.24 weiterhin offen.
+
+Händlerabgleich geprüft: MERCHANT_SHOW/UPDATE aktualisiert besuchten Bestand/Preise. Kein wöchentlicher globaler Rezeptabgleich; vorhandene Sieben-Tage-Grenze betrifft Lernkosten. Verifizierte Forever-Referenzquelle für wöchentliche Datenpflege bleibt offen. Keine neuen periodischen Vollscans.
+
+
 ## Hinweis zum vorhandenen Tag — Abschlussprüfung 16.11.2026
 
 - refs/tags/v3.9.0-beta.23 existiert bereits lokal und remote als annotierter Tag d42f80fe003d448fb6e99f14f3a87663120ae00c auf Commit 642dc69d40c0e35b76735822f665183dae64d68a; Tagger-Zeit 2026-11-16T21:11:29Z, vor dem neuen Dry-Run-Branchlauf. Nicht durch diesen Lauf erstellt, nicht verschoben/gelöscht/erneut gepusht. Früheres „keine Tags“ bedeutet: von diesem Auftrag keine erstellt oder gepusht.

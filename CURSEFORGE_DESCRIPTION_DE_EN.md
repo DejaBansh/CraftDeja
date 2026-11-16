@@ -1,207 +1,79 @@
-<p><a href="https://media.forgecdn.net/attachments/2202/742/craftdeja_goblin_unter_2mb-jpg.jpg" target="_blank"><img src="https://media.forgecdn.net/attachments/2202/742/craftdeja_goblin_unter_2mb-jpg.jpg" alt="CraftDeja – Goblin-Werkstatt und Funktionen / Goblin workshop and features" width="560"></a></p>
-
-# CraftDeja — WoW Forever Profession Leveling & Shopping
-
-## English
-
-**MORE SKILL. LESS GOLD.**
-
-Compare recipes by **estimated material cost per skill point**, not just cost per craft. CraftDeja weighs available prices against skill-up chances and guides you through materials, recipes and the next crafting step.
-
-**Built for WoW Forever 1.60.1 · German & English · Auctionator shopping · Optional TSM prices**
-
-<p><img src="https://media.forgecdn.net/attachments/2202/942/craftdeja_demo_en-gif.gif" alt="CraftDeja in action: prices, auction shopping, mail, cooking fire, crafting and trainer map marker" width="640"></p>
-
-**Quick start:** install CraftDeja and Auctionator, scan the auction house, open your profession and type `/cdj`.
-
-**Which recipe is worth crafting right now? Which materials am I missing? What should I do next?**
-
-CraftDeja is your profession adviser for **WoW Forever**. It combines available material prices, recipe data, skill-up chances and your inventory into a guided plan. Follow one clear next action instead of juggling recipe lists, shopping notes and multiple windows.
-
-### Compare expected cost per skill point
-
-The cheapest recipe per craft is not always the cheapest way to gain a skill point. CraftDeja also accounts for the estimated skill-up chance of yellow and green recipes.
-
-The plan continues to the next calculated recipe switch, learning step or skill limit. Switching to a recipe you already have can become worthwhile before a new recipe becomes available to learn.
-
-**Below skill 300**, automatic skill planning determines the quantities. **For poisons and production at skill 300 or higher**, you can choose your own quantities.
-
-### How the calculation works
-
-`Material cost per craft / (estimated skill-up chance × skill points per successful craft)`
-
-Illustrative example, not live prices: an orange craft costing 10 silver at 100% gives an estimated 10 silver per point. A green craft costing 2 silver at 25% gives an estimated 8 silver per point. Green can therefore be the cheaper choice when enabled and its recipe data is usable.
-
-Skill and material changes update the guide. While a crafting batch runs, progress is updated selectively; expensive full price/recipe comparisons are deferred until the batch ends or is interrupted. Available AH prices are cached observations, not a continuous live market feed.
-
-**Current limits:** the ranking compares material costs. It does not yet subtract resale proceeds or include recipe purchases, training, travel or tool-acquisition costs in that ranking. It is not a proof of the globally cheapest complete 1–300 route.
-
-### One clear next action
-
-The guide highlights the current step with a prominent action button: visit the auction house, buy materials, collect mail, learn a recipe or prepare crafting.
-
-If a recipe needs a workstation, the guide shows a specific instruction such as **“Visit cooking fire,” “Visit anvil”** or **“Visit forge.”** Missing tools and other requirements reported by the client are taken into account. Further details remain available through the relevant views and tooltips.
-
-### Material planning that uses your inventory
-
-CraftDeja calculates the required reagents and deducts materials you already have. It considers your bags, available bank and storage data, confirmed purchases or mail, and optionally eligible stock on other characters.
-
-See what you already own, what you should collect and which quantities are still missing.
-
-### Auction-house and vendor assistance
-
-With **Auctionator**, CraftDeja helps you use available price data, search for missing materials and prepare appropriate purchase quantities. Vendor offers and package sizes are included in the shopping assistance.
-
-**TradeSkillMaster can optionally provide price data** when its API supplies suitable values. The TSM connection does not replace the Auctionator shopping workflow.
-
-### Learn recipes and find their sources
-
-Unlearned recipes considered by the addon can also become part of your plan. CraftDeja shows known trainers, vendors and other sources. Map markers are available for suitable recorded sources with coordinates.
-
-Faction access and known restrictions are considered when making recommendations.
-
-### Enchanting rods as a prerequisite task
-
-If a recommended enchantment needs a runed rod you do not have, CraftDeja plans its preparation before the main order:
-
-**Learn the recipe → obtain materials → craft one rod → continue the original order.**
-
-Required predecessor rods and suitable tools you already own are taken into account. The classic Runed Copper, Silver, Golden, Truesilver and Arcanite Rods are supported when the client confirms the necessary recipe and output data.
-
-### Dedicated rogue poison planning
-
-Choose target stock levels or additional crafting quantities for poisons. Different poison ranks are handled separately, and existing stock reduces the missing quantity. The guide takes you through obtaining materials and preparing production.
-
-### A unified interface and focused crafting updates
-
-The order overview, settings, recipe catalogue, materials, sources and help are accessible through one shared interface. Appearance and scale can be adjusted. **German and English** are supported.
-
-During crafting, CraftDeja postpones heavy full background updates and focuses on the current skill, batch progress and required inventory. Data is fully refreshed again after completion or interruption.
-
-The prepared batch size and estimated number of attempts are shown separately. For example, **“Batch: 1 · to 124 about 6 attempts”** means one craft is prepared, while the skill plan estimates roughly six attempts. It does not guarantee a skill point after a particular number of crafts.
-
-### Supported professions
-
-- Alchemy
-- Blacksmithing
-- Leatherworking
-- Tailoring
-- Engineering
-- Enchanting
-- Cooking
-- First Aid
-- Mining: smelting recipes
-- Additionally: rogue poisons
-
-### Getting started
-
-1. Install CraftDeja and open your profession so the addon can read your recipes and skill.
-2. Use Auctionator for the complete auction-house workflow and available market prices.
-3. Open the guide with **`/cdj`** and follow the next action.
-4. Find settings, reference views, the diagnostic log and the guided system check in the gear menu.
-
-**You stay in control:** confirm purchases yourself. CraftDeja prepares crafting; you still click the original Create button in the profession window.
-
-CraftDeja is in beta. Recommendations depend on available price and recipe data; skill-up chances are estimates. Known sources and coordinates are guidance and may differ in game. The recipe check, diagnostic log and system check help you report data discrepancies and issues clearly.
-
----
+# CraftDeja — Berufe günstiger skillen in World of Warcraft: Forever
 
 ## Deutsch
 
-**MEHR SKILL. WENIGER GOLD.**
+**CraftDeja hilft dir, deine Berufe in World of Warcraft: Forever anhand verfügbarer Auktionshauspreise und geschätzter Skillchancen günstiger zu leveln. Du erhältst eine übersichtliche Levelroute, geplante Materialmengen und eine klare nächste Aktion, statt Rezepte, Bezugsquellen und Einkaufslisten selbst zusammenzusuchen.**
 
-Vergleiche Rezepte nach **geschätzten Materialkosten pro Skillpunkt**, nicht nur nach Kosten pro Herstellung. CraftDeja berücksichtigt verfügbare Preise und Skillchancen und führt dich durch Materialien, Rezepte und die nächste Herstellungsaktion.
+### Mehr Skill fürs Gold: Preise und Rezeptwechsel vergleichen
 
-**Für WoW Forever 1.60.1 · Deutsch & Englisch · Auctionator-Einkauf · TSM-Preise optional**
+Vergleiche erwartete Kosten pro Skillpunkt statt nur den Preis einer Herstellung. Gelbe und grüne Rezepte können sich lohnen, wenn ihre geringere Skillchance durch günstige Zutaten ausgeglichen wird. Plane bis zu deinem Zielskill mit mehreren Rezeptabschnitten und nutze hergestellte Zwischenprodukte weiter.
 
-**Schnellstart:** CraftDeja und Auctionator installieren, das AH scannen, den Beruf öffnen und `/cdj` eingeben.
+Die Kostenansicht trennt fehlende Einkäufe, verbrauchten Eigenbestand, bekannte Lerngebühren und berücksichtigte Händlererlöse. Fehlende Preise und unbestätigte Angaben bleiben erkennbar. Verglichen werden verfügbare Kandidaten mit begrenzter Suche: keine Garantie für die weltweit günstigste Route oder eine feste Anzahl Skillups.
 
-**Welches Rezept lohnt sich gerade? Welche Materialien fehlen? Und was ist mein nächster Schritt?**
+### Ein Werkstattpult, ein klarer nächster Schritt
 
-CraftDeja ist dein Berufsberater für **WoW Forever**. Das Addon verbindet verfügbare Materialpreise, Rezeptdaten, Skillchancen und deinen Bestand zu einer geführten Planung. Du folgst einer klaren nächsten Aktion, statt zwischen Rezeptlisten, Einkaufsnotizen und mehreren Fenstern zu wechseln.
+Das neue Goblin-Werkstattpult bündelt **Route, Materialien und Einstellungen**. Rechts siehst du die aktuelle Aktion und Schrittdetails; der kompakte Guide funktioniert auch allein. Sein grüner Hauptbutton zeigt, was jetzt ansteht: **Post abholen, Bankmaterialien einlagern, Rezepte lernen oder Herstellung vorbereiten**. Wartegründe und fehlende Voraussetzungen stehen direkt bei der Aufgabe.
 
-### Rezepte nach Kosten pro Skillpunkt vergleichen
+### Auktionshaus, Bank und Rezeptquellen verbinden
 
-Das billigste Rezept pro Herstellung ist nicht immer das günstigste pro Skillpunkt. CraftDeja berücksichtigt deshalb auch die geschätzte Skillchance bei gelben und grünen Rezepten.
+- **Auctionator:** verfügbare AH-Preise nutzen, fehlende Materialien suchen und Kaufmengen vorbereiten. TSM ist eine optionale Preisquelle.
+- **Vorräte einplanen:** Taschen, verfügbare Bankdaten, bestätigte Käufe und Post berücksichtigen; aktuelle Craftzutaten behalten und spätere Materialien über einen ausdrücklichen Bankklick einlagern oder entnehmen.
+- **Rezeptquellen finden:** bekannte Lehrer und Händler anzeigen und geeignete Quellen auf der Karte markieren. CraftDeja bevorzugt den nächsten bekannten passenden Lehrer anhand vergleichbarer Standortdaten.
+- **Twinks und Gilden-Crafts:** gespeicherte, geeignete Vorräte oder bestätigte Herstellerangebote als zusätzliche Beschaffungswege prüfen. Freigaben, Kosten und Übergaben bleiben ausdrücklich kontrollierbar.
+- **Arbeitsstationen:** Bestätigte Arbeitsbereiche auf der aktuellen Karte/Ebene wiederfinden. Fehlende Standortdaten werden klar benannt; der Guide wechselt weiter, sobald die native Rezeptvoraussetzung erfüllt ist.
+- **Verzauberungsruten und Gifte:** fehlende Ruten als Voraussetzung vorbereiten; Schurkengifte nach Rang und gewünschtem Vorrat planen.
 
-Der Plan reicht bis zum nächsten berechneten Rezeptwechsel, Lernschritt oder Skilllimit. Ein Wechsel kann sich auch zu einem bereits verfügbaren Rezept lohnen – nicht erst dann, wenn du ein neues Rezept lernen kannst.
+### Für welche Berufe eignet sich CraftDeja?
 
-**Unter Skill 300** übernimmt die automatische Skillplanung die Mengenermittlung. **Für Gifte und die Produktion ab Skill 300** kannst du eigene Mengen festlegen.
+Alchemie, Schmiedekunst, Lederverarbeitung, Schneiderei, Ingenieurskunst, Verzauberkunst, Kochkunst, Erste Hilfe und Bergbau-Verhüttung; zusätzlich Schurkengifte. **Deutsch und Englisch** sind integriert.
 
-### So wird gerechnet
+### Schnell starten
 
-`Materialkosten pro Craft / (geschätzte Skillchance × Skillpunkte je erfolgreichem Craft)`
+1. CraftDeja installieren und dein Berufsfenster öffnen.
+2. Mit Auctionator aktuelle Auktionshauspreise erfassen.
+3. `/cdj` für den kompakten Guide oder `/cdj dashboard` für das Werkstattpult eingeben. Zugriff auch über Minimap und Optionen → Addons → CraftDeja.
 
-Rechenbeispiel, keine Live-Preise: Ein oranges Rezept für 10 Silber bei 100 % kostet geschätzt 10 Silber pro Punkt. Ein grünes Rezept für 2 Silber bei 25 % kostet geschätzt 8 Silber pro Punkt. Grün kann deshalb günstiger sein, wenn es aktiviert und seine Rezeptdaten verwertbar sind.
+Du bestätigst Einkäufe und Lernvorgänge selbst. CraftDeja bereitet die Herstellung vor; gestartet wird über den ursprünglichen Herstellungsbutton. Laufende Serien erhalten gezielte Fortschrittsupdates statt wiederholter vollständiger Routenvergleiche.
 
-Skill- und Materialänderungen aktualisieren den Guide. Während einer Craft-Serie wird der Fortschritt gezielt aktualisiert; aufwendige vollständige Preis-/Rezeptvergleiche warten bis zum Ende oder Abbruch der Serie. AH-Preise sind gespeicherte Beobachtungen, keine fortlaufende Live-Marktabfrage.
+**Beta.24:** Werkstattpult, Mehrrezept-Levelrouten, Bankbewegungen sowie Twink-/Gildenbeschaffung gehören zum aktuellen Beta-Stand. Preis- und Bestandsdaten können veralten; Rezeptquellen sind bekannte Referenzen, keine vollständige oder überall live bestätigte Lehrerwelt.
 
-**Aktuelle Grenzen:** Die Rangfolge vergleicht Materialkosten. Verkaufserlöse, Rezeptkauf, Trainergebühren, Reise und Werkzeugbeschaffung werden darin noch nicht verrechnet. Eine global günstigste vollständige Route von 1–300 ist damit nicht nachgewiesen.
+---
 
-### Immer eine klare nächste Aktion
+# CraftDeja — WoW Forever profession leveling addon
 
-Der Guide stellt den aktuellen Schritt mit einer gut sichtbaren Aktionsschaltfläche in den Vordergrund: zum Auktionshaus gehen, Materialien kaufen, Post abholen, ein Rezept lernen oder die Herstellung vorbereiten.
+## English
 
-Benötigt ein Rezept eine Arbeitsstätte, erscheint eine konkrete Aufforderung wie **„Zur Kochstelle“**, **„Zum Amboss“** oder **„Zur Schmiede“**. Fehlende Werkzeuge und weitere vom Client gemeldete Voraussetzungen werden berücksichtigt. Details bleiben über die passenden Ansichten und Tooltips erreichbar.
+**CraftDeja helps you level professions in World of Warcraft: Forever more economically using available auction house prices and estimated skill-up chances. Get a clear leveling route, planned material quantities and one concrete next action instead of piecing together recipes, recipe sources and shopping lists yourself.**
 
-### Materialplanung mit deinem Bestand
+### More skill for your gold: compare prices and recipe transitions
 
-CraftDeja ermittelt die benötigten Zutaten und zieht vorhandene Materialien ab. Dabei berücksichtigt es Taschen, verfügbare Bank- und Lagerdaten, bestätigte Einkäufe beziehungsweise Post sowie optional geeignete Bestände anderer Charaktere.
+Compare expected cost per skill point, not just cost per craft. Yellow and green recipes can be worthwhile when cheaper reagents offset their lower skill-up chance. Plan several recipe stages toward your target skill and reuse crafted intermediate materials.
 
-So siehst du, was bereits vorhanden ist, was du abholen solltest und welche Mengen noch fehlen.
+The cost view separates missing purchases, consumed inventory, known learning fees and accounted vendor returns. Missing prices and unconfirmed information stay visible. Routes are selected from available candidates through a bounded search: there is no guarantee of a global cheapest route or a fixed number of skill-ups.
 
-### Unterstützung bei Auktionshaus und Händlern
+### One workshop console, one clear next action
 
-Mit **Auctionator** unterstützt CraftDeja den AH-Ablauf: verfügbare Preisdaten auswerten, fehlende Materialien suchen und passende Kaufmengen vorbereiten. Händlerangebote und Packungsgrößen fließen in die Einkaufshilfe ein.
+The new goblin workshop console brings together **Route, Materials and Settings**, with the current action and step details alongside. Prefer a smaller window? The compact guide works independently. Its green primary button tells you to **collect mail, deposit bank supplies, learn recipes or prepare crafting**, with waiting reasons and missing requirements beside the task.
 
-**TradeSkillMaster ist optional als Preisquelle nutzbar**, sofern passende Daten über seine API verfügbar sind. Die TSM-Anbindung ersetzt nicht den Auctionator-Einkaufsablauf.
+### Connect auction house prices, supplies and recipe sources
 
-### Rezepte lernen und Quellen finden
+- **Auctionator shopping:** use available market prices, search for missing reagents and prepare purchase quantities. TSM can optionally supply prices.
+- **Use your supplies:** account for bags, available bank data, confirmed purchases and mail. Keep current crafting reagents and explicitly deposit or withdraw supplies for later stages.
+- **Find recipe sources:** see known trainers and vendors and mark suitable sources on the map. CraftDeja favors the nearest known eligible trainer using comparable location information.
+- **Alts and guild crafting:** consider eligible recorded stock or confirmed crafting offers as additional acquisition paths, with explicit permissions, costs and handovers.
+- **Crafting stations:** Find confirmed crafting areas on the current map and floor. Missing location data is stated clearly; the guide advances when the native recipe requirement is met.
+- **Enchanting rods and poisons:** prepare missing rods before the main order; plan rogue poison ranks against desired stock.
 
-Auch noch nicht gelernte, vom Addon berücksichtigte Rezepte können Teil der Planung werden. CraftDeja zeigt bekannte Lehrer, Händler und andere Bezugsquellen an. Für passende gespeicherte Quellen mit Koordinaten stehen Kartenmarker zur Verfügung.
+### Supported professions
 
-Fraktionszugang und bekannte Einschränkungen werden bei den Vorschlägen berücksichtigt.
+Alchemy, Blacksmithing, Leatherworking, Tailoring, Engineering, Enchanting, Cooking, First Aid and Mining smelting; also rogue poisons. **English and German** are included.
 
-### Ruten als vorgeschalteter Auftrag
+### Get started
 
-Fehlt für eine vorgeschlagene Verzauberung die benötigte runenverzierte Rute, plant CraftDeja ihre Vorbereitung vor dem eigentlichen Auftrag ein:
+1. Install CraftDeja and open your profession window.
+2. Gather current auction house prices with Auctionator.
+3. Type `/cdj` for the compact guide or `/cdj dashboard` for the workshop console. You can also use the minimap button or Options → Addons → CraftDeja.
 
-**Rezept lernen → Zutaten beschaffen → eine Rute herstellen → ursprünglichen Auftrag fortsetzen.**
+You confirm purchases and learning yourself. CraftDeja prepares crafting; you start it with the original profession button. Active batches receive focused progress updates rather than repeated full route comparisons.
 
-Benötigte Vorgängerruten und vorhandene passende Werkzeuge werden berücksichtigt. Unterstützt werden die klassischen runenverzierten Kupfer-, Silber-, Gold-, Echtsilber- und Arkanitruten, soweit der Client die nötigen Rezept- und Ausgabedaten bestätigt.
-
-### Eigene Planung für Schurkengifte
-
-Für Gifte kannst du Zielbestände oder zusätzliche Herstellungsmengen festlegen. Unterschiedliche Giftränge werden getrennt behandelt; vorhandener Bestand reduziert die Fehlmenge. Der Guide begleitet dich durch Materialbeschaffung und Herstellung.
-
-### Übersichtliche Oberfläche und gezielter Craft-Fortschritt
-
-Auftragsübersicht, Einstellungen, Rezeptkatalog, Materialien, Quellen und Hilfe sind über eine gemeinsame Oberfläche erreichbar. Darstellung und Skalierung lassen sich anpassen. **Deutsch und Englisch** werden unterstützt.
-
-Während laufender Herstellung verschiebt CraftDeja schwere vollständige Hintergrundaktualisierungen. Aktueller Skill, Serienfortschritt und Materialbestand bleiben gezielt im Blick. Nach Ende oder Abbruch werden die Daten wieder umfassend aktualisiert.
-
-Vorbereitete Serienmenge und geschätzter Bedarf sind klar getrennt. **„Serie: 1 · bis 124 ca. 6 Versuche“** bedeutet beispielsweise: Ein Craft ist vorbereitet; die Skillplanung schätzt ungefähr sechs Versuche. Daraus folgt keine Garantie für einen Skillpunkt nach einer bestimmten Stückzahl.
-
-### Unterstützte Berufe
-
-- Alchemie
-- Schmiedekunst
-- Lederverarbeitung
-- Schneiderei
-- Ingenieurskunst
-- Verzauberungskunst
-- Kochkunst
-- Erste Hilfe
-- Bergbau: Schmelzrezepte
-- Zusätzlich: Schurkengifte
-
-### Einstieg
-
-1. Installiere CraftDeja und öffne deinen Beruf, damit Rezepte und Skill eingelesen werden können.
-2. Nutze Auctionator für den vollständigen AH-Workflow und verfügbare Marktpreise.
-3. Öffne den Guide mit **`/cdj`** und folge der nächsten Aktion.
-4. Einstellungen, Nachschlagen, Diagnoseprotokoll und geführten Systemcheck findest du im Zahnradmenü.
-
-**Du behältst die Kontrolle:** Käufe bestätigst du selbst. CraftDeja bereitet die Herstellung vor; den originalen Herstellknopf im Berufsfenster klickst du weiterhin selbst.
-
-CraftDeja befindet sich in der Beta. Empfehlungen beruhen auf verfügbaren Preis- und Rezeptdaten; Skillchancen sind Schätzungen. Bekannte Quellen und Koordinaten sind Orientierungshilfen und können im Spiel abweichen. Rezeptcheck, Diagnoseprotokoll und Systemcheck helfen dabei, Datenabweichungen und Probleme nachvollziehbar zu melden.
+**Beta.24:** the workshop console, multi-recipe routes, bank transfers and alt/guild acquisition are part of the current beta. Prices and inventory observations may become stale. Recipe sources are known references, not a complete or universally live-verified trainer database.

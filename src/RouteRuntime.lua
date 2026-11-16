@@ -70,7 +70,7 @@ function app.checkRouteOffers()
     local api=Auctionator and Auctionator.API and Auctionator.API.v1
     if #terms==0 or not api or type(api.MultiSearchAdvanced)~='function'then return false end
     -- Search only. Do not replace the existing buy batch or prefill quantities.
-    return pcall(api.MultiSearchAdvanced,app.identifier,terms)
+    return pcall(api.MultiSearchAdvanced,app.identifier..' Route',terms)
 end
 local function apply(search)
     local order=app.currentRouteOrder();local best=search and search.best

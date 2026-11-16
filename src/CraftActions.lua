@@ -22,6 +22,7 @@ local stationLabels={
     blackAnvil={de='Zum Schwarzen Amboss',en='Visit Black Anvil',names={'Schwarzer Amboss','Black Anvil'}},
     blackForge={de='Zur Schwarzen Schmiede',en='Visit Black Forge',names={'Schwarze Schmiede','Black Forge'}},
     lab={de='Zum Alchemielabor',en='Visit alchemy lab',names={'Alchemielabor','Alchemy Lab','Alchemy Laboratory'}},
+    table={de='Zum Alchemietisch',en='Visit alchemy table',names={'Alchemietisch','Alchemy Table'}},
     moonwell={de='Zum Mondbrunnen',en='Visit moonwell',names={'Mondbrunnen','Moonwell'}},
     loom={de='Zum Webstuhl',en='Visit loom',names={'Webstuhl','Loom'}},
     bench={de='Zur Werkbank',en='Visit workbench',names={'Werkbank','Workbench'}},
@@ -29,8 +30,14 @@ local stationLabels={
     enchanting={de='Zum Verzauberungstisch',en='Visit enchanting table',names={'Verzauberungstisch','Enchanting Table'}}
 }
 local stationAliases={}
-for _,entry in pairs(stationLabels)do
+for key,entry in pairs(stationLabels)do
+    entry.key=key
     for _,name in ipairs(entry.names)do stationAliases[name:lower()]=entry end
+end
+function app.craftStationKind(requirement)
+    local name=requirement and requirement.name
+    local entry=type(name)=='string'and stationAliases[name:match('^%s*(.-)%s*$'):lower()]
+    return entry and entry.key
 end
 function app.craftStationCTA(task)
     local requirement=task and task.requirement
@@ -55,7 +62,7 @@ function app.recipeRequirements(recipe)
     local live=app.professionOpen and app.nativeProfessionVisible()~=false and app.active and app.active.profile.id==recipe.profession
     if live then
         local requirements=app.try(C_TradeSkillUI and C_TradeSkillUI.GetRecipeRequirements,recipe.id)
-        if type(requirements)=='table'then recipe.requirements=app.copy(requirements);return requirements,true end
+        if type(requirements)=='table'then recipe.requirements=app.copy(requirements);if app.observeCraftStations then app.observeCraftStations(recipe,requirements)end;return requirements,true end
     end
     return recipe.requirements or {},false
 end
@@ -83,8 +90,9 @@ function app.craftRequirementTask(recipe,toolsOnly)
         app.lastRequirementTrace=key
         app.flowLog('requirement.missing',{recipe=recipe.id,kind=kind,name=requirement.name,type=requirement.type,live=live,met=requirement.met==true})
     end
-    return {kind=kind,key=key,recipe=recipe,requirement=requirement,requirementLive=live,
+    local task={kind=kind,key=key,recipe=recipe,requirement=requirement,requirementLive=live,
         body=tool and app.caption('requirement_tool')or area and app.caption('requirement_area')or recipe.profession==185 and requirement.type==kinds.SpellFocus and app.caption('station_cooking')or app.caption('station_required',requirement.name or '?')}
+    return kind=='station'and app.decorateStationTask and app.decorateStationTask(task)or task
 end
 function app.craftDisplay(recipe)
     local cached=recipe.craftDisplayCache
@@ -121,6 +129,7 @@ function app.openCraftProfession(recipeID,professionID)
         end
     end
     if not profile then return fail('action_choose_profession')end
+    if profile.id==40 and app.poisonUnlocked and not app.poisonUnlocked()then return fail('action_choose_profession')end
     app.options.visible=true;app.showGuide(false);if not app.unifiedUI then app.main:Show()end
     local api=C_TradeSkillUI
     if not api or type(api.OpenTradeSkill)~='function'then return fail('action_open_unsupported')end

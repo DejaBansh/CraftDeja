@@ -13,6 +13,7 @@ function app.vendorPurchasePlan()
     local plan=production or (app.isPoison and app.isPoison()and app.poisonPlan()or app.materialPlan(current.recipe,app.planningTarget()))
     if plan and app.craftRequirementTask(plan.recipe,true)then return nil end
     if not plan or not plan.stockKnown then return nil end
+    if app.completeShoppingPlan then plan=app.completeShoppingPlan(plan)end
     local offers={}
     for slot=1,(app.try(GetMerchantNumItems)or 0)do
         local offer=app.readMerchantOffer(slot)
