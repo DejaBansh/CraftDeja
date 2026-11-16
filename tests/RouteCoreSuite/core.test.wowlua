@@ -1,0 +1,87 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+local function base()
+ return {start=1,target=3,cap=75,characterLevel=20,now=1000,maxAge=900,green=true,stock={},guild='Fixture',providers={},
+  prices={[1]={levels={{unit=10,quantity=100}},at=1000},[2]={levels={{unit=100,quantity=100}},at=1000}},recipes={},
+  chance=function()return 1,'orange'end,width=16,maxExpansions=2000}
+end
+local function r(id,input,item,learned)
+ return {id=id,inputs=input,outputItem=item,outputMin=1,points=1,skill=1,grey=10,learned=learned~=false,confirmed=true,sell=0}
+end
+@afterEach
+local function clean()assert(#mock.errors()==0,'Unexpected emulated error')end
+
+@test('Route ledger: outputs used later receive no vendor resale credit')
+local function reuse()
+ local a=_G['CraftDeja'];local m=base();m.recipes[1]=r(1,{[1]=1},2);m.recipes[1].sell=4;m.recipes[2]=r(2,{[2]=1},3)
+ local s={{recipe=1,from=1,to=2,crafts=1},{recipe=2,from=2,to=3,crafts=1}}
+ local x=a.evaluateRoute(m,s,true);local y=a.evaluateRoute(m,s,false)
+ assert(x.net==10 and x.vendor==0 and x.cash==10)
+ assert(y.net==106 and y.vendor==4 and y.cash==110)
+end
+
+@test('Route ledger: inventory, incoming stock and learning fees count once')
+local function stock()
+ local a=_G['CraftDeja'];local m=base();m.stock[1]=1;m.recipes[1]=r(1,{[1]=1},3,false);m.recipes[1].fee={cost=200}
+ local x=a.evaluateRoute(m,{{recipe=1,from=1,to=2,crafts=1},{recipe=1,from=2,to=3,crafts=1}},true)
+ assert(x.owned==10 and x.cashMaterials==10 and x.cashLearning==200 and x.cash==210 and x.net==220)
+ assert(#x.learning==1)
+end
+
+@test('Route prices: quantity tiers reverse cheapest apparent unit price')
+local function depth()
+ local a=_G['CraftDeja'];local m=base();m.prices[1]={levels={{unit=1,quantity=1},{unit=100,quantity=100}},at=1000}
+ m.prices[2]={levels={{unit=20,quantity=100}},at=1000};m.recipes[1]=r(1,{[1]=2},3);m.recipes[2]=r(2,{[2]=2},3)
+ local x=a.solveRoute(m)
+ assert(x.best and x.best.segments[1].recipe==2 and x.best.net==80)
+end
+
+@test('Route prices: missing price, stale scan, insufficient depth and unknown fee are provisional')
+local function provisional()
+ local a=_G['CraftDeja'];local m=base();m.recipes[1]=r(1,{[1]=1},3,false)
+ local x=a.solveRoute(m);assert(x.best.provisional and x.best.knownNet==nil and x.best.knownCash==nil)
+ m.recipes[1].learned=true;m.prices[1].at=1;x=a.solveRoute(m);assert(x.best.provisional)
+ m.prices[1]={levels={{unit=1,quantity=1}},at=1000};x=a.solveRoute(m);assert(x.best.provisional)
+ m.prices[1]=nil;x=a.solveRoute(m);assert(x.best.provisional)
+end
+
+@test('Route supply: confirmed guild must beat AH and own alt; equal cost prefers AH')
+local function supply()
+ local a=_G['CraftDeja'];local m=base();local item=6338
+ m.prices[item]={levels={{unit=1000,quantity=2}},at=1000}
+ local alt={kind='alt',mode='materials',confirmed=true,transferable=true,output=1,inputs={[1]=5},tip=0,transferCost=0,at=1000}
+ local guild={kind='guild',mode='materials',confirmed=true,transferable=true,output=1,inputs={[1]=2},tip=10,transferCost=0,at=1000,online=true,accepted=true,guild='Fixture'}
+ m.providers[item]={alt,guild};local c=a.compareRouteSupply(m,item,1)
+ assert(c.best.kind=='guild'and c.best.net==30 and c.best.saving==20)
+ guild.tip=1000;c=a.compareRouteSupply(m,item,1);assert(c.best.kind=='alt')
+ guild.accepted=false;c=a.compareRouteSupply(m,item,1);assert(c.best.kind=='alt'and #c.options==1)
+ alt.mode='fixed';alt.fixedPrice=1000;c=a.compareRouteSupply(m,item,1);assert(c.best.kind=='ah')
+end
+
+@test('Guild supply: bulk materials cannot be subcontracted beneath a permitted rod')
+local function bulk()
+ local a=_G['CraftDeja'];local m=base()
+ m.providers[1]={{kind='guild',mode='fixed',fixedPrice=0,confirmed=true,transferable=true,output=1,transferCost=0,online=true,accepted=true,guild='Fixture',at=1000}}
+ local c=a.compareRouteSupply(m,1,1);assert(c.best.kind=='ah')
+ local p={kind='guild',mode='materials',inputs={[1]=5},tip=10,confirmed=true,transferable=true,output=1,transferCost=0,online=true,accepted=true,guild='Fixture',at=1000}
+ m.providers[6338]={p};m.prices[6338]={levels={{unit=1000,quantity=1}},at=1000}
+ c=a.compareRouteSupply(m,6338,1);assert(c.best.net==60,'Bulk guild suborder incorrectly lowered rod cost')
+end
+
+@test('Route search: intermediate production must save over complete same-target alternative')
+local function compare()
+ local a=_G['CraftDeja'];local m=base();m.recipes[1]=r(1,{[1]=1},2);m.recipes[1].grey=2
+ m.recipes[2]=r(2,{[2]=1},3);m.recipes[2].skill=2
+ m.recipes[3]=r(3,{[1]=2},4);m.recipes[3].grey=2
+ local x=a.solveRoute(m)
+ assert(x.best.net==10 and x.best.segments[1].recipe==1 and x.best.segments[2].recipe==2)
+ assert(x.best.target==3 and x.best.start==1 and x.compared>1)
+end
+
+@test('Route jobs: bounded resumptions do not finish large search in a single frame')
+local function chunks()
+ local a=_G['CraftDeja'];local m=base();m.target=20;m.recipes[1]=r(1,{[1]=1},2);m.recipes[1].grey=21;m.recipes[2]=r(2,{[1]=2},3);m.recipes[2].grey=21
+ local x=a.newRouteSearch(m);a.advanceRouteSearch(x);assert(not x.done and x.expansions<=4)
+ while not x.done do a.advanceRouteSearch(x)end
+ assert(x.best and x.best.target==20)
+end

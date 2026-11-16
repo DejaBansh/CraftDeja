@@ -1,5 +1,17 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## beta.19 — Mehrstufige Levelrouten, 16.11.2026
+
+- Neuer Feature-Branch codex/multi-stage-routes, Basis 06e83789e72ace10d96b10b46542521c0f8a1d12; Ausgangsarbeitsbaum tatsächlich sauber. Originalauftrag: docs/tasks/MULTI_STAGE_ROUTE_REQUEST.md. Keine früheren Änderungen verworfen.
+- /cdj route: vollständige gleiche Zielskill-Kandidaten mit eingefrorenem Bestand/Preisstand, reservierten Zwischenprodukten, einmaligen Lern-/Übergabekosten und getrennten offenen Zahlungen/wirtschaftlichen Nettokosten. Preisstaffeln und verfügbare Mengen; unbekannte Belege bleiben vorläufig. Begrenzte Coroutine-Suche, kein Globaloptimum; während nativer Serien/ungeklärter Käufe keine schwere neue Planung.
+- Ein Lehrer-Klick fordert ein aktuell erneut geprüftes geplantes Angebot an; Erfolg nur mit Clientbeleg. Gemeinsamer kontoweiter Auftrag für bestätigte eigene Twinks; Runenruten-Voraussetzungen im Vergleich und bestehende native Vorbereitung erhalten.
+- Gildenfreigabe standardmäßig aus; nur kanonische Metallruten/Salzstreuer, keine Bulk-Unteraufträge. Keine Bestands-/Golddaten im Protokoll. Bestätigte Konditionen/Zusage/frisch/online und streng günstigerer Vergleich erforderlich. Gespeicherte AH-Abwahl; Whisper nur Entwurf, Übergabe manuell plus tatsächlicher Bestandsbeleg.
+- Finaler Windows/Camelot-Lauf mit Blizzard-UI, wowlua 0.13.14: Release-Build erfolgreich, 563/0/0, 318 Dateien, 210.33s. ZIP reports/tests/20261116-060955-1159db.zip, inklusive nativer JSON-Ergebnisse und gerenderter Referenz. Alle aufgezeichneten Quell-/Test-/Manifestprüfsummen gegen den abschließenden Stand geprüft. Automatisierte Quellemulation ist kein Live-Server- oder Release-Bundle-Ausführungsbeleg. W1034 unverändert bekannt.
+- Kontrollierte Forever-Referenz Engineering 1–75: 396 Kupfer Zukauf + 40 Lernen = 436 offen/netto, gegen eigenständig geprüfte Pulver/Bolzen/Rohr-Alternative 476, Ersparnis 40. Silberrute gleicher Bestand: AH 1000/1000, Alt 100/400, bestätigte Gilde 30/330 (offene Zahlung/netto); Gilde spart 70 gegen Alt. Synthetische Preise, keine aktuellen Serverangebote. Details/Abnahmematrix/Limits/Live-Plan: docs/MULTI_STAGE_ROUTES.md.
+- Spieler-Patchnotes nur neue Verbesserungen seit beta.18, DE/EN: docs/PATCHNOTES_beta19_DE_EN.md. Kein Merge nach main, kein Upload/keine Veröffentlichung. Lokale Release-Paketierung/abgesicherte Installation nach diesem Quellcommit wird separat dokumentiert.
+- Offen: echte Auctionator-Angebotsansicht, tatsächliche Rang-/Traineraktionen, Twink-Übergabe und zwei Gildenclients nach Live-Plan prüfen. Weitere Rang-IDs ohne Beleg bleiben vorläufig; modellierte Lehrerbesuche und Suchbudget sind explizit begrenzt. Nichts davon als live bestanden markieren.
+
+
 ## beta.18 Release installiert und paketiert — 16.11.2026, 04:41
 
 - Nach vorherigem Hinweis und tatsächlicher vollständiger Prozessprüfung bei beendetem WoW installiert: 3.9.0-beta.18-alpha+9a65820, Buildprofil release, Quellcommit 9a65820eee5db5cf0ee2e89ba5eea60ee7474c39, Branch codex/plan-cost-overview. Funktionaler Stand beta.18.

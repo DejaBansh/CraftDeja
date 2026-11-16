@@ -1,0 +1,18 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+@afterEach
+local function clean()assert(#mock.errors()==0,'Unexpected emulator error')end
+@test('Route window: German action labels, full route, costs and teacher render together')
+local function screen()
+ local a=_G['CraftDeja']
+ mock.setField(a.options,'language','de');mock.setField(a.options,'guildRecipeSharing',false)
+ mock.setField(a,'routeDirty',nil);mock.setField(a,'routeSearch',nil);mock.setField(a,'routeSuggestion',nil)
+ mock.stub(a,'currentTrainerOffers',function()return {}end)
+ mock.setField(a,'routeResult',{model={start=1,target=75,providers={},prices={},rawRecipes={
+  [3918]={id=3918,liveName='Raues Sprengpulver'},[3922]={id=3922,liveName='Kupferbolzen'},[3923]={id=3923,liveName='Raue Kupferbombe'},[3924]={id=3924,liveName='Kupferrohr'}}},compared=30,saving=40,
+  best={segments={{recipe=3918,from=1,to=30,crafts=33},{recipe=3922,from=30,to=45,crafts=15},{recipe=3923,from=45,to=60,crafts=15},{recipe=3924,from=60,to=75,crafts=15}},
+   cashMaterials=396,cashLearning=40,cashTransfer=0,owned=0,vendor=0,knownNet=436,reasons={},bought={},transfers={},learning={},demand={}}})
+ a.showRouteWindow(75)
+ assert(a.routeWindow.body:GetText():find('436',1,true)==nil,'Money should use formatted game currency')
+ assert(a.routeWindow.offers:GetText()=='Routenangebote prüfen')
+end

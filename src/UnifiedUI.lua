@@ -459,7 +459,8 @@ function app.renderUnifiedOptions()
         {app.caption('ui_catalog'),'book',app.showCatalogue},
         {app.caption('ui_materials'),'bag',function()if app.isPoison()then if app.character.poisons.job then app.showPoisonMaterials()else app.showPoisonPlanner()end else app.showDetails(app.decision and app.decision.current.recipe,true)end end},
         {app.caption('ui_source'),'link',function()app.showDetails(app.decision and app.decision.current.recipe,false,true)end},
-        {app.caption('ui_merchants'),'map',app.showMerchants}}
+        {app.caption('ui_merchants'),'map',app.showMerchants},
+        {app.caption('route_open'),'book',function()app.showRouteWindow()end}}
     elseif f.tab=='help'then entries={
         {app.caption('ui_tutorial'),'help',function()app.showGuide(true)end},
         {app.caption('ui_audit',app.auditCount()),'info',app.showRecipeAudit},

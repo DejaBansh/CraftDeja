@@ -1,3 +1,9 @@
+# CraftDeja 3.9.0-beta.19
+
+- DE: Mehrstufige Levelrouten mit Zwischenprodukten, Mengenpreisstufen und getrennten Zahlungs-/Nettokosten. Geplante Lehrerrezepte, eigene Twinks und optionale Gildenquellen für ausgewählte Werkzeuge. Gespeicherte Aufträge mit dauerhaft wählbarem AH-Weg.
+- EN: Multi-stage leveling routes with intermediate outputs, quantity price tiers and separate payment/net estimates. Planned trainer recipes, your alts and opt-in guild sourcing for selected tools. Saved orders with a persistent AH preference.
+- Full player patch notes: docs/PATCHNOTES_beta19_DE_EN.md. Calculation evidence, explicit bounds and live acceptance: docs/MULTI_STAGE_ROUTES.md; automated results: TEST_RESULTS.md.
+
 # CraftDeja 3.7.0-beta.1
 
 - Add local recipe observations while reading the opened profession window:

@@ -281,7 +281,8 @@ local function prepareNativeCraft(recipe,count,stop)
 end
 function app.craftBatchPlan(recipe,count,stop)
     local rod=app.rodPreparationPlan()
-    local plan=rod and rod.recipe.id==recipe.id and rod or app.productionEnabled()and app.productionPlan()or app.materialPlan(recipe,stop)
+    local supply=app.routeSupplyCraftPlan and app.routeSupplyCraftPlan()
+    local plan=rod and rod.recipe.id==recipe.id and rod or supply and supply.recipe.id==recipe.id and supply or app.productionEnabled()and app.productionPlan()or app.materialPlan(recipe,stop)
     if not plan or plan.crafts<1 then return nil end
     local planned=plan.crafts;plan.crafts=count;plan.purchase=0
     plan.expectedCrafts=planned;plan.forecastTarget=plan.target;plan.forecastSkill=plan.from
@@ -298,6 +299,7 @@ function app.craftQueueBody()
     return app.caption(b.attention and 'craft_queue_attention'or b.phase=='requested'and 'craft_queue_waiting'or 'craft_queue_running',b.remaining)
 end
 function app.craftNext(plan,all)
+    if plan and plan.supplyOnly then return false end
     if app.craftBatch or app.craftRefreshBusy and app.craftRefreshBusy()then return fail('action_busy')end
     if app.try(InCombatLockdown)then return fail('action_combat')end
     if not app.professionOpen or app.nativeProfessionVisible()==false then return app.openCraftProfession(plan and plan.recipe.id)end
@@ -307,7 +309,7 @@ function app.craftNext(plan,all)
     local d=app.decision
     local rod,_,rodActive=app.rodPreparationPlan()
     if rodActive and not rod then return fail('action_changed')end
-    local production=rod or app.productionEnabled()and app.productionPlan()
+    local production=rod or app.routeSupplyCraftPlan and app.routeSupplyCraftPlan()or app.productionEnabled()and app.productionPlan()
     if app.productionEnabled()and not production then return fail('production_done')end
     if not production and (not d or d.current.needsLearning or not d.current.recipe.learned)then return fail('action_recipe_missing')end
     local recipe=production and production.recipe or d.current.recipe
@@ -330,7 +332,7 @@ function app.craftNext(plan,all)
         if type(bags)~='number'or bags<n then return fail('action_materials')end
     end
     local target=production and math.huge or app.decision.stop
-    if not(production and production.toolPreparation)and app.shopping.goal=='manual'then
+    if not(production and (production.toolPreparation or production.routeSupply))and app.shopping.goal=='manual'then
         local requested=app.planningTarget()
         if type(requested)=='number'then
             if requested<=app.active.profile.skill then return fail('skill_goal_done_button')end

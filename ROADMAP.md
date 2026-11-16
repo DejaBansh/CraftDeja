@@ -1,5 +1,16 @@
 # Roadmap — Stand 15.11.2026
 
+## beta.19 — 16.11.2026
+
+- [x] Integrierte, explizit gestartete Mehrrezept-Route mit gemeinsamem Ziel/Snapshot, Zwischenproduktreservierung und getrennten Zahlungs-/Nettokosten.
+- [x] Beobachtete Preisstaffeln/Mengen, Restplanung, abgesicherte Trainer-Einzelschritte und bestätigte eigene Twink-Berufe.
+- [x] Gespeicherte Aufträge, Runenruten-Voraussetzungen, optionale private Gildenrezeptfreigabe für Ruten/Salzstreuer, Bulk-Sperre und persistente AH-Abwahl.
+- [x] Durchgängiger kontrollierter Engineering-1–75- und Silberruten-Vergleich, 34 neue Regressionen; finale breite Suite 563/0/0, 210.33s, reports/tests/20261116-060955-1159db.zip. 47 Laufzeitquellen/319 erfasste Testdateien/3 Inputs SHA256-geprüft.
+- [x] DE/EN-Spielertexte, aufklappbare Details, Release-Build und gerenderte UI-Prüfung. Belege/Abnahmematrix: docs/MULTI_STAGE_ROUTES.md.
+- [ ] Live: tatsächliche AH-Mengentiefe, Skillup-Restplanung, Trainerklick/Rang, Charakterwechsel/Übergabe und zwei Gildenclients nach dem dokumentierten Plan bestätigen.
+- [ ] Weitere Rangidentitäten/Gebühren und austauschbare Reagenzkombinationen nur anhand belegter Daten erweitern. Begrenzte Suche bleibt kein uneingeschränktes Globaloptimum; tatsächliche Lehrerbesuche nicht als global minimiert behaupten.
+- [ ] Aktuelles Release-Paket/Installation nach Quellcommit gesondert anhand Installationsbericht dokumentieren. Kein automatischer Upload und kein Merge nach main.
+
 ## Sichtbarkeit: erste Runde
 
 - [x] Öffentliche CurseForge-Seite geprüft.

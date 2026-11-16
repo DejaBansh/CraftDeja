@@ -1,5 +1,14 @@
 # Entscheidungen — Stand 15.11.2026
 
+## Ergänzungen beta.19 — 16.11.2026
+
+- Mehrrezept-Routen vergleichen vollständige gleiche Ziele mit gefrorenem Bestand/Preisstand. Begrenzte asynchrone Kandidatensuche, kein uneingeschränktes Globaloptimum. Fehlende Preise/Gebühren/Belege sind unbekannt, niemals kostenlos.
+- Intermediate-Ausgaben werden je Stück reserviert; später verbautes Material erhält keinen Verkaufserlös. Zukauf, Lernen, Übergabe und wirtschaftlicher Verbrauchswert getrennt; Gebühren einmalig.
+- Routenauftrag ist realm-/fraktionsgebunden kontoweit gespeichert; eigener Twink braucht eingelesenen Rezept-/Skillbeleg. Gilde bleibt opt-in, nur kanonische Metallruten/Salzstreuer, keine Bulk-Unteraufträge und keine Bestands-/Golddaten im Nachrichtenprotokoll.
+- Gildenempfehlung benötigt bestätigte Konditionen/Zusage und einen streng günstigeren Vergleich. AH-Abwahl hält bis zum ausdrücklichen Reset, auch nach Reload/Preisupdate/Charakterwechsel.
+- Kein unbewiesenes Trainer-Batchverfahren: ein frisch geprüftes Angebot pro Spieler-Klick, Erfolg erst nach Clientbeleg. Rangangebote nur über bekannte exakte IDs; Unbekanntes bleibt manuell/vorläufig.
+- Originalauftrag und konkrete Abnahme: docs/tasks/MULTI_STAGE_ROUTE_REQUEST.md und docs/MULTI_STAGE_ROUTES.md. Automatisierung bestätigt keine Live-Übergabe zwischen Spielern oder tatsächliche FPS.
+
 | Entscheidung | Begründung | Status |
 |---|---|---|
 | Wirtschaftlichkeit pro Skillpunkt ist Hauptziel | Anzahl Crafts allein misst Goldverbrauch nicht | beschlossen |

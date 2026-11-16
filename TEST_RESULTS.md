@@ -1,5 +1,16 @@
 # Validation — 3.9.0-beta.4
 
+## beta.19 — finale Mehrstufen-Routenprüfung, 16.11.2026
+
+Release-Build bestanden; Windows/Camelot, Blizzard-UI aktiviert, wowlua 0.13.14. **563 bestanden, 0 fehlgeschlagen, 0 übersprungen; 318 Testdateien; 210.33 Sekunden.** Vollständiger Nachweis: reports/tests/20261116-060955-1159db.zip. Alle erfassten Laufzeitquellen, Testdateien und Build-/Testinputs stimmen mit dem finalen Stand überein. Native JSON-Ergebnisse und Referenzabbildungen sind automatisch im ZIP enthalten.
+
+34 neue gezielte Fälle in RouteCoreSuite plus bisherige Regressionen. Kontrollierter Engineering-1–75-Vergleich 436 gegen 476 Kupfer (40 Ersparnis), Rutenvergleich AH/Alt/Gilde und Quelle/Bindung/Alter/Opt-out/AH-Abwahl/Trainer/Nativplan-Fälle. Vollständige Abnahmezuordnung und offene Live-Prüfung: docs/MULTI_STAGE_ROUTES.md. GUI zusätzlich gerendert und Überlagerung korrigiert; isolierte UI-Prüfung reports/tests/20261116-060452-360149.zip.
+
+Zwischenlauf 20261116-054836-b6b39e hatte 23/1/0: echte vollständige Engineering-Referenz deckte auf, dass kurze Beam-Präfixe vor Budgetende vollständige Teileketten verdrängten. Zusätzliche vollständige Wechselketten vor der begrenzten Suche korrigieren den reproduzierten Fall. Weitere erfolgreiche Zwischenläufe bleiben lokale Entwicklungsspuren und ersetzen den obigen abschließenden Hashnachweis nicht.
+
+Grenzen: Source-Emulation, keine Ausführung des kompilierten Release-Bundles und keine bestätigte Zwei-Spieler-/Liveserver-Abnahme; keine FPS-Garantie. Bekannte W1034 unverändert.
+
+
 1985 assertions pass in the final suite; production-load cold start also passes. Added real-event observer tests: unobserved steps remain
 waiting, actual profession opening and closing progress, mismatched AH quantity
 fails while matching quantity passes, native preparation alone does not pass

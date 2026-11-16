@@ -142,6 +142,7 @@ function app.updateLiveAHPrice(id,unit,source)
     return false
 end
 function app.updateLiveCommodity(id,results)
+    if app.currentRouteOrder and app.currentRouteOrder()then app.observeRouteDepth(id,results)end
     local minimum
     for _,r in ipairs(results or {})do if type(r.price)=='number'and r.price>0 and (not minimum or r.price<minimum)then minimum=r.price end end
     if minimum and app.updateLiveAHPrice(id,minimum,'offers')then app.requestMarketRefresh()end

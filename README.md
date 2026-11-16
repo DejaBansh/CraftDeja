@@ -12,9 +12,9 @@ Compare recipes by **estimated net cost per skill point**, then follow one clear
 
 | Current source | Automated validation | Status |
 |---|---|---|
-| 3.9.0-beta.18 (feature branch) | Release build passed; 529 source-emulator tests passed, 0 failed, 0 skipped | New DE/EN material-plan cost breakdown; live UI check pending |
+| 3.9.0-beta.19 (local feature branch) | Release/source validation recorded in TEST_RESULTS.md | Multi-stage routes, quantity tiers, trainer preparation, alt/guild supply; live acceptance pending |
 
-The current run uses Windows/Camelot, wowlua 0.13.14 and configured Blizzard UI: 529 tests in 313 files, 208.60 seconds. Source emulation is not execution of the bundled release artifact or a complete live-server test. The earlier beta.17 release comparison was reported smooth in game. [Full test record](TEST_RESULTS.md) · [Product priorities](docs/PRODUCT_PLAN.md).
+Validation uses Windows/Camelot, wowlua 0.13.14 and configured Blizzard UI. Source emulation is not execution of the bundled release artifact or a complete live-server test. The earlier beta.17 release comparison was reported smooth in game. [Full test record](TEST_RESULTS.md) · [Multi-stage routes and controlled comparisons](docs/MULTI_STAGE_ROUTES.md) · [Product priorities](docs/PRODUCT_PLAN.md).
 
 ## English
 
@@ -37,6 +37,7 @@ Green can therefore be the cheaper option when enabled and the recipe data suppo
 - **A clear guide:** a prominent next-action button; details remain in optional views and tooltips.
 - **Material planning:** deducts available holdings and distinguishes missing purchases, storage and confirmed incoming purchases where data is available.
 - **Plan cost details (beta.18):** separates full material value, owned reagents, estimated missing-material purchases and net material value after credited vendor resale. Unknown inventory stays explicit; learning and prerequisite costs may be extra.
+- **Multi-stage routes (beta.19):** `/cdj route` compares complete same-target candidates, reserves intermediate outputs, checks observed AH quantity tiers and separates remaining payments from economic net costs. Planned trainer visits, confirmed alt professions and opt-in guild sourcing for rods/Salt Shaker share a saved order. [Details and live checks](docs/MULTI_STAGE_ROUTES.md).
 - **Auctionator shopping:** searches missing materials and prepares quantities. TSM can optionally supply suitable price values; it does not replace the Auctionator workflow.
 - **Recipe sources:** considers usable unlearned recipes and shows recorded trainers, vendors and map markers when coordinates are known.
 - **Workstations and tools:** specific instructions such as cooking fire, anvil or forge, using requirements the client reports.
@@ -109,7 +110,7 @@ Käufe bestätigst du selbst; die Herstellung startest du über den originalen H
 
 Die Rangfolge verwendet Materialkosten abzüglich bestätigtem Mindest-Händlerwert bei Verkauf des Ergebnisses, geteilt durch erwarteten Skillgewinn. Der Einkauf benötigt weiterhin den vollen Betrag. Gelbe und grüne Skillchancen bleiben Schätzungen. Vollständige Vergleiche werden während einer laufenden Craft-Serie aus Performancegründen verschoben; gezielte Fortschrittsupdates bleiben aktiv.
 
-Bei unterstützten Vergleichen unbekannter Rezepte werden beobachtete oder bepreiste einmalige Erwerbskosten gegen bekannte Alternativen geprüft; unbekannte Gebühren bleiben ausdrücklich vorläufig. **AH-Verkaufserlöse, Reise und allgemeine Werkzeugbeschaffung sind nicht eingerechnet.** Ohne bestätigte Ausgabedaten oder Händlerwert gibt es keinen Erlösabzug. Eine global günstigste vollständige Route von 1–300 ist nicht bewiesen. Ab beta.18 trennen die Rezeptdetails Materialwert, verwendeten eigenen Bestand, geschätzten Zukauf und Nettomaterialwert. Lern-/Voraussetzungskosten können zusätzlich anfallen. [Berechnungslogik](docs/ALGORITHM.md) · [Produktplan](docs/PRODUCT_PLAN.md).
+Bei unterstützten Vergleichen unbekannter Rezepte werden beobachtete oder bepreiste einmalige Erwerbskosten gegen bekannte Alternativen geprüft; unbekannte Gebühren bleiben ausdrücklich vorläufig. **AH-Verkaufserlöse, Reise und allgemeine Werkzeugbeschaffung sind nicht eingerechnet.** Ohne bestätigte Ausgabedaten oder Händlerwert gibt es keinen Erlösabzug. Eine global günstigste vollständige Route von 1–300 ist nicht bewiesen. Ab beta.18 trennen die Rezeptdetails Materialwert, verwendeten eigenen Bestand, geschätzten Zukauf und Nettomaterialwert. Ab beta.19 vergleicht `/cdj route` vollständige Kandidaten zum gleichen Ziel, reserviert Zwischenprodukte und berücksichtigt belegte Lern-/Runenrutenkosten sowie bestätigte Twink-/Gildenquellen für den Auftrag. Fehlende Belege bleiben vorläufig. [Routenvergleich und Live-Prüfung](docs/MULTI_STAGE_ROUTES.md) · [Berechnungslogik](docs/ALGORITHM.md) · [Produktplan](docs/PRODUCT_PLAN.md).
 
 Beta.10: 87 gezielte Wirtschaftsfälle bestanden; vollständiger Windows-/Blizzard-UI-Lauf: **372 bestanden, 0 fehlgeschlagen, 0 übersprungen**. [Neue Netto-Berechnung](docs/NET_COSTS.md). Die fertige beta.9-Downloadversion ist unverändert.
 

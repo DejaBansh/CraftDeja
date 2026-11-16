@@ -71,22 +71,28 @@ local function linklessRecipe(row,rows)
     end end
     return matched
 end
-function app.observeTrainerCosts()
-    if not app.character or app.craftRefreshBusy and app.craftRefreshBusy()then return false end
+function app.currentTrainerOffers()
+    if not app.character or app.craftRefreshBusy and app.craftRefreshBusy()then return {}end
     local count=app.try(GetNumTrainerServices)
-    if not valid(count)or count>1000 then return false end
-    local changed=false
+    if not valid(count)or count>1000 then return {}end
     local rows={}
     for i=1,count do
         local link=app.try(GetTrainerServiceItemLink,i)
         local name,rank,kind,ranked=trainerIdentity(i)
         local cost=app.try(GetTrainerServiceCost,i)
-        rows[#rows+1]={link=link,name=name,rank=rank,kind=kind,ranked=ranked,cost=cost}
+        rows[#rows+1]={index=i,link=link,name=name,rank=rank,kind=kind,ranked=ranked,cost=cost}
     end
     for _,row in ipairs(rows)do
         local id=type(row.link)=='string'and tonumber(row.link:match('spell:(%d+)')or row.link:match('enchant:(%d+)'))
         if not id and valid(row.cost)then id=linklessRecipe(row,rows)end
-        if id and valid(row.cost)and app.observeLearningCost(id,row.cost,'trainer')then changed=true end
+        row.id=id
+    end
+    return rows
+end
+function app.observeTrainerCosts()
+    local changed=false
+    for _,row in ipairs(app.currentTrainerOffers())do
+        if row.id and valid(row.cost)and app.observeLearningCost(row.id,row.cost,'trainer')then changed=true end
     end
     if changed then app.flowLog('acquisition.trainer_observed',{});app.refresh(false)end
     return changed

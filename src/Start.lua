@@ -3,14 +3,14 @@
 local identifier,app=...
 _G.CraftDeja=app
 app.identifier=identifier
-app.release="3.9.0-beta.18"
+app.release="3.9.0-beta.19"
 app.sessions={}
 app.catalog={}
 app.names={}
 app.professionOrder={333,171,164,165,197,202,185,129,186}
 app.supported={}
 for _,id in ipairs(app.professionOrder)do app.supported[id]=true end
-app.options={flowLogging=true,scale=0.8,language="auto",prices="auto",green=true,visible=true,unverifiedSources=false,shoppingPoints=5,shoppingGoal="next",shoppingTolerance=10,guideSeenV1=false,inventoryAlts=false}
+app.options={flowLogging=true,scale=0.8,language="auto",prices="auto",green=true,visible=true,unverifiedSources=false,shoppingPoints=5,shoppingGoal="next",shoppingTolerance=10,guideSeenV1=false,inventoryAlts=false,guildRecipeSharing=false}
 
 function app.try(callback,...)
     if type(callback)~="function"then return nil end

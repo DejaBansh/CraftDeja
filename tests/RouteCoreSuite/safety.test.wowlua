@@ -1,0 +1,111 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+@afterEach
+local function clean()
+ local a=_G['CraftDeja'];a.routeRuntimeFrame:Hide();a.routeLearnPending=nil
+ assert(#mock.errors()==0,'Unexpected emulator error')
+end
+@test('Guild protocol: default off, whitelist and exact canonical identity, no private inventory payload')
+local function privacy()
+ local a=_G['CraftDeja'];local sent={};local clock=1000
+ mock.stub(a,'routeGuildIdentity',function()return 'TestGuild'end)
+ mock.stub(_G,'GetNumGuildMembers',function()return 1 end)
+ mock.stub(_G,'GetGuildRosterInfo',function()return 'Smith-Realm',nil,nil,nil,nil,nil,nil,nil,true end)
+ mock.stub(_G,'time',function()return 1000 end);mock.stub(_G,'GetTime',function()clock=clock+1;return clock end)
+ mock.stub(C_ChatInfo,'SendAddonMessage',function(p,text,channel)sent[#sent+1]=text;assert(channel=='GUILD')end)
+ mock.stub(a,'routeTransferable',function()return true end)
+ mock.setField(a.character,'routeProfessions',{[164]={skill=300,at=1000,recipes={
+  [7818]={learned=true,confirmed=true,outputFromClient=true,outputItemID=6338,outputMin=1},
+  [2657]={learned=true,confirmed=true,outputFromClient=true,outputItemID=2840,outputMin=1}}}})
+ a.setGuildRecipeSharing(false);a.publishGuildRecipes();a.guildRouteTick();assert(#sent==0)
+ a.setGuildRecipeSharing(true);while a.guildRouteTick()do end
+ assert(#sent==2 and sent[1]=='R|164|300|7818|6338|1|1000'and sent[2]=='Q')
+ assert(not a.receiveGuildRouteMessage('CDJRoute1','R|186|300|2657|2840|1|1000','GUILD','Smith-Realm'))
+ assert(not a.receiveGuildRouteMessage('CDJRoute1','R|164|300|7818|11128|1|1000','GUILD','Smith-Realm'))
+ assert(not a.receiveGuildRouteMessage('CDJRoute1','R|164|300|7818|6338|1|1000','GUILD','Stranger'))
+ assert(a.receiveGuildRouteMessage('CDJRoute1','R|164|300|7818|6338|1|1000','GUILD','Smith-Realm'))
+ assert(#a.guildProviderSnapshot()==1)
+ assert(a.receiveGuildRouteMessage('CDJRoute1','OFF','GUILD','Smith-Realm'));assert(#a.guildProviderSnapshot()==0)
+ mock.stub(a,'routeGuildIdentity',function()return 'OtherGuild'end);assert(#a.guildProviderSnapshot()==0)
+ a.setGuildRecipeSharing(false)
+end
+
+@test('Trainer route: future needed offer included, unrelated and ambiguous offers excluded; recheck every click')
+local function trainer()
+ local a=_G['CraftDeja'];local buys=0;local rows={
+  {id=3918,index=1,name='Powder',kind='available',cost=10},
+  {id=3923,index=2,name='Bomb',kind='available',cost=100},
+  {id=3924,index=3,name='Tube',kind='unavailable',cost=100},
+  {id=999,index=4,name='Unrelated',kind='available',cost=1}}
+ local route={learning={{id=3918,skill=1},{id=3923,skill=30},{id=3924,skill=50}}}
+ mock.stub(a,'currentTrainerOffers',function()return rows end)
+ mock.stub(_G,'UnitGUID',function()return 'Trainer'end);mock.stub(_G,'GetMoney',function()return 1000 end)
+ mock.stub(_G,'GetTrainerServiceSkillReq',function()return 50 end)
+ mock.stub(_G,'BuyTrainerService',function(index)buys=buys+1;assert(index==1)end)
+ mock.stub(a,'craftRefreshBusy',function()return false end);mock.setField(a,'routeResult',{best=route})
+ local v=a.routeTeacherVisit(route);assert(#v.available==2 and #v.locked==1 and v.total==110)
+ rows[1].cost=11;assert(not a.learnPlannedRecipe(v)and buys==0);rows[1].cost=10
+ assert(a.learnPlannedRecipe(a.routeTeacherVisit(route))and buys==1)
+ assert(not a.learnPlannedRecipe(a.routeTeacherVisit(route))and buys==1)
+ mock.stub(C_TradeSkillUI,'GetRecipeInfo',function()return {learned=false}end)
+ assert(not a.verifyPlannedLearning());rows[1].kind='used';assert(a.verifyPlannedLearning())
+ rows[#rows+1]={id=3923,index=5,name='Duplicate',kind='available',cost=100}
+ assert(#a.routeTeacherVisit(route).available==0)
+end
+
+@test('Transfer proof: preexisting BoE stock is conservative, newly crafted BoE may transfer')
+local function bind()
+ local a=_G['CraftDeja']
+ mock.stub(C_Item,'GetItemInfo',function()return 'Item',nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,2 end)
+ assert(a.routeTransferable(6338)and not a.routeTransferable(6338,true))
+end
+
+@test('Supply proof: stale ingredients, offline/old provider, no comparable AH, and saved AH override cannot claim a saving')
+local function stale()
+ local a=_G['CraftDeja'];local p={key='smith',kind='guild',mode='materials',confirmed=true,transferable=true,output=1,
+  inputs={[2842]=1},tip=10,transferCost=0,accepted=true,online=true,guild='G',at=1000}
+ local m={now=1000,guild='G',stock={},prices={[6338]={levels={{unit=1000,quantity=10}},at=1000},[2842]={levels={{unit=100,quantity=10}},at=1000}},providers={[6338]={p}}}
+ assert(a.compareRouteSupply(m,6338,1).best.kind=='guild')
+ p.online=false;assert(a.compareRouteSupply(m,6338,1).best.kind=='ah');p.online=true
+ p.at=1;assert(a.compareRouteSupply(m,6338,1).best.kind=='ah');p.at=1000
+ m.prices[2842].at=1;assert(a.compareRouteSupply(m,6338,1).best.kind=='ah');m.prices[2842].at=1000
+ m.prices[6338]=nil;assert(a.compareRouteSupply(m,6338,1).best==nil)
+ assert(a.compareRouteSupply(m,6338,1,true).best==nil)
+end
+
+@test('Supply ledger: accepted total tip, transfer fee and raw materials count once across route stages')
+local function once()
+ local a=_G['CraftDeja'];local p={key='guild:Smith:7818',kind='guild',mode='materials',confirmed=true,transferable=true,output=1,inputs={[2842]=1},tip=20,transferCost=10,at=1000,online=true,accepted=true,guild='G'}
+ local m={now=1000,guild='G',stock={[2842]=1},prices={[6338]={levels={{unit=1000,quantity=10}},at=1000},[2842]={levels={{unit=200,quantity=10}},at=1000}},providers={[6338]={p}},recipes={
+  [1]={id=1,learned=true,confirmed=true,inputs={[6338]=1}}}}
+ local cost=a.evaluateRoute(m,{{recipe=1,from=1,to=2,crafts=1},{recipe=1,from=2,to=3,crafts=1}},true)
+ assert(cost.owned==200 and cost.cashMaterials==200 and cost.cashTransfer==30 and cost.cash==230 and cost.net==430)
+end
+
+@test('Supply comparison: remote material delivery is included before choosing maker; stale stock is only an option')
+local function remoteStock()
+ local a=_G['CraftDeja'];local p={key='alt:Smith',character='Smith',kind='alt',mode='materials',confirmed=true,transferable=true,output=1,inputs={[2842]=1},tip=0,transferCost=0,at=1000}
+ local origin={character='Miner',quantity=1,at=1000,transferCost=400}
+ local m={now=1000,stock={[2842]=1},currentStock={},stockOrigins={[2842]={origin}},prices={[6338]={levels={{unit=500,quantity=10}},at=1000},[2842]={levels={{unit=200,quantity=10}},at=1000}},providers={[6338]={p}}}
+ assert(a.compareRouteSupply(m,6338,1).best.kind=='ah','Remote material shipping was omitted')
+ origin.transferCost=0;assert(a.compareRouteSupply(m,6338,1).best.kind=='alt')
+ origin.at=-1000000;local c=a.compareRouteSupply(m,6338,1);assert(c.best.kind=='ah'and #c.options==1)
+end
+
+@test('Guild whitelist: only exact rods and Salt Shaker, no ore bars cloth bolts powder or crafted suborders')
+local function whitelist()
+ local a=_G['CraftDeja']
+ for _,item in ipairs({6338,11128,11144,16206,15846})do assert(a.guildCraftAllowed(item))end
+ for _,item in ipairs({2770,2840,2842,2835,4357,4359,2589,10940})do assert(not a.guildCraftAllowed(item))end
+ assert(a.guildCraftRecipes[19567].item==15846 and a.guildCraftRecipes[19567].profession==202)
+ assert(a.guildCraftRecipes[7818].item==6338 and a.guildCraftRecipes[7818].profession==164)
+end
+
+@test('Route rank: required verified rank can join current trainer list; missing rank price remains provisional')
+local function rank()
+ local a=_G['CraftDeja'];local r={id=1,learned=true,confirmed=true,skill=1,grey=100,inputs={[1]=1},outputItem=2,outputMin=1,sell=0}
+ local m={start=74,target=76,cap=75,characterLevel=20,now=1000,stock={},prices={[1]={levels={{unit=10,quantity=100}},at=1000}},recipes={[1]=r},chance=function()return 1,'orange'end,
+  ranks={{fromCap=75,toCap=150,skill=50,level=10,spellID=4037,cost=500}},maxExpansions=200,width=2}
+ local search=a.solveRoute(m);assert(search.best.knownCash==520 and search.best.ranks[1].spellID==4037)
+ m.ranks[1].cost=nil;search=a.solveRoute(m);assert(search.best.provisional and search.best.knownCash==nil)
+end

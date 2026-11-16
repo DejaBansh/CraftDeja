@@ -1,0 +1,157 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+local function setup()
+ local a=_G['CraftDeja']
+ mock.setField(a.saved,'routeActive',{});mock.setField(a.saved,'routeOrders',{});mock.setField(a.saved,'routeSequence',0)
+ mock.setField(a.character,'identity',{name='Main',realm='Fixture',faction='Horde'})
+ mock.setField(a,'routeResult',nil);mock.setField(a,'routeDecision',nil);mock.setField(a,'routeSearch',nil);mock.setField(a,'routeSuggestion',nil);mock.setField(a,'routeDirty',nil)
+ mock.stub(a,'craftRefreshBusy',function()return false end);mock.stub(a,'purchasePending',function()return false end)
+ local r={id=3918,profession=202,learned=true,confirmed=true,materialsFromClient=true,outputFromClient=true,outputItemID=4357,outputMin=2,outputMax=2,
+  skill=1,yellow=20,green=30,grey=40,colour='orange',points=1,groups={{amount=1,choices={2835}}},complete=true}
+ mock.setField(a,'active',{profile={id=202,skill=1,cap=75},recipes={[r.id]=r},confirmed=1})
+ mock.stub(a,'isPoison',function()return false end);mock.stub(a,'productionEnabled',function()return false end)
+ mock.stub(a,'routeTransferable',function()return true end)
+ mock.stub(a,'vendorPrice',function()return nil end);mock.stub(a,'vendorSellPrice',function()return nil end)
+ mock.stub(a,'unitPrice',function()return 10,'fixture'end);mock.stub(a,'canRecommend',function()return true,'known'end)
+ mock.stub(a,'inventoryFor',function()return {bags=0,total=0,alts={}}end);mock.stub(a,'confirmedMail',function()return 0 end)
+ mock.stub(a,'routeGuildIdentity',function()return 'FixtureGuild@Fixture'end)
+ mock.stub(a,'guildProviderSnapshot',function()return {}end)
+ mock.setField(a.shopping,'prices',{[2835]=10,[4357]=20});mock.setField(a.shopping,'readyWall',time())
+ mock.setField(a.shopping,'scanSerial',22);mock.setField(a,'routeDepth',{[2835]={serial=22,at=time(),levels={{unit=10,quantity=1000}}}})
+ mock.stub(a,'renderNextStep',function()end)
+ return a,r
+end
+@afterEach
+local function clean()
+ local a=_G['CraftDeja'];a.routeRuntimeFrame:Hide()
+ assert(#mock.errors()==0,'Unexpected emulator error')
+end
+
+@test('Route order: shared account job survives owner/alt switch and persistent AH choice')
+local function persisted()
+ local a=setup();assert(a.startRouteOrder(30))
+ local o=a.currentRouteOrder();assert(o.target==30 and a.skipGuildRouteItem(6338))
+ mock.setField(a,'characterKey','ALT');mock.setField(a,'character',{identity={name='Alt',realm='Fixture',faction='Horde'}})
+ assert(a.currentRouteOrder()==o and o.forceAH[6338])
+ a.invalidateRoute('price');assert(o.forceAH[6338])
+ assert(a.resetGuildRouteItem(6338)and not o.forceAH[6338])
+end
+
+@test('Route order: received rod removes supplier and remaining purchase quantity')
+local function received()
+ local a=setup();assert(a.startRouteOrder(30));local o=a.currentRouteOrder()
+ local provider={key='guild:Smith:7818',name='Smith',guild='FixtureGuild@Fixture',accepted=true}
+ o.supplyProgress={[provider.key]={status='materials_sent',item=6338,quantity=1,source='guild',provider=provider}}
+ assert(a.currentRouteSupply().item==6338)
+ mock.stub(a,'inventoryFor',function(id)return {total=id==6338 and 1 or 0,bags=id==6338 and 1 or 0}end)
+ assert(a.currentRouteSupply()==nil and o.supplyProgress[provider.key].status=='received')
+end
+
+@test('Route model: actual learned profession proof is saved privately for an alt')
+local function records()
+ local a,r=setup();mock.setField(a.character,'routeProfessions',{})
+ a.recordRouteProfession(a.active)
+ local p=a.character.routeProfessions[202]
+ assert(p.skill==1 and p.cap==75 and p.recipes[3918].learned and p.recipes[3918].outputItemID==4357)
+ r.learned=false;a.recordRouteProfession(a.active);assert(a.character.routeProfessions[202].recipes[3918]==nil)
+end
+
+@test('Route model: quantities combine holdings and confirmed incoming mail once')
+local function incoming()
+ local a=setup();assert(a.startRouteOrder(30))
+ mock.stub(a,'inventoryFor',function()return {bags=3,total=5,deductibleAlts=0}end)
+ mock.stub(a,'confirmedMail',function()return 2 end)
+ local m=a.buildRouteModel(a.currentRouteOrder());assert(m.stock[2835]==7 and m.currentStock[2835]==7)
+ local e=a.evaluateRoute(m,{{recipe=3918,from=1,to=11,crafts=10}},true)
+ assert(e.bought[2835]==3 and e.cashMaterials==30 and e.owned==70)
+end
+
+@test('Route UI: explicit screen entry and both languages render, default guild sharing stays off')
+local function ui()
+ local a=setup();mock.setField(a.options,'guildRecipeSharing',false)
+ for _,lang in ipairs({'en','de'})do
+  mock.setField(a.options,'language',lang);a.showRouteWindow(75)
+  assert(a.routeWindow:IsShown()and a.routeWindow.target:GetText()=='75')
+  assert(a.routeWindow.body:GetText():find(lang=='de'and 'Goldbestände'or 'gold data',1,true))
+ end
+ assert(a.options.guildRecipeSharing==false)
+end
+
+@test('Route runtime: craft and pending purchase defer planning without clearing job')
+local function busy()
+ local a=setup();assert(a.startRouteOrder(30));local calls=0
+ mock.stub(a,'buildRouteModel',function()calls=calls+1;return nil end)
+ mock.stub(a,'craftRefreshBusy',function()return true end);a.routeRuntimeTick()
+ assert(calls==0 and a.currentRouteOrder().active)
+ mock.stub(a,'craftRefreshBusy',function()return false end);mock.stub(a,'purchasePending',function()return true end);a.routeRuntimeTick()
+ assert(calls==0)
+ mock.setField(a,'active',nil)
+ assert(a.routeTask().kind=='route_profession')
+end
+
+@test('Route depth: changed available quantity invalidates route even at unchanged minimum price')
+local function quantity()
+ local a=setup();assert(a.startRouteOrder(30))
+ a.routeDirty=nil;a.observeRouteDepth(2835,{{price=10,quantity=50}});assert(a.routeDirty)
+ a.routeDirty=nil;a.observeRouteDepth(2835,{{price=10,quantity=50}});assert(not a.routeDirty)
+ a.observeRouteDepth(2835,{{price=10,quantity=2},{price=100,quantity=100}});assert(a.routeDirty)
+end
+
+@test('Guild handover: only explicit confirmation with observed material decrease completes transfer')
+local function handover()
+ local a=setup();assert(a.startRouteOrder(30));local n=5
+ mock.stub(a,'inventoryFor',function()return {bags=n,total=n}end)
+ local s={source='guild',item=6338,quantity=1,provider={key='guild:test',name='Smith',guild='FixtureGuild@Fixture',accepted=true,output=1,inputs={[2842]=5}}}
+ assert(a.prepareRouteHandover(s));assert(not a.confirmRouteHandover(s))
+ n=0;assert(a.confirmRouteHandover(s))
+ assert(a.currentRouteOrder().supplyProgress['guild:test'].status=='materials_sent')
+end
+
+@test('Route model: actual skill progress and changed bags rebuild remaining demand; live quote replaces old scan minimum')
+local function progress()
+ local a=setup();assert(a.startRouteOrder(30))
+ mock.setField(a,'routePriceObservations',{[2835]={unit=70,at=time(),serial=22}})
+ mock.setField(a,'routeDepth',{})
+ local first=a.buildRouteModel(a.currentRouteOrder());assert(first.start==1 and first.prices[2835].unit==70)
+ a.active.profile.skill=20
+ mock.stub(a,'inventoryFor',function()return {bags=4,total=4,deductibleAlts=0}end)
+ local later=a.buildRouteModel(a.currentRouteOrder());assert(later.start==20 and later.target==30 and later.stock[2835]==4)
+ local cost=a.evaluateRoute(later,{{recipe=3918,from=20,to=25,crafts=5}},true)
+ assert(cost.bought[2835]==1 and cost.cashMaterials==70)
+end
+
+@test('Route own alt: live recipe proof and actual output stock control fixed native craft plan')
+local function alt()
+ local a=setup();assert(a.startRouteOrder(30));local o=a.currentRouteOrder()
+ local item=6338;local p={key='alt:ALT:7818',character='ALT',name='Smith',recipe=7818,profession=164,mode='materials',inputs={[2842]=1},output=1}
+ o.lastSupply={{item=item,quantity=1,source='alt',provider=p,stage=1}}
+ mock.setField(a,'characterKey','ALT')
+ local r={id=7818,profession=164,learned=true,confirmed=true,materialsFromClient=true,outputFromClient=true,outputItemID=6338,outputMin=1,outputMax=1}
+ mock.setField(a,'active',{profile={id=164,skill=100,cap=150},recipes={[7818]=r}})
+ mock.stub(a,'quote',function()return {inputs={{item=2842,amount=1,unit=100}},cost=100}end)
+ local count=0;mock.stub(a,'inventoryFor',function(id)return {bags=id==item and count or 1,total=id==item and count or 1}end)
+ local plan=a.routeSupplyCraftPlan();assert(plan and plan.production and plan.routeSupply and plan.crafts==1 and plan.purchase==0)
+ mock.stub(a,'rodPreparationPlan',function()return nil,nil,false end)
+ local native=a.craftBatchPlan(r,1,math.huge);assert(native and native.production and native.routeSupply and native.crafts==1)
+ count=1;assert(a.routeSupplyCraftPlan()==nil)
+ count=0;r.learned=false;assert(a.routeSupplyCraftPlan()==nil)
+end
+
+@test('Route offer check: searches same remaining quantities without replacing manual buy state; pending purchase blocks search')
+local function offers()
+ local a=setup();local calls=0;local sentinel={quantity=5}
+ mock.stub(a,'shoppingFresh',function()return true end)
+ mock.setField(a,'routeResult',{model={prices={[2835]={unit=10}}},best={bought={[2835]=50}}})
+ mock.setField(a,'ahOrder',sentinel);mock.stub(a,'itemName',function()return 'Rough Stone'end)
+ mock.setField(_G,'Auctionator',{API={v1={MultiSearchAdvanced=function(_,terms)calls=calls+1;assert(#terms==1 and terms[1].quantity==50)end}}})
+ assert(a.checkRouteOffers()and calls==1 and a.ahOrder==sentinel and sentinel.quantity==5)
+ mock.stub(a,'purchasePending',function()return true end);assert(not a.checkRouteOffers()and calls==1)
+end
+
+@test('Route idle: absent job hides its update frame and never builds a model')
+local function idle()
+ local a=setup();local calls=0
+ mock.stub(a,'guildRouteTick',function()return false end);mock.stub(a,'buildRouteModel',function()calls=calls+1 end)
+ a.routeRuntimeFrame:Show();for _=1,100 do a.routeRuntimeTick()end
+ assert(calls==0 and not a.routeRuntimeFrame:IsShown())
+end

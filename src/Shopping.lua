@@ -225,10 +225,11 @@ end
 function app.completeShoppingPlan(plan)
     plan.scanSerial=shop.scanSerial
     plan.ahTotal=0;plan.vendorTotal=0;plan.ahRows=0;plan.vendorRows=0;plan.ownedRows=0
+    local observedPrices=shop.prices or {}
     for _,row in ipairs(plan.rows)do
         local vendor,kind=app.vendorPrice(row.id)
         local live=shop.livePrices and shop.livePrices[row.id]
-        local ah=live and live.unit or shop.prices[row.id]
+        local ah=live and live.unit or observedPrices[row.id]
         row.vendor=vendor and (not ah or vendor<=ah)or false
         row.vendorUnit=vendor;row.vendorKind=kind
         local ceiling=row.unit*(1+shop.tolerance/100)

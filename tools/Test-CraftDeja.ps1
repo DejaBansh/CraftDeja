@@ -4,6 +4,8 @@
     [ValidateSet('dev','release')][string]$Profile = 'dev',
     [switch]$SkipBuild,
     [switch]$Benchmark,
+    [switch]$Evidence,
+    [string]$ScreenshotTest,
     [switch]$OpenReportFolder
 )
 $ErrorActionPreference = 'Stop'
@@ -124,6 +126,7 @@ try {
         if ($build.ExitCode -ne 0) { throw 'Build failed; tests not run.' }
     }
     $nativeArgs = if ($Benchmark) { @('bench','--profile',$Profile,'--samples','7','--batch-ms','100','--json','--color','never') + @($Filter) } else { @('test','--color','never') + @($Filter) }
+    if ($Evidence -and -not $Benchmark) { $nativeArgs += @('--reporter','pretty','--reporter','json','--output',(Join-Path $reportDir 'native')) }
     $tests = Invoke-LoggedProcess $exe $nativeArgs 'tests'
     $meta.testExitCode = $tests.ExitCode
     $match = [regex]::Match($tests.Text, '(?:Tested\s+|tests failed:\s*)(\d+) passed,\s*(\d+) failed,\s*(\d+) skipped[^\r\n]*')
@@ -134,6 +137,10 @@ try {
         $summary = $match.Value
     }
     else { $summary = 'No standard test summary found; inspect the complete log.' }
+    if ($ScreenshotTest -and $tests.ExitCode -eq 0) {
+        $capture = Invoke-LoggedProcess $exe @('screenshot',$ScreenshotTest,'--output',(Join-Path $reportDir 'REFERENCE.png')) 'reference screenshot'
+        if ($capture.ExitCode -ne 0) { throw 'Reference screenshot failed.' }
+    }
     if ($Benchmark -and $tests.ExitCode -eq 0) {
         $benchResult = $tests.StdOut.Trim() | ConvertFrom-Json
         $benchCount = 0
@@ -198,6 +205,11 @@ Diese ZIP kannst du im Chat anhaengen. Ein lokaler C:\-Pfad allein ist kein erre
     $archiveFiles = @($summaryPath,$logPath,$metaPath)
     $benchPath = Join-Path $reportDir 'BENCHMARK.json'
     if (Test-Path -LiteralPath $benchPath) { $archiveFiles += $benchPath }
+    foreach ($extra in @('native','REFERENCE.png')) {
+        $extraPath = Join-Path $reportDir $extra
+        if (Test-Path -LiteralPath $extraPath) { $archiveFiles += $extraPath }
+    }
+    $archiveFiles += @(Get-ChildItem -LiteralPath $reportDir -Filter 'REFERENCE-*.png' -File | ForEach-Object FullName)
     Compress-Archive -LiteralPath $archiveFiles -DestinationPath $archive
     [System.IO.File]::WriteAllText((Join-Path $reportRoot 'LETZTER_BERICHT.txt'), $archive, $utf8)
     Write-Host "`n$summary"

@@ -50,14 +50,17 @@ function app.observeCommodityResults(id)
     if not app.shoppingFresh()or type(id)~='number'then return false end
     local api=C_AuctionHouse
     local count=api and app.try(api.GetNumCommoditySearchResults,id)
-    if type(count)~='number'or count<1 or type(api.GetCommoditySearchResultInfo)~='function'then return false end
+    if type(count)~='number'or count<0 or type(api.GetCommoditySearchResultInfo)~='function'then return false end
     local minimum
+    local routeLevels=app.currentRouteOrder and app.currentRouteOrder()and {}or nil
     for i=1,count do
         local info=app.try(api.GetCommoditySearchResultInfo,id,i)
         if type(info)=='table'and type(info.unitPrice)=='number'and info.unitPrice>0 and (info.quantity or 0)>0 then
             minimum=math.min(minimum or info.unitPrice,info.unitPrice)
+            if routeLevels then routeLevels[#routeLevels+1]={unit=info.unitPrice,quantity=info.quantity}end
         end
     end
+    if routeLevels then app.observeRouteDepth(id,routeLevels)end
     if minimum and app.updateLiveAHPrice(id,minimum,'commodity_event')then app.requestMarketRefresh();return true end
     return false
 end

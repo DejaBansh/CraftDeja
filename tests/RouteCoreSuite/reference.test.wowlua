@@ -1,0 +1,79 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+local evidenceText
+@afterEach
+local function clean()assert(#mock.errors()==0,'Unexpected emulator error')end
+local function engineering()
+ local a=_G['CraftDeja']
+ local m={start=1,target=75,cap=75,characterLevel=20,now=1000,maxAge=900,green=true,stock={},prices={},recipes={},providers={},width=6,maxExpansions=4000}
+ local outputs={[3918]={4357,2},[3922]={4359,1},[3923]={4360,2},[3924]={4361,1}}
+ for id,out in pairs(outputs)do
+  local ref=a.catalog[202][id];assert(ref and ref.ingredients and ref.skill and ref.grey)
+  m.recipes[id]={id=id,inputs=a.copy(ref.ingredients),outputItem=out[1],outputMin=out[2],skill=ref.skill,
+   yellow=ref.yellow,green=ref.green,grey=ref.grey,points=1,confirmed=true,learned=false,fee={cost=10},sell=0}
+ end
+ for item,unit in pairs({[2835]=2,[2840]=5,[2589]=1,[2880]=1,[4357]=100,[4359]=100,[4360]=1,[4361]=20})do
+  m.prices[item]={levels={{unit=unit,quantity=10000}},at=1000}
+ end
+ return a,m
+end
+
+@test('Forever engineering 1-75: complete controlled reference, reuse beats identical buy-only and real alternative')
+local function engineeringReference()
+ local a,m=engineering();local before=debugprofilestop();local search=a.newRouteSearch(m);local ticks=0
+ while not search.done do a.advanceRouteSearch(search);ticks=ticks+1 end
+ local elapsed=debugprofilestop()-before
+ assert(search.best and not search.best.provisional and search.best.target==75 and search.expansions<=4000)
+ local independent=a.evaluateRoute(m,search.best.segments,false)
+ assert(independent.net>search.best.net and (search.best.reused[4357]or 0)+(search.best.reused[4359]or 0)>0)
+ -- Copper Tube requires skill 50, so an independent full alternative uses
+ -- bolts to 50 and tubes thereafter, then buys every later-needed component.
+ local baseline={{recipe=3918,from=1,to=30},{recipe=3922,from=30,to=50},{recipe=3924,from=50,to=75}}
+ for _,s in ipairs(baseline)do s.crafts=a.routeExpectedCrafts(m,m.recipes[s.recipe],s.from,s.to)end
+ local other=a.evaluateRoute(m,baseline,true)
+ assert(search.best.net<=other.net)
+ assert(search.best.cash==436 and search.best.net==436 and independent.net==4936 and other.net==476,'Controlled Engineering reference changed: recheck quantities, fees and route costs')
+ local rows={};for _,s in ipairs(search.best.segments)do rows[#rows+1]=s.recipe..':'..s.from..'-'..s.to..'x'..s.crafts end
+ evidenceText='ENGINEERING 1-75 / synthetic copper prices\nCash '..search.best.cash..' | Net '..search.best.net..'\nSame stages, buy components: '..independent.net..'\nPowder + bolts + tube alternative: '..other.net..'\nSaved vs this alternative: '..(other.net-search.best.net)..'\nExpansions '..search.expansions..' | chain nodes '..search.chainNodes..' | resumes '..ticks..'\nEmulated total solve ms: '..string.format('%.2f',elapsed)..' (not frame time/FPS)\n'..table.concat(rows,'\n')
+end
+
+@test('Reference evidence: comparable route and silver rod results')
+local function evidence()
+ assert(evidenceText)
+ local f=CreateFrame('Frame','CraftDejaRouteReference',UIParent,'BackdropTemplate');f:SetSize(900,650);f:SetPoint('CENTER');f:SetFrameStrata('FULLSCREEN_DIALOG')
+ f:SetBackdrop({bgFile='Interface/Buttons/WHITE8X8'});f:SetBackdropColor(.025,.025,.025,1)
+ local label=f:CreateFontString(nil,'OVERLAY','GameFontNormalLarge');label:SetPoint('TOPLEFT',20,-20);label:SetWidth(860);label:SetJustifyH('LEFT')
+ label:SetText(evidenceText..'\n\nSILVER ROD / same quantity and own materials\nAH cash/net: 1000/1000 copper\nAlt cash/net: 100/400 copper (saving 600 vs AH)\nGuild cash/net: 30/330 copper (saving 70 vs alt)\nInputs: 1 Silver Bar @200 + 2 Rough Grinding Stone @50\nGuild tip 20 + delivery 10; alt delivery 100\nControlled emulator reference, not live AH prices.')
+ f:Show()
+end
+
+@test('Forever silver rod: own materials reduce cash only, confirmed guild wins by 70 copper')
+local function rodReference()
+ local a=_G['CraftDeja'];local inputs=a.catalog[164][7818].ingredients
+ assert(inputs[2842]==1 and inputs[3470]==2)
+ local m={now=1000,guild='G',stock={[2842]=1,[3470]=2},prices={
+  [6338]={levels={{unit=1000,quantity=10}},at=1000},[2842]={levels={{unit=200,quantity=10}},at=1000},[3470]={levels={{unit=50,quantity=20}},at=1000}},providers={}}
+ local alt={key='alt:Smith:7818',kind='alt',mode='materials',confirmed=true,transferable=true,output=1,inputs=inputs,tip=0,transferCost=100,at=1000}
+ local guild={key='guild:Smith:7818',kind='guild',mode='materials',confirmed=true,transferable=true,output=1,inputs=inputs,tip=20,transferCost=10,at=1000,online=true,accepted=true,guild='G'}
+ m.providers[6338]={alt,guild};local c=a.compareRouteSupply(m,6338,1)
+ assert(c.best.kind=='guild'and c.best.cash==30 and c.best.net==330 and c.best.saving==70)
+ guild.accepted=false;c=a.compareRouteSupply(m,6338,1);assert(c.best.kind=='alt'and c.best.cash==100 and c.best.net==400 and c.best.saving==600)
+ alt.transferCost=700;c=a.compareRouteSupply(m,6338,1);assert(c.best.kind=='ah')
+end
+
+@test('Route ties: additional intermediate production does not win a zero-saving tie')
+local function tie()
+ local a=_G['CraftDeja']
+ local x={net=100,visits=1,extraCrafts=10,segments={{},{}}};local y={net=100,visits=2,extraCrafts=0,segments={{},{}}}
+ assert(a.routeBetter(y,x)and not a.routeBetter(x,y))
+end
+
+@test('Prerequisite rod chain: planned once, silver supply in current stage, resumes normal leveling segment')
+local function tool()
+ local a=_G['CraftDeja'];local m={now=1000,stock={},prices={
+  [6338]={levels={{unit=100,quantity=10}},at=1000},[10940]={levels={{unit=5,quantity=100}},at=1000}},
+  recipes={[1]={id=1,inputs={[10940]=1},confirmed=true,learned=true},[7795]={id=7795,inputs={[6338]=1},confirmed=true,learned=true,outputItem=6339,outputMin=1,sell=0}},prerequisites={[1]={7795}}}
+ local s={{recipe=1,from=75,to=76,crafts=1},{recipe=1,from=76,to=77,crafts=1}}
+ local cost=a.evaluateRoute(m,s,true)
+ assert(cost.cash==110 and cost.net==110 and #cost.prerequisiteSegments==1 and #cost.segments==2 and cost.bought[6338]==1)
+end
