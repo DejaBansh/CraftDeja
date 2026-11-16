@@ -2,7 +2,7 @@
     "$schema":  "https://raw.githubusercontent.com/DomenikIrrgang/wowlua/main/schema/wowlua-0.1.json",
     "package":  {
                     "name":  "craft-deja",
-                    "version":  "3.9.0-beta.19",
+                    "version":  "3.9.0-beta.20",
                     "authors":  [
                                     "Tim"
                                 ],
@@ -84,7 +84,8 @@
                                      "src/RouteTrainer.lua",
                                      "src/RouteRuntime.lua",
                                      "src/RouteSupply.lua",
-                                     "src/RouteUI.lua"
+                                     "src/RouteUI.lua",
+                                     "src/RouteBank.lua"
                                  ]
               },
     "test":  {

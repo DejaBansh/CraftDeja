@@ -1,0 +1,95 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+local function setup()
+ local a=_G['CraftDeja'];local order={id='checkpoint',owner='Main',active=true,profession=202,target=75,forceAH={}}
+ local r={id=3919,profession=202,learned=true,confirmed=true,skill=1,yellow=30,green=45,grey=60,colour='yellow',points=1}
+ mock.setField(a,'characterKey','Main');mock.stub(a,'currentRouteOrder',function()return order end)
+ mock.setField(a,'active',{profile={id=202,skill=35,cap=75},recipes={[3919]=r}})
+ mock.setField(a,'routeDecision',{routeOrder=order.id,current={recipe=r,quote={cost=10,netCost=10}},stop=60})
+ mock.setField(a,'decision',a.routeDecision)
+ mock.setField(a,'routeResult',{model={cap=75,recipes={[3924]={inputs={[2840]=2}}}},best={segments={{recipe=3919,from=35,to=60,crafts=40},{recipe=3924,from=60,to=75,crafts=15}}}})
+ mock.setField(a,'routeSearch',nil);mock.setField(a,'routeDirty',nil);mock.setField(a,'nativeCraftHandoff',nil);mock.setField(a,'craftBatch',nil)
+ mock.stub(a,'quote',function()return {cost=10,netCost=10}end)
+ mock.stub(a,'craftRefreshBusy',function()return false end);mock.stub(a,'purchasePending',function()return false end)
+ mock.stub(a,'probability',function()return .8,'yellow',true end)
+ mock.stub(a,'inventoryFor',function(item)return {bags=item==2840 and 50 or 0,total=50,bank=0}end)
+ mock.stub(a,'materialPlan',function()return {rows={{id=2840,total=20}}}end)
+ return a,order,r
+end
+@afterEach
+local function clean()_G['CraftDeja'].routeRuntimeFrame:Hide();assert(#mock.errors()==0,'Unexpected emulator error')end
+
+@test('Route checkpoint: 300 state, bag and price notifications keep same route without full search')
+local function repeated()
+ local a=setup();local original=a.routeResult
+ for _=1,100 do for _,reason in ipairs({'state','inventory','price'})do a.invalidateRoute(reason)end end
+ assert(a.routeResult==original and not a.routeDirty and not a.routeSearch and original.costsStale)
+end
+
+@test('Route checkpoint: event storm never discards initial running search; mailbox can finish without reopening')
+local function pending()
+ local a=setup();mock.setField(a,'routeResult',nil)
+ local search={thread='sentinel'};mock.setField(a,'routeSearch',search)
+ for _=1,100 do a.invalidateRoute('inventory');a.invalidateRoute('progress');a.invalidateRoute('price')end
+ assert(a.routeSearch==search and not a.routeDirty)
+end
+
+@test('Route checkpoint: real asynchronous job completes under repeated mailbox/inventory events without reopening UI')
+local function completion()
+ local a,order=setup();order.target=60;local builds,updates,opens=0,0,0
+ local m={start=35,target=60,cap=75,now=1000,stock={},prices={[1]={levels={{unit=10,quantity=10000}},at=1000}},providers={},
+  recipes={[3919]={id=3919,skill=1,grey=60,inputs={[1]=1},outputItem=2,outputMin=1,learned=true,confirmed=true,sell=0}},
+  rawRecipes=a.active.recipes,chance=function()return 1,'orange'end,width=2,maxExpansions=400}
+ mock.stub(a,'buildRouteModel',function()builds=builds+1;return m end)
+ mock.stub(a,'guildRouteTick',function()return false end)
+ mock.stub(a,'refreshNextStep',function()updates=updates+1 end);mock.stub(a,'renderRouteWindow',function()end)
+ mock.stub(a,'openCraftProfession',function()opens=opens+1 end)
+ a.invalidateRoute('new_order');a.routeRuntimeTick()
+ for _=1,200 do
+  a.invalidateRoute('inventory');a.invalidateRoute('progress');a.routeRuntimeTick()
+  if not a.routeSearch and not a.routeDirty then break end
+ end
+ assert(builds==1 and a.routeResult.best and not a.routeSearch and not a.routeDirty and updates>0 and opens==0)
+end
+
+@test('Route checkpoint: recipe boundary, rank change and explicit replan trigger full comparison')
+local function boundary()
+ local a=setup();a.active.profile.skill=60;a.invalidateRoute('progress');assert(a.routeDirty)
+ a.routeDirty=nil;a.active.profile.skill=35;a.active.profile.cap=150;a.invalidateRoute('progress');assert(a.routeDirty)
+ a.routeDirty=nil;a.active.profile.cap=75;a.invalidateRoute('manual');assert(a.routeDirty)
+end
+
+@test('Route checkpoint: native preparation keeps native action even with a queued new comparison')
+local function native()
+ local a=setup();mock.setField(a,'routeDirty',true);mock.setField(a,'nativeCraftHandoff',{})
+ assert(a.routeTask()==nil)
+end
+
+@test('Route checkpoint: lightweight action uses actual skill, recipe identity and current learning state')
+local function observed()
+ local a,_,r=setup();local replacement={};for k,v in pairs(r)do replacement[k]=v end
+ replacement.learned=false;a.active.recipes[3919]=replacement;a.active.profile.skill=40
+ local d=a.pinnedRouteDecision();assert(d.profile.skill==40 and d.current.recipe==replacement and d.current.needsLearning and d.stop==60 and d.current.unitSkill==12.5)
+end
+
+@test('Route bank: only future demand beyond current section stock is banked; stored bank stock counts once')
+local function bank()
+ local a=setup();local rows=a.routeBankRows();assert(#rows==1 and rows[1].item==2840 and rows[1].quantity==30)
+ mock.stub(a,'inventoryFor',function()return {bags=25,total=45,bank=20}end)
+ rows=a.routeBankRows();assert(#rows==1 and rows[1].quantity==5)
+ mock.stub(a,'inventoryFor',function()return {bags=20,total=20,bank=0}end);assert(#a.routeBankRows()==0)
+ mock.stub(a,'inventoryFor',function()return {bags=50,total=80,bank=30}end);assert(#a.routeBankRows()==0)
+end
+
+@test('Route bank: no recommendations during craft, pending purchases or on an alt')
+local function busyBank()
+ local a=setup();mock.stub(a,'craftRefreshBusy',function()return true end);assert(#a.routeBankRows()==0)
+ mock.stub(a,'craftRefreshBusy',function()return false end);mock.stub(a,'purchasePending',function()return true end);assert(#a.routeBankRows()==0)
+ mock.stub(a,'purchasePending',function()return false end);mock.setField(a,'characterKey','Alt');assert(#a.routeBankRows()==0)
+end
+
+@test('Route checkpoint: early world notification before route model is loaded is harmless')
+local function bootstrap()
+ local a=setup();mock.setField(a,'currentRouteOrder',nil);a.invalidateRoute('resume')
+ assert(not a.routeDirty and not a.routeSearch)
+end

@@ -8,6 +8,8 @@ app.words.en.route_wait_delivery='Waiting for %s x%d from %s. Check bags after d
 app.words.en.route_alt_action='Prepare or transfer %s x%d on this character.';app.words.de.route_alt_action='Auf diesem Charakter %s x%d vorbereiten oder übertragen.'
 app.words.en.route_whisper='Could you craft %s x%d? Please confirm price/tip and delivery costs before I order.';app.words.de.route_whisper='Kannst du %s x%d herstellen? Bitte Preis/Trinkgeld und Übergabekosten vor dem Auftrag bestätigen.'
 app.words.en.route_offers='Check route offers';app.words.de.route_offers='Routenangebote prüfen'
+app.words.en.route_checkpoint_help='Route held to the next recipe/rank boundary. Prices and quantities are still checked before buying. Replan explicitly with Route plan.'
+app.words.de.route_checkpoint_help='Route bleibt bis zum Rezept-/Rangwechsel fest. Preise und Mengen werden vor Käufen weiter geprüft. Route planen startet einen neuen Vergleich.'
 local function edit(parent,x,y,width)
     local f=CreateFrame('EditBox',nil,parent,'InputBoxTemplate');f:SetSize(width,24);f:SetPoint('TOPLEFT',x,y);f:SetAutoFocus(false);f:SetNumeric(true);return f
 end
@@ -35,12 +37,15 @@ function app.renderRouteWindow()
     if app.routeSearch or app.routeDirty then lines[#lines+1]=app.caption('route_calculating')end
     if search and search.best then
         local best=search.best
+        lines[#lines+1]=app.caption('route_checkpoint_help')
+        if search.costsStale then lines[#lines+1]=app.caption('route_estimated')end
         lines[#lines+1]=app.caption('route_summary',search.model.start,search.model.target,#best.segments,search.compared)
         if best.provisional then lines[#lines+1]=app.caption('route_estimated')end
         local materials,learning,transfer=best.cashMaterials,best.cashLearning,best.cashTransfer
-        if best.provisional then materials=nil;learning=nil;transfer=nil end
-        lines[#lines+1]=app.caption('route_costs',app.money(materials),app.money(learning),app.money(transfer),app.money(best.owned),app.money(best.vendor),app.money(best.knownNet))
-        if search.saving then lines[#lines+1]=app.caption('route_saving',app.money(search.saving))end
+        local net=best.knownNet
+        if best.provisional or search.costsStale then materials=nil;learning=nil;transfer=nil;net=nil end
+        lines[#lines+1]=app.caption('route_costs',app.money(materials),app.money(learning),app.money(transfer),app.money(best.owned),app.money(best.vendor),app.money(net))
+        if search.saving and not search.costsStale then lines[#lines+1]=app.caption('route_saving',app.money(search.saving))end
         lines[#lines+1]=app.caption('route_bound')
         if f.expanded then
             for _,s in ipairs(best.segments)do local r=search.model.rawRecipes[s.recipe]or search.model.recipes[s.recipe];lines[#lines+1]=app.caption('route_segment',s.from,s.to,app.recipeName(r),s.crafts)end

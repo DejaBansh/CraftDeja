@@ -1,5 +1,13 @@
 # Roadmap — Stand 15.11.2026
 
+## beta.20 — feste Prüfpunkte, 16.11.2026
+
+- [x] Wiederholte Route-Pending-Wechsel aus Nutzerlog und unverändertem beta.19-Code reproduziert; zwei gezielte Reproduktionsfälle schlagen dort fehl.
+- [x] Routenentscheidung bis Abschnitts-/Ranggrenze festhalten; laufende Coroutine bei normalen Beobachtungen erhalten, native Vorbereitung sichtbar lassen. Aktuelle Mengen-/Preis-/Kaufprüfungen bleiben aktiv.
+- [x] Bankhinweis für späteren Bedarf abzüglich aktuellem Bedarf und vorhandener Bankmengen; pro Abschnitt aufschiebbar, keine automatischen Gegenstandsbewegungen.
+- [x] Gezielt asynchronen Abschluss unter Inventarereignissen ohne UI-Neuöffnung, Bankmengen und frühen Ladefall geprüft; Belege/Limits in docs/ROUTE_CHECKPOINTS.md. Breiter finaler Ergebnisstand in TEST_RESULTS.md.
+- [ ] Live-Retest: mehrere Craft-Vorbereitungen im selben Abschnitt, AH/Briefkasten ohne Neuöffnung, echter Abschnittswechsel und Bankhinweis. Keine FPS- oder abgeschlossene Live-Abnahme behaupten.
+
 ## beta.19 — 16.11.2026
 
 - [x] Integrierte, explizit gestartete Mehrrezept-Route mit gemeinsamem Ziel/Snapshot, Zwischenproduktreservierung und getrennten Zahlungs-/Nettokosten.

@@ -1,5 +1,15 @@
 # CraftDeja — verbindlicher Projektstand
 
+## beta.20 — feste Routenabschnitte / Bankhinweis, 16.11.2026
+
+- Nutzerlog beta.19 belegt wiederholte route_pending-Schritte bei gleichem Rezept/Skill, direkt beim nativen Vorbereitungsklick und nach Mailboxkontakt. Ursache: jeder Refresh/Inventar-/Preisaufruf invalidierte und verwarf auch laufende Routensuchen. Original beta.19 aus a0a6437 separat geprüft: beide identischen Reproduktionsfälle schlagen fehl. Vollständige Analyse und Regressionspfade in docs/ROUTE_CHECKPOINTS.md.
+- Auf codex/route-checkpoints von sauberem a0a6437339345a1dcf5c58c6caec0d8e2d2d9bac isoliert. Beta.20 hält die Route bis Rezept-/Ranggrenze fest; normale Beobachtungen ändern nur die aktuelle Entscheidung und aktuelle Kaufprüfungen. Laufende Suche bleibt erhalten; native Bereitschaft bleibt sichtbar. Kein pauschaler Timer. Geänderte Vergleichskosten werden vorläufig statt als frische Ersparnis gezeigt.
+- Bankhinweis nennt tatsächliche überschüssige Taschenmenge für spätere Abschnitte, zieht aktuellen Bedarf und vorhandene Bankmengen ab und lässt sich bis zur nächsten Abschnittsgrenze verschieben. Keine automatischen Bewegungen. Guide-/Lieferanten-/Kaufsperren bleiben erhalten.
+- Finaler Windows/Camelot-Lauf mit Blizzard-UI, wowlua 0.13.14, Release-Build: 572/0/0, 319 Dateien, 232.55s. ZIP reports/tests/20261116-165128-c7c8c3.zip. Alle 48 Laufzeitquellen, 320 erfassten Test-/Profilquellen und drei Build/Testinputs SHA256-identisch zum abschließenden Stand. Neun neue Fälle; echte Coroutine endet mit genau einem Modellaufbau unter wiederholten Inventarereignissen ohne UI-Neuöffnung. Source-Emulation ist kein FPS- oder vollständiger Live-Servernachweis; W1034 unverändert bekannt.
+- Beta.20 ist noch NICHT im Spiel installiert: vollständige Prozessprüfung zeigt laufendes Wow.exe 18788 (Forever) und WowVoiceProxy.exe 7984. Nutzer vor Installation auf vollständiges Beenden hingewiesen. Spielprozesse werden nicht beendet und laufende Installation nicht ersetzt. Aktuell installierter Stand bleibt beta.19. Nach beendetem Spiel tools/Install-VerifiedCraftDeja.ps1 mit obigem Testbericht und dann aktuellem sauberen Quellcommit verwenden; Backup/Hashbericht automatisch.
+- Release-Kandidat und DE/EN-Patchnotes werden lokal unter dist/packages bereitgestellt. Kein Upload/GitHub-Push und kein Merge nach main; vorhandene Änderungen erhalten. Nächster Live-Retest: Vorbereitung mehrfach im selben Abschnitt, AH-Kauf/Post ohne Neuöffnen, einmaliger Vergleich an Grenze sowie Bankhinweis/Zurückstellen. Echte Verbesserung dieses Nutzerablaufs ausdrücklich noch offen.
+
+
 ## beta.19 Release installiert und lokal paketiert — 16.11.2026, 06:15
 
 - Tatsächlich installiert: 3.9.0-beta.19-alpha+b8ff69e, Profil release, Quellcommit b8ff69eee43574cb1feb84c39edda0e362de1b1c auf codex/multi-stage-routes. Funktionaler Codecommit f380cccb6d6a4d84a53eedd3c313e2a9d32260f3; Folgecommit korrigiert ausschließlich Windows-ZIP-Pfadnormalisierung im neuen Installationsskript. Alle final getesteten Addon-/Test-/Buildinputs unverändert.

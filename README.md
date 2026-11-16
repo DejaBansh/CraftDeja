@@ -12,7 +12,7 @@ Compare recipes by **estimated net cost per skill point**, then follow one clear
 
 | Current source | Automated validation | Status |
 |---|---|---|
-| 3.9.0-beta.19 (local feature branch) | Release/source validation recorded in TEST_RESULTS.md | Multi-stage routes, quantity tiers, trainer preparation, alt/guild supply; live acceptance pending |
+| 3.9.0-beta.20 (local feature branch) | Release/source validation recorded in TEST_RESULTS.md | Fixed route checkpoints and future-supply bank guidance; live retest pending |
 
 Validation uses Windows/Camelot, wowlua 0.13.14 and configured Blizzard UI. Source emulation is not execution of the bundled release artifact or a complete live-server test. The earlier beta.17 release comparison was reported smooth in game. [Full test record](TEST_RESULTS.md) · [Multi-stage routes and controlled comparisons](docs/MULTI_STAGE_ROUTES.md) · [Product priorities](docs/PRODUCT_PLAN.md).
 
@@ -38,6 +38,7 @@ Green can therefore be the cheaper option when enabled and the recipe data suppo
 - **Material planning:** deducts available holdings and distinguishes missing purchases, storage and confirmed incoming purchases where data is available.
 - **Plan cost details (beta.18):** separates full material value, owned reagents, estimated missing-material purchases and net material value after credited vendor resale. Unknown inventory stays explicit; learning and prerequisite costs may be extra.
 - **Multi-stage routes (beta.19):** `/cdj route` compares complete same-target candidates, reserves intermediate outputs, checks observed AH quantity tiers and separates remaining payments from economic net costs. Planned trainer visits, confirmed alt professions and opt-in guild sourcing for rods/Salt Shaker share a saved order. [Details and live checks](docs/MULTI_STAGE_ROUTES.md).
+- **Stable route sections (beta.20):** routine price/inventory/progress events update the current action without restarting the full route search. Complete comparisons happen at checkpoints or on explicit replan; surplus supplies reserved for later sections receive bank guidance. [Cause, regression evidence and retest](docs/ROUTE_CHECKPOINTS.md).
 - **Auctionator shopping:** searches missing materials and prepares quantities. TSM can optionally supply suitable price values; it does not replace the Auctionator workflow.
 - **Recipe sources:** considers usable unlearned recipes and shows recorded trainers, vendors and map markers when coordinates are known.
 - **Workstations and tools:** specific instructions such as cooking fire, anvil or forge, using requirements the client reports.

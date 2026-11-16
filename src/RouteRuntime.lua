@@ -2,12 +2,43 @@
 local _,app=...
 local frame=CreateFrame('Frame');app.routeRuntimeFrame=frame;frame:Hide()
 local revision=0
+local fullReasons={new_order=true,force_ah=true,reset_ah=true,provider_terms=true,handover=true,manual=true,guild_opt_out=true,guild_roster=true,guild_recipe=true}
 function app.invalidateRoute(reason)
+    if type(app.currentRouteOrder)~='function'then return end -- early world event during addon bootstrap
     local order=app.currentRouteOrder()
     if not order or not order.active then return end
+    if not fullReasons[reason]then
+        -- New observations update the current action; they must not restart
+        -- an in-flight comparison or re-optimize the same recipe section.
+        if app.routeSearch then app.routeStaleAfterSearch=true;return end
+        if app.pinnedRouteDecision and app.pinnedRouteDecision()then
+            app.routeResult.costsStale=true
+            app.routeDisplayDirty=true;frame:Show()
+            return
+        end
+    end
     revision=revision+1;app.routeDirty=true
     if reason=='price'or not app.routeDirtyReason then app.routeDirtyReason=reason end
     app.routeSearch=nil;frame:Show()
+end
+function app.pinnedRouteDecision()
+    local order=app.currentRouteOrder();local search=app.routeResult
+    local best=search and search.best;local s=best and best.segments[1]
+    local active=app.active
+    if not order or not order.active or order.owner~=app.characterKey or not s or not active or
+        active.profile.id~=order.profession or active.profile.cap~=search.model.cap or active.profile.skill>=s.to then return end
+    local r=active.recipes[s.recipe]
+    if not r or r.disabled or r.cooldown or r.craftLimit==0 then return end
+    local d=app.routeDecision
+    if not d or d.routeOrder~=order.id then return end
+    local q=app.quote(r,{})or d.current.quote
+    if not q then return end
+    local p,colour,estimated=app.probability(r,active.profile.skill,true)
+    if not p or p<=0 then return end
+    d.profile=active.profile;d.current.recipe=r;d.current.quote=q;d.current.chance=p;d.current.colour=colour
+    d.current.estimated=estimated;d.current.needsLearning=not r.learned;d.current.greenExtra=colour=='green'
+    d.current.unitSkill=(q.netCost or q.cost)/math.max(.000001,p*(r.points or 1))
+    return d
 end
 function app.observeRouteDepth(item,rows)
     if not app.currentRouteOrder()or type(item)~='number'then return end
@@ -57,6 +88,8 @@ local function apply(search)
     app.routeDecision={profile=app.active.profile,current=current,stop=first.to,followup=follow,snapshot=app.decision and app.decision.snapshot,
         missing=0,unchecked=0,routeOrder=order.id}
     app.decision=app.routeDecision;app.problem=nil;app.routeResult=search;app.routeSuggestion=nil;app.routeDirtyReason=nil
+    search.costsStale=app.routeStaleAfterSearch or nil;app.routeStaleAfterSearch=nil
+    app.flowLog('route.completed',{compared=search.compared or 0,from=app.active.profile.skill,stop=first.to})
     order.lastRoute={};for i,s in ipairs(best.segments)do order.lastRoute[i]=app.copy(s)end
     order.lastSupply={};for _,t in ipairs(best.transfers)do order.lastSupply[#order.lastSupply+1]={item=t.item,quantity=t.quantity,source=t.source,provider=app.copy(t.provider),stage=t.stage}end
     return true
@@ -77,7 +110,7 @@ function app.routeRuntimeTick()
     local network=app.guildRouteTick()
     local order=app.currentRouteOrder()
     if not order or not order.active then if not network then frame:Hide()end;return end
-    if app.craftRefreshBusy()or app.purchasePending()then return end
+    if app.craftRefreshBusy()or app.purchasePending()or app.nativeCraftHandoff then return end
     if order.owner~=app.characterKey then if not network then frame:Hide()end;return end
     if not app.active or app.active.profile.id~=order.profession then if not network then frame:Hide()end;return end
     if app.active.profile.skill>=order.target then order.finished=true;app.routeDirty=nil;app.routeSearch=nil;if not network then frame:Hide()end;return end
@@ -85,6 +118,7 @@ function app.routeRuntimeTick()
         local model,why=app.buildRouteModel(order)
         if not model then app.routeBuildProblem=why;return end
         app.routeBuildProblem=nil;app.routeSearch=app.newRouteSearch(model);app.routeSearch.revision=revision;app.routeDirty=nil
+        app.flowLog('route.started',{reason=app.routeDirtyReason or 'checkpoint',from=model.start,target=model.target})
     end
     local search=app.routeSearch
     local completed=false
@@ -105,6 +139,7 @@ function app.routeRuntimeTick()
         if app.renderRouteWindow then app.renderRouteWindow()end
         app.refreshNextStep(true)
     end
+    if app.routeDisplayDirty then app.routeDisplayDirty=nil;if app.renderRouteWindow then app.renderRouteWindow()end end
     if not app.routeSearch and not app.routeDirty and not network then frame:Hide()end
 end
 
@@ -121,6 +156,7 @@ function app.routeTask(plan)
     if order.owner~=app.characterKey then return oldOwnerTask(order)end
     if not app.active or app.active.profile.id~=order.profession then return {kind='route_profession',key='route_profession',body=app.caption('step_open_profession')}end
     if app.active and app.active.profile.skill>=order.target then return {kind='done',key='route_done',body=app.caption('route_goal_done',order.target)}end
+    if app.nativeCraftHandoff or app.craftBatch then return end
     if app.routeDirty or app.routeSearch then return {kind='route_pending',key='route_pending',body=app.caption('route_calculating')}end
     if app.routeSuggestion then return {kind='route_review',key='route_review',body=app.caption('route_price_change')}end
     if app.routeApplyBlocked then return {kind='route_review',key='route_no_prices',body=app.caption('no_prices')}end
@@ -149,9 +185,7 @@ local refresh=app.refresh
 app.refresh=function(rescan,...)
     refresh(rescan,...)
     if rescan and app.active and not app.craftRefreshBusy()then app.recordRouteProfession(app.active);app.publishGuildRecipes()end
-    if app.routeDecision and app.currentRouteOrder()and app.currentRouteOrder().owner==app.characterKey and app.currentRouteOrder().active and app.active and app.currentRouteOrder().profession==app.active.profile.id then
-        app.decision=app.routeDecision
-    end
+    local pinned=app.pinnedRouteDecision();if pinned then app.decision=pinned end
     app.invalidateRoute(rescan and 'progress'or 'state')
 end
 local next=app.refreshNextStep

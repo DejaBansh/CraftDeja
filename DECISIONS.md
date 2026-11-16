@@ -1,5 +1,10 @@
 # Entscheidungen — Stand 15.11.2026
 
+## beta.20 — 16.11.2026
+
+- Auf Nutzerwunsch Route innerhalb eines Rezeptabschnitts festhalten; vollständiger Vergleich am Rezept-/Rangwechsel oder auf ausdrücklichen Auftrag, nicht nach jedem Preis-/Inventar-/Fortschrittsereignis. Laufende Suche nicht für normale Beobachtungen verwerfen. Neue Daten weiterhin vor Käufen/Herstellung prüfen; alte Vergleichskosten nicht als aktuelle Ersparnis darstellen.
+- Bankempfehlung nur für tatsächlich in Taschen vorhandenen späteren Bedarf abzüglich bereits eingelagerter und aktuell benötigter Mengen. Keine automatischen Gegenstandsbewegungen; pro Abschnitt aufschiebbarer Hinweis. Belege: docs/ROUTE_CHECKPOINTS.md.
+
 ## Ergänzungen beta.19 — 16.11.2026
 
 - Mehrrezept-Routen vergleichen vollständige gleiche Ziele mit gefrorenem Bestand/Preisstand. Begrenzte asynchrone Kandidatensuche, kein uneingeschränktes Globaloptimum. Fehlende Preise/Gebühren/Belege sind unbekannt, niemals kostenlos.

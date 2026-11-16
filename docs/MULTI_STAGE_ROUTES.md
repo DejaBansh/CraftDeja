@@ -1,5 +1,7 @@
 # Mehrstufige Levelrouten / Multi-stage leveling routes — beta.19
 
+**Aktualisierung beta.20:** Auf Nutzerwunsch bleibt die Route innerhalb desselben Rezeptabschnitts fest. Normale Preis-/Inventar-/Fortschrittsereignisse starten keinen vollständigen Vergleich mehr; Abschnitts-/Rangwechsel und ausdrückliches Neuplanen sind Prüfpunkte. Kauf-/Mengenvalidierung bleibt aktuell, überholte Vergleichskosten werden vorläufig. Bankhinweise für spätere Vorräte und technische Belege: [ROUTE_CHECKPOINTS.md](ROUTE_CHECKPOINTS.md). Die folgenden ursprünglichen beta.19-Aussagen zum automatischen Routenwechsel bei jedem Preisupdate beschreiben den historischen Stand.
+
 ## Bedienung
 
 Berufsfenster öffnen, dann **/cdj route** (oder **/cdj routen**). Ziel ist standardmäßig die Grenze des aktuellen Berufsrangs; `/cdj route 75` setzt ein Ziel vor. Der Menüpunkt „Levelroute“ öffnet dieselbe Ansicht. „Route planen“ beginnt einen gespeicherten Auftrag. „Route beenden“ kehrt zur bisherigen Planung zurück. Giftplanung und manuelle Produktionsaufträge starten keine Levelroute.

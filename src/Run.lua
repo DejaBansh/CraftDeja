@@ -49,7 +49,10 @@ function app.refresh(rescan)
     elseif app.active then
         if app.active.invalidated then app.problem='session_stale'
         elseif app.isPoison()then app.decision,app.problem=app.poisonDecision()
-        else app.decision,app.problem=app.decide(app.marketView(app.active))end
+        else
+            local pinned=app.pinnedRouteDecision and app.pinnedRouteDecision()
+            if pinned then app.decision=pinned else app.decision,app.problem=app.decide(app.marketView(app.active))end
+        end
     end
     app.checkCraftBatch();app.traceState();app.refreshUI()
     if app.poisonShowOnRead and app.active and not app.professionLoading then

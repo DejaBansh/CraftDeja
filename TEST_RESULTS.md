@@ -1,5 +1,16 @@
 # Validation — 3.9.0-beta.4
 
+## beta.20 — finale Checkpoint-/Bankprüfung, 16.11.2026
+
+**572 bestanden, 0 fehlgeschlagen, 0 übersprungen; 319 Dateien; 232.55s.** Release-Build bestanden, Windows/Camelot/Blizzard-UI, wowlua 0.13.14. ZIP reports/tests/20261116-165128-c7c8c3.zip. Alle 48 Laufzeit-, 320 erfassten Test-/Profilquellen und drei Build/Testinput-Hashes passen exakt zum finalen Code. Neun neue Checkpoint-/Bank-/Bootregressionen, bisherige Suites mitgeprüft.
+
+Unveränderte beta.19: dieselben zwei Ereignissturm-Reproduktionen 0/2/0, reports/route-checkpoints-ab/beta19/reports/tests/20261116-164051-9e6d65.zip. Korrigierte Version: laufende echte Coroutine unter Ereignissen genau einmal aufgebaut und ohne UI-Neuöffnung abgeschlossen. Verschiedene Testumfänge/Laufzeiten sind kein FPS-Vergleich.
+
+Zwischenlauf 164100-73b28d meldete 570 bestandene Einzeltests, aber Datei-Ladefehler in CraftPerformanceSuite/11; deshalb ausdrücklich failed_or_incomplete. Früher Welt-Eintritt vor bereitstehendem Routenmodell nun abgesichert und mit neuem Bootstrap-Fall sowie bestehendem Craft-Fall geprüft (10/0/0, 164649-c1178b). Versuch 164631-c960a2 fand wegen falscher Filterübergabe 0 Tests und ist kein Prüferfolg. Finale Freigabe ausschließlich anhand obigem vollständigen Hashnachweis.
+
+Automatisierte Source-Emulation, kein Ausführen des kompilierten Release-Bundles und keine abgeschlossene Live-Abnahme. Beta.20 wegen laufendem WoW noch nicht installiert. Live-Testplan und Analyse: docs/ROUTE_CHECKPOINTS.md.
+
+
 ## beta.19 — finale Mehrstufen-Routenprüfung, 16.11.2026
 
 Release-Build bestanden; Windows/Camelot, Blizzard-UI aktiviert, wowlua 0.13.14. **563 bestanden, 0 fehlgeschlagen, 0 übersprungen; 318 Testdateien; 210.33 Sekunden.** Vollständiger Nachweis: reports/tests/20261116-060955-1159db.zip. Alle erfassten Laufzeitquellen, Testdateien und Build-/Testinputs stimmen mit dem finalen Stand überein. Native JSON-Ergebnisse und Referenzabbildungen sind automatisch im ZIP enthalten.

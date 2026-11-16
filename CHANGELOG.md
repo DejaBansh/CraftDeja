@@ -1,3 +1,9 @@
+# CraftDeja 3.9.0-beta.20
+
+- DE: Feste Routenabschnitte, zuverlässiger Abschluss laufender Vergleiche bei Inventarereignissen und Bankhinweise für spätere Materialien. Native Herstellung bleibt sichtbar; aktuelle Kaufprüfungen erhalten.
+- EN: Fixed route sections, route searches that finish despite inventory updates, and bank guidance for later supplies. Native crafting stays visible while purchase checks remain current.
+- Player notes: docs/PATCHNOTES_beta20_DE_EN.md. Cause, regression evidence and live retest: docs/ROUTE_CHECKPOINTS.md.
+
 # CraftDeja 3.9.0-beta.19
 
 - DE: Mehrstufige Levelrouten mit Zwischenprodukten, Mengenpreisstufen und getrennten Zahlungs-/Nettokosten. Geplante Lehrerrezepte, eigene Twinks und optionale Gildenquellen für ausgewählte Werkzeuge. Gespeicherte Aufträge mit dauerhaft wählbarem AH-Weg.
