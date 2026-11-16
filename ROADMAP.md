@@ -9,7 +9,7 @@
 - [x] DE/EN-Spielertexte, aufklappbare Details, Release-Build und gerenderte UI-Prüfung. Belege/Abnahmematrix: docs/MULTI_STAGE_ROUTES.md.
 - [ ] Live: tatsächliche AH-Mengentiefe, Skillup-Restplanung, Trainerklick/Rang, Charakterwechsel/Übergabe und zwei Gildenclients nach dem dokumentierten Plan bestätigen.
 - [ ] Weitere Rangidentitäten/Gebühren und austauschbare Reagenzkombinationen nur anhand belegter Daten erweitern. Begrenzte Suche bleibt kein uneingeschränktes Globaloptimum; tatsächliche Lehrerbesuche nicht als global minimiert behaupten.
-- [ ] Aktuelles Release-Paket/Installation nach Quellcommit gesondert anhand Installationsbericht dokumentieren. Kein automatischer Upload und kein Merge nach main.
+- [x] Beta.19 Release lokal installiert und 73 Payload-Dateien per SHA256 geprüft; vollständiges 74-Dateien-Backup verifiziert. Bericht reports/install/verified-20261116-061524-bericht.zip; Paket mit DE/EN-Patchnotes unter dist/packages. Live-Abnahme weiterhin offen. Kein Upload/GitHub-Push und kein Merge nach main.
 
 ## Sichtbarkeit: erste Runde
 

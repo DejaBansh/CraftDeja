@@ -1,5 +1,16 @@
 # CraftDeja — hier fortsetzen / resume here
 
+## beta.19 Release installiert und lokal paketiert — 16.11.2026, 06:15
+
+- Tatsächlich installiert: 3.9.0-beta.19-alpha+b8ff69e, Profil release, Quellcommit b8ff69eee43574cb1feb84c39edda0e362de1b1c auf codex/multi-stage-routes. Funktionaler Codecommit f380cccb6d6a4d84a53eedd3c313e2a9d32260f3; Folgecommit korrigiert ausschließlich Windows-ZIP-Pfadnormalisierung im neuen Installationsskript. Alle final getesteten Addon-/Test-/Buildinputs unverändert.
+- Nach vorherigem Nutzerhinweis drei vollständige Prozessprüfungen ohne Spielclient. Backup reports/install/verified-20261116-061524/CraftDeja-before-install.zip: alle 74 bisherigen Dateien SHA256-verifiziert und vor Ersatz gegen unveränderte Installation geprüft. Alle 73 neuen Payload-Dateien SHA256-identisch zum geprüften Release-Kandidaten und Installationsbuild; keine automatische Dev-Instrumentierung oder Dev-Runtime. WTF/SavedVariables nicht bearbeitet.
+- Automatischer Installationsbericht reports/install/verified-20261116-061524-bericht.zip: installed_verified. Erster Versuch verified-20261116-061448 brach bereits bei der Kandidaten-ZIP-Pfadprüfung ab, bevor die Spielinstallation verändert wurde; vollständiger Fehlerbericht erhalten. Korrektur und erfolgreicher Wiederholungslauf belegt.
+- Lokales Paket dist/packages/CraftDeja-3.9.0-beta.19-release.zip: 73 portable CraftDeja/-Archiveinträge, einzeln SHA256 gegen Build geprüft. Paket-SHA256 6B0D10D6D56F1CFB457D9BE40A875D071047408DFDD44BC49BC098F0719627AA. Daneben DE/EN-Patchnotes, Uploadhinweise und Manifest mit Quellcommit/Dateihashes. Frühere beta.17-/beta.18-Archive anhand bekannter Hashes unverändert bestätigt.
+- Abschließende Suite: reports/tests/20261116-060955-1159db.zip, 563/0/0, 318 Dateien, 210.33s; alle 47 Quellhashes plus 319 erfasste Test-/Profilquellen und drei Build/Testinputs exakt geprüft. Native Quellemulation, keine vollständige Live-Abnahme. ZIP enthält Protokoll, Umgebung, Quellprüfsummen, native JSON-Ergebnisse und automatisch gerenderte Vergleichsbelege.
+- Nächster Schritt im Spiel: /cdj version, Berufsfenster öffnen, /cdj route 75, frischer Auctionator-Scan, Routenangebote öffnen und wenige echte Crafts/Skillups mit stabiler manueller Kaufmenge prüfen. Danach Trainer und getrennt die Ruten-Twink-/Zwei-Spieler-Gildenfälle aus docs/MULTI_STAGE_ROUTES.md. Gildenfreigabe standardmäßig aus; tatsächliche Serverinteraktionen ausdrücklich noch offen. Keine allgemeine FPS- oder Globaloptimum-Zusage.
+- Keine Veröffentlichung, kein GitHub-Push und kein Merge nach main in dieser Ausbaurunde; Main bleibt 711d463af4c17f1e711248bb409f1dd5fecfe303. Lokale Quellcommits sichern die Arbeit; Berichte/Backups und Pakete bleiben lokal.
+
+
 ## beta.19 — Mehrstufige Levelrouten, 16.11.2026
 
 - Neuer Feature-Branch codex/multi-stage-routes, Basis 06e83789e72ace10d96b10b46542521c0f8a1d12; Ausgangsarbeitsbaum tatsächlich sauber. Originalauftrag: docs/tasks/MULTI_STAGE_ROUTE_REQUEST.md. Keine früheren Änderungen verworfen.
