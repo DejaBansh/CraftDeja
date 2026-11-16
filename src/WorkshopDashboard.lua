@@ -100,6 +100,7 @@ function app.renderWorkshopDashboard()
     local search=app.routeSuggestion or app.routeResult;local order=app.currentRouteOrder();local profile=app.active and app.active.profile
     if d.model~=(search and search.model)then d.model=search and search.model;d.selectedRecipe=nil;d.selectedSegment=nil;d.selectedItem=nil end
     f.title:SetText('CraftDeja');d.subtitle:SetText(app.caption('workshop')..'  /  '..app.caption('ws_'..(d.page=='advanced'and 'advanced'or d.page)))
+    d.rightTitle:SetText(app.caption('ws_next'))
     for key,b in pairs(d.navigation)do
         b:SetText(app.caption('ws_'..key));local active=key==d.page
         local t=b:GetNormalTexture();if t then t:SetColorTexture(unpack(active and {.10,.29,.36,1}or {.035,.055,.09,1}))end

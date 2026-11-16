@@ -204,6 +204,22 @@ local function eventProjection()
  local rows=f.workshop.rows;for _=1,8 do a.renderWorkshopDashboard()end;assert(f.workshop.rows==rows)
  f:Hide();a.renderWorkshopDashboard();assert(not f:IsShown())
 end
+@test('Workshop: saved per-window scale stays stable across repeated state updates')
+local function savedScale()
+ local c=fixture();local a=c.a;a.showRouteWindow(50);local f=a.routeWindow
+ mock.setField(a.options,'windowScales',{CraftDejaRoute=.7,CraftDejaNextStep=.65})
+ for _=1,5 do a.renderWorkshopDashboard();a.paintWorkshopGuide(a.nextStepWindow)end
+ assert(math.abs(f:GetScale()-.7)<.001,'Saved dashboard scale was normalized twice')
+ assert(math.abs(a.nextStepWindow:GetScale()-.65)<.001,'Saved guide scale was normalized twice')
+end
+@test('Workshop: switching DE to EN updates already-open dashboard labels')
+local function languageSwitch()
+ local c=fixture();local a=c.a;a.showRouteWindow(50);local d=a.routeWindow.workshop
+ assert(d.rightTitle:GetText()=='JETZT ZU TUN')
+ mock.setField(a.options,'language','en');a.renderWorkshopDashboard()
+ assert(d.rightTitle:GetText()=='DO THIS NEXT'and d.navigation.materials:GetText()=='Materials')
+ assert(d.subtitle:GetText():find('Workshop console',1,true))
+end
 @test('Workshop: same-order vendor bank native-craft withdrawal flow keeps visible actions correct')
 local function fullOrder()
  local c=setup();local a=c.a;a.showRouteWindow(31);c.set(0,1,nil);c.profession();a.refreshNextStep(true)

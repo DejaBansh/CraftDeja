@@ -4,7 +4,7 @@
 
 - DE: Neues Goblin-Werkstattpult mit Navigation, Rezeptabschnitten und Schrittdetails; eigenständiger Guide mit sichtbaren Gründen, aufklappbaren Details und neuem grünen Hauptbutton. Eigene hochauflösende Smoke-Glass-/Messing-/Goblin-Assets, aktuelle Materialprojektion und abgesicherte Aktionswechsel.
 - EN: New goblin workshop console with navigation, recipe sections and step details; standalone guide with visible status, expandable details and a new green primary action. Original high-resolution glass/brass/goblin assets, current material projection and guarded action changes.
-- Patchnotes: docs/PATCHNOTES_beta23_DE_EN.md. Implementierung, Quellen, Emulatoransichten und offener Live-Test: docs/WORKSHOP_BETA23.md. Finale Suite 612/0/0; vier UI-Fälle je 12/0/0.
+- Patchnotes: docs/PATCHNOTES_beta23_DE_EN.md. Implementierung, Quellen, Emulatoransichten und offener Live-Test: docs/WORKSHOP_BETA23.md. Finale Suite 614/0/0; vier UI-Fälle je 14/0/0.
 
 # CraftDeja 3.9.0-beta.22
 

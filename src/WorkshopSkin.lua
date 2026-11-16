@@ -24,7 +24,8 @@ end
 function app.workshopFit(f,w,h,desired)
     -- Keep physical text size stable across the game's UI Scale setting.
     local parentScale=app.try(UIParent.GetEffectiveScale,UIParent)or 1
-    local wanted=(desired or app.options.scale or .8)/.8*.9/parentScale
+    local saved=app.options.windowScales and f.scaleKey and app.options.windowScales[f.scaleKey]
+    local wanted=saved or (desired or app.options.scale or .8)/.8*.9/parentScale
     local scale=math.min(wanted,(UIParent:GetWidth()-32)/w,(UIParent:GetHeight()-32)/h)
     f:SetScale(math.max(.35,scale))
 end
