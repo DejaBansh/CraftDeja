@@ -7,7 +7,8 @@
 - [x] Vier eigene getrennte hochauflösende Assets mit PNG-Quellen/transparenter TGA-Ausgabe, Logo erhalten; keine eingebrannten Spielwerte.
 - [x] 614/0/0 breit, 204.95s; 382 Hashes identisch; finale Suite reports/tests/20261116-204829-9f7d8f.zip.
 - [x] Vier echte Bildschirm-/UI-Skalierungsfälle 1920x1080/3440x1440 x 65%/100%, je 14/0/0, PNG-Abmessungen und Quellen/Grafiken geprüft. Quellemulation ausdrücklich gekennzeichnet.
-- [ ] Release installieren und Layout/Aktionen mit echter Forever-/ElvUI-/TSM-Konfiguration live prüfen. Keine neue Performance- oder komplette Live-Abnahme behaupten.
+- [x] Finalen Release e4b8bdc bei vollständig beendetem WoW mit geprüftem Vollbackup installiert; 77 Payload-Dateien und portable ZIP identisch, automatischer Installationsbericht verified-20261116-205431-bericht.zip.
+- [ ] Layout/Aktionen mit echter Forever-/ElvUI-/TSM-Konfiguration live prüfen. Keine neue Performance- oder komplette Live-Abnahme behaupten.
 
 ## beta.22 — Trainer und Zugriff, 16.11.2026
 

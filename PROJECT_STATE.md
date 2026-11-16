@@ -1,5 +1,14 @@
 # CraftDeja — verbindlicher Projektstand
 
+## beta.23 endgültiger Release installiert — 16.11.2026, 20:54
+
+- Installiert: 3.9.0-beta.23-alpha+e4b8bdc, Profil release, Quellcommit e4b8bdcb69dccd71a05b854d446ee7c8b0cf9d9d auf codex/workshop-dashboard. WoW nach Nutzerhinweis vollständig beendet; Prozessprüfung vor Backup, vor Ersatz und nach Installation bestanden.
+- Vollbackup reports/install/verified-20261116-205431/CraftDeja-before-install.zip: alle 78 vorhandenen Dateien SHA256-verifiziert, Altinstallation vor Ersatz unverändert, Backup nachher erneut geprüft. Alle 77 installierten Payload-Dateien identisch zum geprüften Release-Build und portablen ZIP. Keine Dev-Runtime/automatische Instrumentierung; WTF/SavedVariables unverändert.
+- Automatischer Installationsbericht reports/install/verified-20261116-205431-bericht.zip: installed_verified. Finale Tests reports/tests/20261116-204829-9f7d8f.zip: 614/0/0, 204.95s; alle 382 Quell-/Test-/Inputhashes identisch. Vier UI-Matrixfälle je 14/0/0 mit identischen 56 Runtime- und 74 Grafikdateien. Gespeicherte Fenstergröße und Wechsel offener DE/EN-Ansichten mitgeprüft.
+- Installierbares Paket dist/packages/CraftDeja-3.9.0-beta.23-release.zip (77 Einträge, vollständiger SHA256-Abgleich), Manifest und DE/EN-Patchnotes daneben. ZIP-SHA256 F0633ABFBB186A479ECC85FB33FFE0FE1E194B4C4D6B645B07B0D250052A3A31. Gesamtbericht reports/workshop-beta23.zip; Galerie reports/workshop-beta23/ANSICHTEN.html. Kandidat 296ec5d separat archiviert, nur dieser endgültige Build ist aktuell.
+- Sämtliche gelieferten Ansichten sind wowlua/Camelot-Quellemulation mit Testdaten, KEINE Live-Client-Screenshots. Live-Abnahme der Grafik, Skalierung und echten ElvUI-/TSM-/Auftragskonfiguration offen. Nächster Schritt: /cdj version, /cdj dashboard; Route/Materialien/Einstellungen und kompakten Guide samt Bank/AH/Post/Lehrer/Herstellung nach docs/WORKSHOP_BETA23.md prüfen. Keine Performancebehauptung aus Simulation.
+- Kein Push/Upload und kein Merge nach main. Ältere Hinweise auf bevorstehende Installation sind historischer Stand.
+
 ## beta.23 — Goblin-Werkstattpult, 16.11.2026
 
 - Neuer lokaler Branch codex/workshop-dashboard; sauberer Ausgangscommit 3dffca8b722821e8d289772f8097a3b42c37ab24. Fensterbeziehungen geprüft: UnifiedUI blendet altes Hauptfenster aus, hostet Detailseiten im NextStep-Guide, RouteUI öffnete separates Konfigurationsfenster. Umsetzung/Quellen/Live-Plan: docs/WORKSHOP_BETA23.md.
