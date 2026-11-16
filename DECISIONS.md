@@ -1,5 +1,10 @@
 # Entscheidungen — Stand 15.11.2026
 
+## beta.22 — 16.11.2026
+
+- Nächster bekannter geeigneter Lehrer aus ausdrücklicher Rezept-/Rangmitgliedschaft, Fraktion und vergleichbaren Standortdaten. Keine beliebigen Berufsmeister als Rezeptlehrer einsetzen; keine behauptete Vollständigkeit oder kürzeste Reisezeit. Gekappte/übernommene Referenzdaten transparent halten und eindeutige tatsächliche Besuche ergänzen.
+- Native OnShow-/explizite OpenTradeSkill-Wege stellen Anzeige wieder her. Kein neuer Auftrag und kein zusätzlicher Vollscan allein durch den Wiederöffnungs-Hook. Minimap und native Addon-Kategorie als dauerhafte manuelle Zugänge, keine externe Bibliothek.
+
 ## beta.21 — 16.11.2026
 
 - Die beta.20-Bankempfehlung wird auf ausdrücklichen Nutzerwunsch durch einen explizit gestarteten Containerauftrag ergänzt. Jede Menge anhand beider tatsächlichen Bestände bestätigen; Timeout ist kein Ablehnungsnachweis und erlaubt keine blinde Wiederholung. Nur persönliche Bank, keine Account-/Gildenbank. Aktuelle Craftzutaten behalten. Bankzugriff nicht an sichtbares Blizzard-BankFrame koppeln; TSM-Kompatibilität benötigt noch Live-Test.

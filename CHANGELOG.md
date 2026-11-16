@@ -1,5 +1,11 @@
 # CraftDeja 3.9.0-beta.20
 
+# CraftDeja 3.9.0-beta.22
+
+- DE: Erweiterte ortsabhängige Lehrerwahl, zuverlässiges Wiederöffnen über das Berufsfenster, verschiebbarer Minimap-Button und direkter Eintrag in Optionen → Addons.
+- EN: Expanded location-aware trainer selection, reliable profession-window reopening, draggable minimap access and a dedicated Options → AddOns entry.
+- Patchnotes: docs/PATCHNOTES_beta22_DE_EN.md. Nachweise und Grenzen: docs/TRAINER_NAVIGATION_BETA22.md; breite Suite 600/0/0.
+
 # CraftDeja 3.9.0-beta.21
 
 - DE: Geplante Bankmaterialien gezielt einlagern und später entnehmen, bestätigte Mengen und klare Fortsetzung bei Platzmangel. Automatisches Öffnen beim Händler dauerhaft einstellbar.

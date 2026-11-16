@@ -14,5 +14,5 @@ local function errors()
 end
 @test("Recipe map: 03-unknown-faction")
 local function scenario()
-local a,r=setup("Neutral");assert(not a.recipeSourceTarget(r),"Unknown faction routed to hostile source")
+local a,r=setup("Neutral");local v=a.recipeSourceTarget(r);assert(v==nil or v.side=='Both',"Unknown faction routed to hostile source")
 end

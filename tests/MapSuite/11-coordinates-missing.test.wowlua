@@ -14,6 +14,6 @@ local function errors()
 end
 @test("Recipe map: 11-coordinates-missing")
 local function scenario()
-local a,r=setup();mock.setField(a.accessData,r.id,{routes={{id=1,kind="trainer",name="Unknown",side="Horde",map=1454}}})
+local a,r=setup();mock.setField(a,'trainerRecipeMembers',{});mock.setField(a.character,'trainerSources',{});mock.setField(a.accessData,r.id,{routes={{id=1,kind="trainer",name="Unknown",side="Horde",map=1454}}})
 assert(not a.recipeSourceTarget(r),"Unsupported source selected")
 end

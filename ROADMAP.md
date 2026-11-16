@@ -1,5 +1,14 @@
 # Roadmap — Stand 15.11.2026
 
+## beta.22 — Trainer und Zugriff, 16.11.2026
+
+- [x] Kupferrohr-Unterstadt und fehlendes Wiederöffnen im unveränderten beta.21 reproduziert; gleiche Clientfälle in beta.22 bestanden.
+- [x] Gemeinsame Standortwahl für alle unterstützten Berufe/Ränge, 435 ausdrückliche Rezept-Lehrerlisten, lokale Angebotsbeobachtungen; Voraussetzungen/Fraktionen erhalten. Referenzabdeckung bleibt begrenzt.
+- [x] Native Wiederöffnungswege ohne eigenen Vollscan, Minimap-Zugriff und native Addon-Einstellungen mit DE/EN und gespeicherten Schaltern.
+- [x] 600/0/0 breit, 182.51s; echte UI gerendert und Prüfsummen abgeglichen. reports/tests/20261116-194918-dbcd1e.zip.
+- [ ] Release bei vollständig beendetem WoW mit verifiziertem Backup installieren; zuletzt lief der Client noch.
+- [ ] Live Unterstadt/Franklin/Angebot, Berufsaufruf, unveränderten Auftrag, Minimap und Addon-Einstellungen nach docs/TRAINER_NAVIGATION_BETA22.md prüfen. Keine globale Lehrer-/Reisekosten-Vollständigkeit behaupten.
+
 ## beta.21 — Bankablauf, 16.11.2026
 
 - [x] Bankstillstand auf unverändertem beta.20 reproduziert: Detailsaktion führte keine Bewegung aus.

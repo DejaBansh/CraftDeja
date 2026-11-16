@@ -22,18 +22,14 @@ function app.playerLevel()
 end
 function app.nearestRankTrainer(profession,cap)
     local faction=app.playerFaction()
-    local map=app.try(C_Map and C_Map.GetBestMapForUnit,'player')
-    local position=map and app.try(C_Map and C_Map.GetPlayerMapPosition,map,'player')
-    local x,y
-    if position then x,y=app.try(position.GetXY,position)end
-    if not x and position then x,y=position.x,position.y end
-    local best,score
-    for _,source in ipairs(app.trainerLocations or {})do
-        if source.profession==profession and source.fromCap==cap and (source.side=='Both'or source.side==faction)then
-            local same=source.map==map
-            local distance=same and x and y and ((source.x-x*100)^2+(source.y-y*100)^2)or 10000
-            local value=(same and 0 or 100000)+distance
-            if not score or value<score then best=app.copy(source);score=value end
+    local context=app.locationContext()
+    local best
+    local candidates={}
+    for _,v in ipairs(app.trainerLocations or {})do candidates[#candidates+1]=v end
+    for _,v in ipairs(app.observedRankTrainers and app.observedRankTrainers(profession,cap)or {})do candidates[#candidates+1]=v end
+    for _,source in ipairs(candidates)do
+        if source.profession==profession and source.fromCap==cap and app.validLocation(source)and (source.side=='Both'or source.side==faction)then
+            if not best or app.locationBefore(source,best,context)then best=app.copy(source)end
         end
     end
     if best and app.lang()=='de'and best.nameDE then best.name=best.nameDE end

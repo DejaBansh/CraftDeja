@@ -312,3 +312,7 @@ UnifiedUI.lua is newly authored for this project. This update changes presentati
 ## Beta.11 recipe-specific trainer supplement
 
 Data/RecipeSourceCorrections.lua supplements the sampled routes for spell 14807 with two trainer memberships checked against the Forever recipe table. Coordinates are labelled reference data; no other recipe membership is inferred from those trainers. Sources, exact coordinates and limitations: [trainer routing notes](docs/TRAINER_ROUTING.md). No web market prices were imported.
+
+## Beta.22 trainer membership references
+
+435 explicit recipe-to-NPC membership lists from the existing MIT ProfessionDB 1.9.1 Forever Sources.lua are now merged with independently recorded NPC positions. Lists are capped upstream at twelve NPCs and include borrowed Classic metadata; this is not complete or live-verified Forever coverage. No profession/rank-based guess creates a recipe teacher. Franklin Lloyd's Copper Tube membership is corroborated by the Forever spell page; the additional Undercity position remains a reference. Actual trainer visits save character-local identified offer snapshots at the player's conversation position. Provenance, archive SHA256, generator, technical sources, limits and live checks: docs/TRAINER_NAVIGATION_BETA22.md. No private diagnostic log is packaged.

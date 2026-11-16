@@ -91,7 +91,9 @@ function app.currentTrainerOffers()
 end
 function app.observeTrainerCosts()
     local changed=false
-    for _,row in ipairs(app.currentTrainerOffers())do
+    local rows=app.currentTrainerOffers()
+    if app.recordTrainerSources then app.recordTrainerSources(rows)end
+    for _,row in ipairs(rows)do
         if row.id and valid(row.cost)and app.observeLearningCost(row.id,row.cost,'trainer')then changed=true end
     end
     if changed then app.flowLog('acquisition.trainer_observed',{});app.refresh(false)end

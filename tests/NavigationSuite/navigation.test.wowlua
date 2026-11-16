@@ -1,0 +1,104 @@
+import test, afterEach from 'wowlua:test'
+import * as mock from 'wowlua:mock'
+local function setup(map,x,y)
+ local a=_G['CraftDeja'];mock.stub(_G,'UnitFactionGroup',function()return 'Horde'end)
+ mock.stub(C_Map,'GetBestMapForUnit',function()return map or 1458 end)
+ mock.stub(C_Map,'GetPlayerMapPosition',function()return {x=x or .76,y=y or .74}end)
+ mock.stub(C_Map,'GetWorldPosFromMapPos',function()return nil end)
+ mock.setField(a.character,'trainerSources',{});mock.setField(a.options,'guideSeenV1',true)
+ return a
+end
+@afterEach
+local function errors()local e=mock.errors();assert(#e==0,table.concat(e,'\n'))end
+@test('Navigation: Copper Tube selects recorded Undercity teacher, details and marker agree')
+local function copper()
+ local a=setup();local r={id=3924,profession=202};local t=a.recipeSourceTarget(r)
+ assert(t and t.id==11031 and t.map==1458,'Copper Tube must stay in Undercity')
+ assert(a.sourceList(r)[1].id==t.id);local task=a.recipeLearningTask(r);assert(task.sourceTarget.id==11031)
+end
+@test('Navigation: recipe memberships augment all supported professions without guessing')
+local function allProfessions()
+ local a=setup();local covered={}
+ for profession,recipes in pairs(a.catalog)do if a.supported[profession]then
+  for id in pairs(recipes)do if a.trainerRecipeMembers[id]then covered[profession]=true;break end end
+ end end
+ for _,id in ipairs({129,164,165,171,185,186,197,202,333})do assert(covered[id],'Missing profession '..id)end
+ assert(#a.extraTrainerSources({id=900009,profession=202})==0,'A nearby teacher is not proof of an offer')
+end
+@test('Navigation: same-continent world distances work across maps and ignore selected world map')
+local function distance()
+ local a=setup(1458,.5,.5);mock.stub(C_Map,'GetWorldPosFromMapPos',function(map,_p)
+  if map==1458 then return 0,{x=100,y=100}end
+  if map==1420 then return 0,{x=101,y=100}end
+  return 1,{x=100,y=100}
+ end)
+ local c=a.locationContext();assert(a.locationBefore({id=2,map=1420,x=50,y=50},{id=1,map=1454,x=50,y=50},c))
+ assert(c.map==1458)
+end
+@test('Navigation: rank trainer distance applies to every profession and respects factions')
+local function ranks()
+ local a=setup();local list={}
+ for _,id in ipairs({129,164,165,171,185,186,197,202,333})do
+  list[#list+1]={npc=1,profession=id,fromCap=75,toCap=150,map=1454,x=50,y=50,side='Horde'}
+  list[#list+1]={npc=2,profession=id,fromCap=75,toCap=150,map=1458,x=76,y=74,side='Horde'}
+  list[#list+1]={npc=3,profession=id,fromCap=75,toCap=150,map=1458,x=76,y=74,side='Alliance'}
+ end
+ mock.setField(a,'trainerLocations',list)
+ for _,id in ipairs({129,164,165,171,185,186,197,202,333})do assert(a.nearestRankTrainer(id,75).npc==2)end
+end
+@test('Navigation: observed exact offers become local targets and removed offers are replaced')
+local function observation()
+ local a=setup();mock.stub(_G,'UnitGUID',function(unit)return unit=='npc'and 'Creature-0-1-0-0-99001-00001'or 'Player-0-1'end)
+ mock.stub(_G,'UnitName',function()return 'Observed teacher'end);mock.stub(a,'craftRefreshBusy',function()return false end)
+ a.recordTrainerSources({{id=900008,kind='available'},{id=900007,kind='available'},{id=900007,kind='unavailable'}})
+ assert(a.recipeSourceTarget({id=900008,profession=202}).id==99001)
+ assert(a.recipeSourceTarget({id=900007,profession=202})==nil,'Ambiguous offer must not create membership')
+ a.recordTrainerSources({{id=900006,kind='used'}})
+ assert(a.recipeSourceTarget({id=900008,profession=202})==nil)
+ assert(a.recipeSourceTarget({id=900006,profession=202}).observed)
+end
+@test('Navigation: native window OnShow reopens dismissed guide without a heavy scan')
+local function reopen()
+ local a=setup();local native=CreateFrame('Frame');native:Hide();mock.setField(_G,'ProfessionsFrame',native)
+ a.bindProfessionVisibility();a.bindProfessionVisibility();a.showCentralGuide()
+ local guide=a.nextStepWindow;mock.click(guide.close);assert(not guide:IsShown())
+ local scans=0;mock.stub(a,'readRecipes',function()scans=scans+1;error('Unexpected heavy scan')end)
+ native:Show();assert(guide:IsShown(),'Native OnShow did not restore dismissed guide');assert(scans==0)
+ native:Hide();mock.click(guide.close);native:Show();assert(guide:IsShown()and scans==0);native:Hide()
+end
+@test('Navigation: minimap clicks open guide and settings; setup is idempotent')
+local function minimap()
+ local a=setup();a.setupLauncher();local f=a.minimapButton;assert(f)
+ a.setupLauncher();assert(a.minimapButton==f and f:GetScript('OnUpdate')==nil)
+ a.showCentralGuide();mock.click(a.nextStepWindow.close);mock.click(f,'LeftButton');assert(a.nextStepWindow:IsShown())
+ mock.click(f,'RightButton');assert(a.unifiedViewKey=='menu')
+end
+@test('Navigation: addon settings controls persist and can restore hidden minimap button')
+local function settings()
+ local a=setup();a.setupLauncher();assert(a.addonSettingsRegistered and a.addonSettingsPanel)
+ local p=a.addonSettingsPanel;mock.setField(a.options,'autoOpenMerchant',true);mock.setField(a.options,'minimapHidden',false)
+ p:Show();mock.click(p.merchant);assert(a.options.autoOpenMerchant==false)
+ mock.click(p.minimap);assert(a.options.minimapHidden and not a.minimapButton:IsShown())
+ mock.click(p.minimap);assert(a.minimapButton:IsShown());mock.click(p.open);assert(a.nextStepWindow:IsShown())
+ a.initialize();assert(a.options.autoOpenMerchant==false)
+end
+@test('Navigation: launcher texts switch between German and English')
+local function languages()
+ local a=setup();a.setupLauncher();mock.setField(a.options,'language','de');a.renderLauncher();assert(a.addonSettingsPanel.open:GetText()=='CraftDeja öffnen')
+ mock.setField(a.options,'language','en');a.renderLauncher();assert(a.addonSettingsPanel.open:GetText()=='Open CraftDeja')
+end
+@test('Navigation: closer neighboring map beats distant trainer on current map using comparable yards')
+local function neighboringMap()
+ local a=setup(1458,.5,.5);mock.stub(C_Map,'GetWorldPosFromMapPos',function(map,p)
+  if map==1458 then return 0,{x=p.x*1000,y=p.y*1000}end
+  if map==1420 then return 0,{x=501,y=500}end
+ end)
+ local c=a.locationContext();assert(a.locationBefore({id=2,map=1420,x=20,y=20},{id=1,map=1458,x=90,y=90},c))
+end
+@test('Navigation: real AddOns settings category displays CraftDeja controls')
+local function actualSettings()
+ local a=setup();a.setupLauncher();local category=a.addonSettingsCategory;assert(category)
+ Settings.OpenToCategory(category:GetID());mock.waitSeconds(.1)
+ assert(a.addonSettingsPanel:IsVisible(),'CraftDeja category canvas did not open')
+ assert(a.addonSettingsPanel.open:IsVisible()and a.addonSettingsPanel.minimap:IsVisible())
+end

@@ -14,6 +14,6 @@ local function errors()
 end
 @test("Recipe map: 18-no-rank-substitute")
 local function scenario()
-local a,r=setup();mock.setField(a.accessData,r.id,{routes={}})
+local a,r=setup();mock.setField(a,'trainerRecipeMembers',{});mock.setField(a.character,'trainerSources',{});mock.setField(a.accessData,r.id,{routes={}})
 assert(not a.recipeSourceTarget(r),"Rank trainer substituted for recipe source")
 end

@@ -15,5 +15,5 @@ end
 @test("Recipe map: 02-alliance-real-recipe")
 local function scenario()
 local a,r=setup("Alliance");local v=a.recipeSourceTarget(r)
-assert(v and v.npc==11068 and v.map==1453,"Alliance recipe routed to Horde")
+assert(v and (v.side=='Alliance'or v.side=='Both') and a.validLocation(v),"Alliance recipe routed to Horde")
 end

@@ -1,15 +1,15 @@
-# CraftDeja 3.9.0-beta.21
+# CraftDeja 3.9.0-beta.22
 
 ## Deutsch
 
-- **Händleranzeige nach Wunsch:** Mit „Beim Händler automatisch öffnen“ entscheidest du dauerhaft, ob ein Händlerbesuch das geschlossene Addon öffnet. Manuelles Öffnen und Einkäufe bleiben verfügbar.
-- **Bankvorräte direkt verarbeiten:** Der Bank-Schritt bietet Einlagern und späteres Entnehmen an. Passende Stapel werden zuerst aufgefüllt; Teilmengen schützen die Zutaten des aktuellen Abschnitts.
-- **Klar weiter nach der Bank:** Bestätigte Bewegungen führen zum nächsten Schritt im selben Auftrag. Volle Bank, volle Taschen und offene Verschiebungen zeigen ihren tatsächlichen Restbedarf.
-- **Unterbrechungen besser abfangen:** Verzögerte und doppelte Ereignisse, Bank schließen und erneutes Öffnen werden berücksichtigt. Erneutes Öffnen des Berufs erhält den laufenden Auftrag.
+- **Passende Lehrer näher finden:** Erweiterte Rezept-Lehrer-Zuordnungen und eine gemeinsame Standortauswahl für alle unterstützten Berufe helfen dir, unnötige Wege zu vermeiden. Kupferrohr berücksichtigt jetzt auch Unterstadt.
+- **Zuverlässiger zurück zum Auftrag:** Beim erneuten Öffnen des Berufsfensters erscheint der Guide wieder und führt deinen laufenden Auftrag fort.
+- **CraftDeja an der Minimap:** Öffne den Guide per Linksklick oder die Einstellungen per Rechtsklick. Die Position lässt sich verschieben und wird gespeichert.
+- **Einstellungen leichter erreichen:** Ein eigener Eintrag unter Optionen → Addons bietet direkten Zugriff auf CraftDeja und die Anzeigeoptionen.
 
 ## English
 
-- **Merchant visibility your way:** The saved “Automatically open at merchants” setting lets you choose whether a merchant visit opens the closed addon. Manual access and purchases remain available.
-- **Process bank supplies directly:** Deposit planned supplies and withdraw them when needed later. Existing stacks are filled first, while split quantities protect the current section’s reagents.
-- **Continue after banking:** Confirmed transfers advance the same order. Full banks, full bags and outstanding transfers show what remains to be done.
-- **Handle interruptions more reliably:** Delayed or duplicate events, closing and reopening the bank, and reopening your profession preserve the ongoing workflow.
+- **Find suitable trainers closer to you:** Expanded recipe-to-trainer references and shared location selection across supported professions help avoid unnecessary trips. Copper Tube now includes Undercity.
+- **Return to your order reliably:** Reopening the profession window restores the guide and continues your ongoing order.
+- **CraftDeja on your minimap:** Left-click to open the guide or right-click for settings. Drag the button to save your preferred position.
+- **Easier access to settings:** A dedicated Options → AddOns entry provides direct access to CraftDeja and its visibility settings.

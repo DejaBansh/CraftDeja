@@ -1,5 +1,17 @@
 # Validation — 3.9.0-beta.4
 
+## beta.22 — finale Navigation-/Zugriffsprüfung, 16.11.2026
+
+**600 bestanden, 0 fehlgeschlagen, 0 übersprungen; 321 Testdateien; 182.51s.** Release-Build bestanden, wowlua 0.13.14, Windows/Camelot/Blizzard-UI. reports/tests/20261116-194918-dbcd1e.zip enthält Protokoll, Umgebung, Quell-/Test-/Inputprüfsummen und native JSON-Ergebnisse. Alle erfassten Hashes mit finalem Stand identisch.
+
+11 neue Navigationstests: Unterstadt/Kupferrohr, alle neun Berufe/Rangfilter, konsistente Ziel-/Detailwahl, vergleichbare Weltentfernungen, benachbarte Karte, eindeutige aktuelle Lehrerangebote, Guide-OnShow ohne Vollscan, Minimap, gespeicherte Schalter, echte native Addon-Kategorie und DE/EN. Gerenderte UI geprüft: reports/tests/20261116-194856-6aa235.zip, 11/0/0, 5.88s.
+
+Identisches Clientfixture auf unveränderter beta.21: 0/2/0 erwartet, reports/navigation-ab/beta21/reports/tests/20261116-194730-f7ec47.zip, 5.49s; falsche Stadt und Guide nach OnShow weiter verborgen. beta.22: 2/0/0, reports/navigation-ab/beta22/reports/tests/20261116-194749-8ee7b6.zip, 4.79s. Nur diese korrekt signierten Reproduktionen gelten; frühere Versuche mit fehlendem Ereignisargument/Reporterinput nicht.
+
+Zwischenlauf 194354-c79d53 ergab 590/8/0: zusätzliche explizite Quellen verletzten alte Annahmen eines fest eingefrorenen Quellenbestands. Sechs künstliche Ausschlussfälle isolieren jetzt die Mitgliedschaftstabellen; reale Fraktionsfälle erlauben nur eigene/neutrale belegte Quellen. Keine tatsächliche Fraktions-/Koordinatensperre gelockert. Früher UI-Lauf 194452-165e23 hatte 9/0/0, aber fehlerhaften Screenshotparameter; keine Freigabe. Finaler vollständiger Lauf oben maßgeblich.
+
+Source-Emulation ist keine Live-Abnahme, Laufzeiten verschiedener Umfänge sind kein Performancevergleich. Quellenabdeckung bleibt begrenzt; siehe docs/TRAINER_NAVIGATION_BETA22.md.
+
 ## beta.21 — finale Bank-/Händlerprüfung, 16.11.2026
 
 **589 bestanden, 0 fehlgeschlagen, 0 übersprungen; 320 ausgeführte Dateien; 290.54s.** Build release bestanden; wowlua 0.13.14, Windows/Camelot, Blizzard-UI an. reports/tests/20261116-183835-968304.zip. Alle 50 Laufzeitquellen, 321 erfassten Test-/Profilquellen und drei Inputs SHA256 gegen aktuellen Stand geprüft (374 Hashes).

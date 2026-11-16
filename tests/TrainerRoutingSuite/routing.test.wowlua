@@ -46,7 +46,7 @@ end
 
 @test("Trainer routing 05: unknown faction does not invent access")
 local function case05()
-    local a=setup(1456,.443,.389,"Unknown");assert(a.recipeSourceTarget({id=14807,profession=333})==nil)
+    local a=setup(1456,.443,.389,"Unknown");local t=a.recipeSourceTarget({id=14807,profession=333});assert(t==nil or t.side=='Both')
 end
 
 @test("Trainer routing 06: details and marker agree in Thunder Bluff")

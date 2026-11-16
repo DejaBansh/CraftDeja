@@ -48,20 +48,10 @@ function app.sourceList(recipe)
     end
     for _,row in ipairs(data.routes or {})do add(row)end
     for _,row in ipairs((app.recipeSourceCorrections or {})[recipe.id]or {})do add(row)end
+    for _,row in ipairs(app.extraTrainerSources and app.extraTrainerSources(recipe)or {})do add(row)end
     -- The detail list should agree with routing: own/neutral faction, current
     -- map, then comparable local distance. No cross-map distance is invented.
-    local map=app.try(C_Map and C_Map.GetBestMapForUnit,'player')
-    local pos=map and app.try(C_Map and C_Map.GetPlayerMapPosition,map,'player')
-    local x,y
-    if pos then x,y=app.try(pos.GetXY,pos);if not x then x,y=pos.x,pos.y end end
-    local function localScore(row)
-        if not map or row.map~=map then return 100000 end
-        if type(x)=='number'and x==x and x>=0 and x<=1 and type(y)=='number'and y==y and y>=0 and y<=1
-            and type(row.x)=='number'and row.x>=0 and row.x<=100 and type(row.y)=='number'and row.y>=0 and row.y<=100 then
-            return (row.x-x*100)^2+(row.y-y*100)^2
-        end
-        return 30000
-    end
+    local context=app.locationContext()
     local function rank(row)
         if row.side=='Both'or row.side==player then return 1 end
         if row.side==nil or row.side=='Unknown'then return 2 end
@@ -69,13 +59,9 @@ function app.sourceList(recipe)
     end
     table.sort(list,function(a,b)
         if rank(a)~=rank(b)then return rank(a)<rank(b)end
-        local left,right=localScore(a),localScore(b)
-        if left~=right then return left<right end
-        if a.kind~=b.kind then return a.kind<b.kind end
-        if (a.id or 0)~=(b.id or 0)then return(a.id or 0)<(b.id or 0)end
-        if (a.map or 0)~=(b.map or 0)then return(a.map or 0)<(b.map or 0)end
-        if (a.x or 0)~=(b.x or 0)then return(a.x or 0)<(b.x or 0)end
-        return(a.y or 0)<(b.y or 0)
+        if app.locationBefore(a,b,context)then return true end
+        if app.locationBefore(b,a,context)then return false end
+        return(a.kind or '')<(b.kind or '')
     end)
     return list
 end

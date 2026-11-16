@@ -14,6 +14,6 @@ local function errors()
 end
 @test("Recipe map: 12-coordinates-invalid")
 local function scenario()
-local a,r=setup();mock.setField(a.accessData,r.id,{routes={{id=1,kind="trainer",name="Invalid",side="Horde",map=1454,x=101,y=-1}}})
+local a,r=setup();mock.setField(a,'trainerRecipeMembers',{});mock.setField(a.character,'trainerSources',{});mock.setField(a.accessData,r.id,{routes={{id=1,kind="trainer",name="Invalid",side="Horde",map=1454,x=101,y=-1}}})
 assert(not a.recipeSourceTarget(r),"Unsupported source selected")
 end

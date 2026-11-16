@@ -13,19 +13,13 @@ end
 function app.recipeSourceTarget(recipe)
     if not recipe then return nil end
     local faction=app.playerFaction()
-    local map=app.try(C_Map and C_Map.GetBestMapForUnit,'player')
-    local pos=map and app.try(C_Map and C_Map.GetPlayerMapPosition,map,'player')
-    local x,y
-    if pos then x,y=app.try(pos.GetXY,pos);if not x then x,y=pos.x,pos.y end end
-    local best,score
+    local context=app.locationContext()
+    local best
     for _,source in ipairs(app.sourceList(recipe))do
         local kind=source.kind
         if (kind=='trainer'or kind=='vendor'or kind=='questgiver'or kind=='object')and validLocation(source)
             and (source.side=='Both'or faction and source.side==faction)then
-            local same=source.map==map
-            local distance=same and type(x)=='number'and type(y)=='number'and ((source.x-x*100)^2+(source.y-y*100)^2)or 10000
-            local value=(same and 0 or 100000)+distance
-            if not score or value<score then best=app.copy(source);score=value end
+            if not best or app.locationBefore(source,best,context)then best=app.copy(source)end
         end
     end
     if best then best.npc=best.id;best.name=app.sourceTitle(best)end
