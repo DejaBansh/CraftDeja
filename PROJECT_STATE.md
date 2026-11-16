@@ -1,5 +1,11 @@
 # CraftDeja — verbindlicher Projektstand
 
+## beta.21 Release installiert — 16.11.2026, 19:12
+
+- Nach Nutzerhinweis und vollständiger Prozessprüfung installiert: 3.9.0-beta.21-alpha+2d5b5f3, Profil release, Commit 2d5b5f36c9e44bb51800c3aaa5de3462fd6b474e auf codex/bank-flow. Gegenüber geprüftem Quellcommit ec0a1883ef91d0ff558018fb8d946a33b8f33824 nur Übergabedokumentation verändert; sämtliche 374 Quell-/Test-/Inputhashes aus 589/0/0 weiterhin identisch. Kein erneuter Testlauf bei unverändertem Addoncode.
+- Vollständiges Backup reports/install/verified-20261116-191154/CraftDeja-before-install.zip: 74 vorhandene Dateien SHA256-verifiziert, vor Ersatz unverändert geprüft und abschließend Archiv erneut geprüft. Alle 73 installierten Payload-Dateien identisch zum geprüften Release-Kandidaten/Installationsbuild. Keine automatische Dev-Instrumentierung/Dev-Runtime; WTF/SavedVariables unverändert.
+- Automatischer Installationsbericht reports/install/verified-20261116-191154-bericht.zip: installed_verified. WoW vor Backup, vor Ersatz und nach Installation vollständig beendet. Main unverändert, kein Push, keine Veröffentlichung.
+- Nächster Schritt: /cdj version prüfen; Händleroption aus/an, Bank mit TSM, genaue Teilmengen (8 Stoff → 7 behalten/1 einlagern), Fortsetzung zur Herstellung und spätere Entnahme live prüfen. Auftragserhalt beim Berufsaufruf vor/nach Bank beachten. Live-Abnahme offen, Plan docs/BANK_FLOW.md. Frühere Nicht-installiert-Angaben unten beschreiben den vorherigen Stand. Das portable Paket mit ec0a188 bleibt unverändert archiviert; tatsächlich installierter Build steht hier.
 ## beta.21 — bestätigte Bankbewegungen und Händleroption, 16.11.2026
 
 - Aktueller Feature-Branch codex/bank-flow, Basis d57fe6875ce81cf35a88b80ec5c755219d04d168; vorher sauber. Originalauftrag docs/tasks/BANK_FLOW_REQUEST.md, Analyse und Live-Test docs/BANK_FLOW.md. Keine Veröffentlichung, kein Push, kein Merge nach main.

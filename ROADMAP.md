@@ -6,7 +6,8 @@
 - [x] Gespeicherte Händleroption DE/EN; geschlossenen Guide bei Option aus geschlossen halten, manuellen/Berufsaufruf und aktiven Auftrag erhalten.
 - [x] Explizit gestartete Einlagerung/Entnahme, Teilstapel und kompatible Ziele, beidseitige Bestandsbestätigung, genaue Restmengen und sichere Fortsetzung bei Unterbrechung.
 - [x] 17 Regressionen einschließlich drei vollständiger Modulabläufe; finale breite Suite 589/0/0, 290.54s, reports/tests/20261116-183835-968304.zip. UI gerendert geprüft. Release-Source-Validierung bestanden.
-- [ ] Installation erst bei beendetem WoW. Live mit persönlicher Bank/TSM: konkrete Mengen, Teilkapazität, Schutz-/Klickanforderungen, Berufsaufruf und spätere Entnahme nach docs/BANK_FLOW.md bestätigen.
+- [x] beta.21 Release bei beendetem WoW installiert; 74-Dateien-Backup und 73 Payload-Dateien SHA256-verifiziert. Bericht reports/install/verified-20261116-191154-bericht.zip.
+- [ ] Live mit persönlicher Bank/TSM: konkrete Mengen, Teilkapazität, Schutz-/Klickanforderungen, Berufsaufruf und spätere Entnahme nach docs/BANK_FLOW.md bestätigen.
 
 ## beta.20 — feste Prüfpunkte, 16.11.2026
 
