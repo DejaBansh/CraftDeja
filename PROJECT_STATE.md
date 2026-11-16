@@ -1,5 +1,14 @@
 # CraftDeja — verbindlicher Projektstand
 
+## Uploadpaket beta.17 vorbereitet, Live-Release flüssig — 15.11.2026
+
+- Nutzer bestätigt nach Installation des Release-Vergleichs keine Lags und keine Freezes. Das grenzt die automatische Dev-Instrumentierung als beteiligten Faktor stark ein; kein Beweis eines bestimmten Speicherlecks/GC-Mechanismus oder universeller FPS-Gewinne.
+- Nutzer möchte anschließend Produktanalyse und neue Funktionen mit Schwerpunkt günstiges Berufsleveln; diese Arbeit wurde durch die konkrete Bitte um den aktuellen Uploadordner samt Patchnotes gesteuert. Analyse begonnen: Code/Notizen geprüft, veröffentlichte Wettbewerberfunktionen gesichtet. Noch keine neue Fachfunktion implementiert. Anschließend mit priorisiertem Produktplan fortsetzen; günstigste vollständige Route weiter nicht behaupten.
+- Öffentliche CurseForge-Seite am 15.11.2026 gelesen: Hauptdatei beta.9. Neue DE/EN-Patchnotes beschreiben deshalb beta.10–17 kumulativ, nur belegte Funktionen/Grenzen. CURSEFORGE_CHANGELOG.txt aktualisiert; kein Laufzeitcode geändert, keine neue Testsuite erforderlich.
+- Uploadfertige ZIP: dist/packages/CraftDeja-3.9.0-beta.17-release.zip; 14842198 Bytes; SHA256 8E38514C2EEF8E7C9E1E129F40CBEC75EF24B6000F946287040ACF66DB1BC27E. Alle 73 Dateien gegen installierten Release-Build und einzeln im ZIP geprüft. CraftDeja/CraftDeja.toc liegt korrekt im Archiv. Technische interne TOC-Kennung beta.17-alpha+48e75b3 bleibt unverändert, app.release beta.17.
+- Daneben CraftDeja-3.9.0-beta.17-PATCHNOTES_DE_EN.txt und UPLOAD_HINWEISE.txt. Auf CurseForge als Beta für Forever 1.60.1 kennzeichnen; release ist das Buildprofil, keine stabile Produktfreigabe. Kein Upload, kein Merge nach main, keine erneute Spielinstallation durch den Agenten.
+
+
 ## beta.17 Release-Vergleich installiert — 15.11.2026, 21:48
 
 - Auf ausdrücklichen Nutzerauftrag nach beendetem WoW installiert: 3.9.0-beta.17-alpha+48e75b3, Buildprofil release, app.release weiterhin 3.9.0-beta.17. Automatischer alpha/Commit-Zusatz ist die Compilerkennung dieses Feature-Branchs; gleicher fachlicher beta.17-Code. Installationsquellcommit 48e75b374c891933847ccf3b4766e08a2b006347, codex/performance-refresh.

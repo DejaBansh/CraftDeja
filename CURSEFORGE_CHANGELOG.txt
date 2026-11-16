@@ -1,19 +1,56 @@
-## CraftDeja 3.7.0 Beta 1
-**Recipe observations and visible data status**
+CraftDeja 3.9.0-beta.17
+WoW Forever 1.60.1 — Deutsch / English
 
-- Detect unknown recipes, complete ingredient differences and difficulty discrepancies when opening your profession.
-- View the bundled data-package date and report count in the adviser.
-- Open **Recipe check** or use `/cdj data` to copy the observation report.
-- Keep reports across sessions, merge duplicates and limit storage to 200 observations per character.
-- Ignore incomplete ingredient data; do not automatically change the shared reference catalogue.
-- Include up to 20 recent recipe observations in `/cdj log`.
+DEUTSCH
+Änderungen seit der öffentlichen beta.9
 
-### Help test CraftDeja
+Performance und Stabilität
+- Weniger wiederholte Rezept-, Routen- und Wahrscheinlichkeitsberechnungen.
+- Mehrere AH-Preisereignisse innerhalb eines Frames lösen nur eine gemeinsame Neuberechnung aus; die zuletzt beobachteten Preise bleiben erhalten.
+- Gegenstandsereignisse verwenden einen Rezeptindex statt wiederholter Vollsuchen. Ausgeblendete Rezeptkataloge werden nicht unnötig neu aufgebaut.
+- Das Spielerpaket enthält keine ständig aktive Entwicklungsinstrumentierung. Im lokalen Livevergleich meldete der Tester mit diesem Build keine Lags oder Freezes mehr. Das ist keine allgemeine FPS-Garantie.
+- Leichte Fortschrittsaktualisierungen während nativer Craft-Serien bleiben erhalten.
 
-Please post bugs in the CurseForge comments with your version, profession and steps to reproduce. Copy `/cdj log` with **Ctrl+C**; for recipe differences, also copy `/cdj data`.
+Kosten und Rezeptlernen
+- Der Kostenvergleich berücksichtigt den bestätigten Mindest-Händlerverkaufswert geeigneter hergestellter Gegenstände, unter der Annahme, dass du sie verkaufst. Unbestätigte Ausgaben und Verzauberungen erhalten keinen erfundenen Erlös.
+- Beobachtete Trainergebühren und verfügbare Rezeptgegenstandskosten werden bei unterstützten Erwerbsvergleichen einmalig berücksichtigt. Fehlende Kosten bleiben ausdrücklich unbekannt.
+- Trainerangebote mit fehlendem Rezeptlink werden im belegten Mot-Dawnstrider-Fall abgesichert zugeordnet. Die Lerngebühr für „Umhang – Schwacher Schutz“ (Rezept 7771) wurde im Spiel mit 200 Kupfer bestätigt. Mehrdeutige Angebote werden nicht geraten.
 
-Reports are **unverified observations**, not confirmed recipe changes. No automatic report upload takes place. The package date identifies the snapshot and does not mean every recipe was revalidated on that date.
+Auktionshaus und Quellen
+- Manuell verkleinerte Auctionator-Kaufmengen werden respektiert und nicht ständig durch die vorgeschlagene Gesamtmenge ersetzt.
+- Kauf-, Preis- und Mengenprüfungen bleiben bestehen; Käufe bestätigst du selbst.
+- Rezeptquellen und Kartenwahl bevorzugen geeignete lokale Einträge unter Beachtung der Fraktion. Quellenabdeckung bleibt datenabhängig.
 
-Requires Auctionator or TSM price data; AH shopping requires Auctionator. All existing shopping, mail, vendor and trainer features remain included.
+Prüfung und Grenzen
+- Release-Build erfolgreich; 520 automatisierte Quelltests bestanden, 0 fehlgeschlagen, 0 übersprungen (312 Testdateien, Windows/Camelot/wowlua 0.13.14).
+- Automatisierte Quellemulation ist kein vollständiger Liveserver-Test und keine Ausführung des gebündelten Release-Artefakts.
+- Skillchancen und benötigte Craft-Anzahlen bleiben Schätzungen. Preise sind gespeicherte Beobachtungen.
+- Keine garantierte global günstigste komplette 1–300-Route. AH-Verkaufserlöse, Reise- und allgemeine Werkzeugkosten sind nicht vollständig eingerechnet.
+- Einkaufen bleibt eine Bruttoausgabe: ein möglicher späterer Händlererlös senkt nicht das Gold, das du vorher für Materialien benötigst.
 
-**Beta:** the new recipe-observation workflow still needs live in-game testing.
+ENGLISH
+Changes since public beta.9
+
+Performance and stability
+- Reduced repeated recipe, route and skill-up probability calculations.
+- Multiple AH price events within a frame share one recalculation while retaining the latest observed prices.
+- Item events use a recipe index instead of repeated full searches. Hidden recipe catalogues are no longer rebuilt unnecessarily.
+- The player package excludes always-on development instrumentation. The local tester reported no remaining lag or freezes with this build. This is not a general FPS guarantee.
+- Lightweight progress updates during native crafting batches remain intact.
+
+Costs and learning recipes
+- Cost comparisons credit confirmed minimum vendor resale value for eligible physical output, assuming you sell it. Unverified output and equipment enchants receive no invented resale credit.
+- Observed trainer fees and available recipe-item costs are included once in supported acquisition comparisons. Missing costs remain explicitly unknown.
+- Safely resolves the evidenced Mot Dawnstrider offer with a missing recipe link. The 200-copper learning fee for Enchant Cloak – Minor Protection (recipe 7771) was confirmed in game. Ambiguous offers are not guessed.
+
+Auction house and sources
+- Manually reduced Auctionator purchase quantities are respected instead of repeatedly being replaced with the full suggested amount.
+- Purchase, price and quantity validation remains active; you confirm purchases yourself.
+- Recipe sources and map selection prefer suitable local entries while respecting faction access. Source coverage still depends on available data.
+
+Validation and limitations
+- Release build successful; 520 automated source tests passed, 0 failed, 0 skipped (312 files, Windows/Camelot/wowlua 0.13.14).
+- Source emulation is neither a complete live-server test nor execution of the bundled release artifact.
+- Skill-up chances and required craft counts remain estimates. Prices are cached observations.
+- No guaranteed globally cheapest complete 1–300 route. AH resale proceeds, travel and general tool-acquisition costs are not fully included.
+- Material purchases still require the full upfront gold; potential later vendor revenue does not reduce that requirement.
