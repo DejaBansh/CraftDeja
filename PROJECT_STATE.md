@@ -1,5 +1,13 @@
 # CraftDeja — verbindlicher Projektstand
 
+## CurseForge-Automatisierung — 16.11.2026, Dry Run in Vorbereitung
+
+- Neuer Branch codex/curseforge-release aus sauberem 962a28b. Kein bisheriger Workflow lokal oder auf GitHub; neuer Tag-/Dispatch-Workflow verändert keine Branch-Pushes. Einzelheiten und Bedienung docs/CURSEFORGE_RELEASE.md.
+- Release-Texte DE/EN versioniert unter releases/3.9.0-beta.23; Review des tatsächlichen Code-Diffs seit lokaler beta.18-Quelle und öffentlicher CurseForge-Historie. Nutzer meldet beta.23 im bisher getesteten Umfang sehr gut; keine vollständige Live-Abnahme daraus ableiten.
+- Offizielle Upload API ermöglicht Datei und Markdown-Changelog, aber keine dokumentierte Hauptbeschreibungsänderung. Beschreibung bleibt offizieller Author-Console-Schritt mit getrenntem Status und unabhängigem description-only-Modus ohne Dateiupload/Token. Keine privaten Endpunkte erfunden.
+- Öffentliche beta.18-Datei 9642059 ist Release, nicht Beta. Letzte sichtbare Beta 3.8.0-Beta1 noch ohne verifizierte Datei-ID/Quellzuordnung; echte Veröffentlichung bewusst gesperrt (approved/historyReviewComplete=false). REVIEW.md nennt die Auflösung. Versions-API benötigt Token (401 ohne); Forever-Typ 88568/Name 1.60.1 wird vor POST eindeutig aufgelöst, ID nicht geraten.
+- 26 lokale Release-Regressionen bestanden (API ausschließlich gemockt); offizieller Actionlint 1.7.7 mit SHA256 geprüft und Workflow ohne Fehler validiert. Vollständiger Dry Run/Testnachweis folgt. Kein Tag/Upload/öffentliche Beschreibung, kein main-Merge und keine Spielinstallation in diesem Auftrag.
+
 ## beta.23 endgültiger Release installiert — 16.11.2026, 20:54
 
 - Installiert: 3.9.0-beta.23-alpha+e4b8bdc, Profil release, Quellcommit e4b8bdcb69dccd71a05b854d446ee7c8b0cf9d9d auf codex/workshop-dashboard. WoW nach Nutzerhinweis vollständig beendet; Prozessprüfung vor Backup, vor Ersatz und nach Installation bestanden.

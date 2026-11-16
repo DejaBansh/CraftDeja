@@ -1,0 +1,23 @@
+{
+  "version": "3.9.0-beta.23",
+  "channel": "beta",
+  "projectId": 1796977,
+  "gameVersion": "1.60.1",
+  "gameVersionTypeId": 88568,
+  "approved": false,
+  "historyReviewComplete": false,
+  "baseline": {
+    "channel": "beta",
+    "displayName": "CraftDeja_3.8.0_Beta1_DE_EN.zip",
+    "fileId": null,
+    "gitCommit": null,
+    "status": "Public listing identifies channel; source mapping and latest-file confirmation unresolved"
+  },
+  "additionalComparison": {
+    "channel": "release",
+    "fileId": 9642059,
+    "version": "3.9.0-beta.18",
+    "gitCommit": "9a65820eee5db5cf0ee2e89ba5eea60ee7474c39",
+    "status": "Public file page plus local beta.18 package record; not the same-channel baseline"
+  }
+}

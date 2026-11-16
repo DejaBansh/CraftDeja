@@ -1,0 +1,130 @@
+name: CurseForge release
+
+on:
+  push:
+    tags: ['*'] # Invalid tags fail validation rather than silently publishing.
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Dry run or prepare the description independently (never upload a file)
+        type: choice
+        options: [dry-run, description-only]
+        default: dry-run
+        required: true
+      tag:
+        description: Reviewed version, e.g. v3.9.0-beta.23
+        type: string
+        default: v3.9.0-beta.23
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: curseforge-1796977
+  cancel-in-progress: false
+
+jobs:
+  package:
+    if: github.event_name == 'push' || inputs.mode == 'dry-run'
+    runs-on: windows-2022
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install pinned official WoWLua
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $name='wowlua-v0.13.14-x86_64-pc-windows-msvc.zip'
+          $zip=Join-Path $env:RUNNER_TEMP $name
+          Invoke-WebRequest "https://github.com/DomenikIrrgang/wowlua/releases/download/v0.13.14/$name" -OutFile $zip
+          if((Get-FileHash $zip).Hash -ne 'B0B605C278B02661E5FF489122F045BA10A4ECAB101D76DE31F0CBF5182E1CC8') { throw 'WoWLua checksum mismatch' }
+          $bin=Join-Path $env:USERPROFILE '.wowlua/bin'
+          Expand-Archive -LiteralPath $zip -DestinationPath $bin -Force
+          $exe=Get-ChildItem $bin -Filter wowlua.exe -Recurse | Select-Object -First 1
+          if(-not $exe) { throw 'wowlua.exe missing' }
+          $exe.Directory.FullName >> $env:GITHUB_PATH
+      - name: Release pipeline regression checks
+        shell: pwsh
+        run: ./tools/Test-ReleasePipeline.ps1
+      - name: Test, build and validate exact approved source
+        id: package
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          ./tools/New-CurseForgeRelease.ps1 -Tag $env:RELEASE_TAG -DryRun:($env:DRY_RUN -eq 'true') -OutputPath reports/ci-release
+      - name: Reviewable release artifacts
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: curseforge-package-${{ github.run_id }}
+          path: reports/ci-release/artifacts/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Preserve automatic failure reports
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: curseforge-failure-${{ github.run_id }}
+          path: |
+            reports/ci-release/source/reports/tests/*.zip
+            reports/release-pipeline-tests.json
+          if-no-files-found: warn
+
+  upload:
+    if: github.event_name == 'push'
+    needs: package
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: curseforge-package-${{ github.run_id }}
+          path: reports/upload
+      - name: Upload once using official CurseForge API
+        shell: pwsh
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: ./tools/Publish-CurseForgeRelease.ps1 -ArtifactPath reports/upload
+      - name: Preserve file ID and separate description status even on partial failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: curseforge-upload-receipt-${{ github.run_id }}
+          path: |
+            reports/upload/release-evidence.json
+            reports/upload/upload-metadata.resolved.json
+            reports/upload/description.md
+          if-no-files-found: warn
+          retention-days: 90
+
+  description:
+    if: always() && ((github.event_name == 'push' && needs.upload.result == 'success') || (github.event_name == 'workflow_dispatch' && inputs.mode == 'description-only'))
+    needs: [upload]
+    # always() lets the manually dispatched job run when upload was skipped.
+    # The complete condition below replaces the ordinary implicit success check.
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event_name == 'push' && github.ref || inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Prepare official Author Console description step
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
+        run: ./tools/Prepare-CurseForgeDescription.ps1 -Tag $env:RELEASE_TAG -OutputPath reports/description
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: curseforge-description-${{ github.run_id }}
+          path: reports/description/
+          if-no-files-found: error

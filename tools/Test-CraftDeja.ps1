@@ -121,11 +121,11 @@ try {
     $meta.toolVersion = $version.Text.Trim()
     if ($SkipBuild) { $meta.build = 'skipped' }
     else {
-        $build = Invoke-LoggedProcess $exe @('build','--profile',$Profile,'--color','never') 'build'
+        $build = Invoke-LoggedProcess $exe @('build','--profile',$Profile,'--locked','--color','never') 'build'
         $meta.build = if ($build.ExitCode -eq 0) { 'passed' } else { 'failed' }
         if ($build.ExitCode -ne 0) { throw 'Build failed; tests not run.' }
     }
-    $nativeArgs = if ($Benchmark) { @('bench','--profile',$Profile,'--samples','7','--batch-ms','100','--json','--color','never') + @($Filter) } else { @('test','--color','never') + @($Filter) }
+    $nativeArgs = if ($Benchmark) { @('bench','--profile',$Profile,'--samples','7','--batch-ms','100','--json','--color','never') + @($Filter) } else { @('test','--locked','--color','never') + @($Filter) }
     if ($Evidence -and -not $Benchmark) { $nativeArgs += @('--reporter','pretty','--reporter','json','--output',(Join-Path $reportDir 'native')) }
     $tests = Invoke-LoggedProcess $exe $nativeArgs 'tests'
     $meta.testExitCode = $tests.ExitCode
