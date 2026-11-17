@@ -28,6 +28,6 @@ local casts=0;mock.stub(C_TradeSkillUI,"CraftRecipe",function()casts=casts+1 end
 -- Supply actual planning stock: after clicking, normal routing must stay at
 -- the missing station rather than switch to the material-shopping step.
 mock.stub(a,"inventoryFor",function()return {bags=20,total=20,bank=0,shared=0,alts={}}end)
-a.renderNextStep(plan,true,a.craftRequirementTask(r));mock.click(a.nextStepWindow.primaryCTA)
+mock.setField(a,'materialStages',{[r.profession..':'..r.id..':'..plan.target]={recipe=r.id,profession=r.profession,target=plan.target,choices={['item:2840']={source='stock',item=2840}}}});a.renderNextStep(plan,true,a.craftRequirementTask(r));mock.click(a.nextStepWindow.primaryCTA)
 assert(casts==0 and not a.nativeCraftHandoff and a.nextStepWindow.task.kind=="station","Station CTA started manufacturing or bypassed requirement")
 end

@@ -1,29 +1,31 @@
-# CraftDeja 3.9.0-beta.24 — Dein Auftrag bleibt auf Kurs
+# CraftDeja 3.9.0-beta.25 — Dein Material, deine Entscheidung
 
 ## Deutsch
 
-**Vom Auktionshaus bis zum Amboss: CraftDeja führt deinen Berufsauftrag jetzt zuverlässiger weiter.** Einkauf, Händlerbesuch und Herstellung greifen sauberer ineinander — mit klaren Mengen und einer eindeutigen nächsten Aktion.
+**Günstig einkaufen oder vorhandene Vorräte nutzen? CraftDeja lässt dich jetzt bewusst entscheiden.** Plane deinen nächsten Berufsabschnitt mit mehr Kontrolle über Gold, Bankbestand und eigene Rohstoffe.
 
-- **Passende Einkaufsmengen:** Die CraftDeja-Auctionator-Liste folgt dem aktuellen Skillabschnitt. Bestätigte Käufe und Post zählen mit; manuell bearbeitete Listeneinträge bleiben geschützt.
-- **Der richtige Händlerkauf:** Aktuelle AH-Preise bleiben beim Verlassen des Auktionshauses erhalten. Der Guide nennt benötigte Händlerzutaten direkt mit Menge und Preis — etwa Schwachen Fluxus für Kupferrohr.
-- **Dein Beruf bleibt im Fokus:** Gemischte Händler lösen keinen unerwünschten Gift-Schritt mehr aus. Gifte werden nur für Schurken mit nachgewiesener Freischaltung angeboten.
-- **Arbeitsstationen wiederfinden:** Vom Client bestätigte Arbeitsbereiche lassen sich auf der aktuellen Karte und Ebene markieren. Sobald die Rezeptvoraussetzung erfüllt ist, geht es zur Herstellung weiter und der Stationsmarker verschwindet.
-- **Ein sauberer Werkstatt-Look:** Proportionale Hintergründe, formstabile Rahmenecken und ein klar reagierender Hauptbutton verbessern den kompakten und aufgeklappten Guide.
+- **Eigenbestand oder AH:** Wähle Zutaten aus Taschen und Bank oder kaufe zusätzlich ein und behalte deinen alten Vorrat. Deine Auswahl bleibt für den jeweiligen Rezeptabschnitt gespeichert.
+- **Passende Reagenzien wählen:** Bei echten Rezeptalternativen kannst du auch vorhandene, etwas teurere Zutaten verwenden. Teilmengen werden berücksichtigt, statt automatisch mehr davon nachzukaufen.
+- **Eigene Rohstoffe weiterverarbeiten:** Nutze bekannte eigene Herstellungswege — zum Beispiel Kupfererz zu Kupferbarren — und kehre danach zu deinem ursprünglichen Berufsauftrag zurück. Der Guide prüft gelerntes Rezept, Zutaten und Ausbeute.
+- **AH-Preisvorteile auf einen Blick:** Ist eine Zutat im aktuellen AH-Preisstand günstiger als beim Händler, nennt der Guide den Vergleich direkt.
+- **Weiter nach75/75:** Am Ranglimit führt dich CraftDeja zum nächsten bekannten passenden Lehrer. Nach bestätigtem Lernen des neuen Rangs kann dein Auftrag weitergehen.
+- **Sicher entscheiden:** Geschützte Altbestände, bestätigte Post und aktuelle Preise bleiben berücksichtigt. Geänderte Angebote und laufende Käufe verhindern versehentliche Doppelaktionen.
 
-*Beta für World of Warcraft: Forever. Stationshinweise nutzen bestätigte Beobachtungen; fehlt ein verlässlicher Standort, nennt der Guide die konkrete Anforderung.*
+*Beta für World of Warcraft: Forever. Materialwerte sind Schätzungen; Herstellung und Käufe bestätigst du selbst.*
 
 ---
 
-# CraftDeja 3.9.0-beta.24 — Keep your crafting order on track
+# CraftDeja 3.9.0-beta.25 — Your materials, your choice
 
 ## English
 
-**From auction house to anvil: CraftDeja now guides your profession order more reliably.** Shopping, vendor visits and crafting connect more smoothly, with clear quantities and one concrete next action.
+**Buy cheaper reagents or use the supplies you already own? CraftDeja now puts that choice in your hands.** Plan the next profession stage with more control over your gold, bank stock and raw materials.
 
-- **Shopping quantities that fit:** CraftDeja's Auctionator list follows the current skill stage, accounting for confirmed purchases and mail while protecting manually edited entries.
-- **The right vendor purchase:** Current auction house prices remain available after leaving the AH. The guide names the required vendor reagent with quantity and cost — such as Weak Flux for Copper Tube.
-- **Your profession stays in focus:** Mixed-stock vendors no longer interrupt another profession with a poison prompt. Poisons are offered only to Rogues with confirmed access.
-- **Find crafting areas again:** Mark client-confirmed crafting areas on the current map and floor. Once the recipe requirement is met, the guide advances to crafting and removes its station marker.
-- **A cleaner workshop look:** Proportional backgrounds, stable frame corners and responsive primary-button feedback improve both compact and expanded guide layouts.
+- **Owned supplies or AH:** Choose reagents from bags and bank, or buy additional materials while keeping your original stock. Your choice is remembered for the current recipe stage.
+- **Choose eligible reagents:** Where a recipe genuinely supports alternatives, use owned ingredients even when another option costs slightly less. Partial stock is accounted for without automatically purchasing more expensive substitutes.
+- **Process your raw materials:** Use known recipes from your own professions — such as smelting Copper Ore into Copper Bars — then return to the original profession order. Learned recipes, ingredients and yield are checked.
+- **Spot AH savings:** When the current auction house price is below the known vendor price, the guide shows the comparison directly.
+- **Keep going after75/75:** At a rank cap, CraftDeja points to the nearest known suitable trainer. The order can continue after the client confirms the new profession rank.
+- **Safer choices:** Reserved old stock, confirmed mail and current prices remain accounted for. Changed offers and pending purchases prevent accidental duplicate actions.
 
-*Beta for World of Warcraft: Forever. Station guidance uses confirmed observations; when no reliable location exists, the guide states the exact requirement.*
+*Beta for World of Warcraft: Forever. Material values are estimates; purchases and native crafting remain under your control.*

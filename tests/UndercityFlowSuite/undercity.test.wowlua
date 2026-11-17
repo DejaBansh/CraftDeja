@@ -4,6 +4,8 @@ import * as mock from "wowlua:mock"
 -- purchase ledger, merchant events, guide and Auctionator handoff are real modules.
 local function setup()
  local a=_G['CraftDeja'];local c:any={a=a,skill=60,met=false,terms={},edits=0,searches=0,bag={},prices={[2840]=150,[2880]=99},x=.65,y=.4,map=1458}
+ mock.setField(a,'materialStages',{['202:3924:65']={recipe=3924,profession=202,target=65,choices={['item:2840']={source='stock',item=2840},['item:2880']={source='stock',item=2880}}},['202:3924:75']={recipe=3924,profession=202,target=75,choices={['item:2840']={source='stock',item=2840},['item:2880']={source='stock',item=2880}}}});mock.setField(a,'materialStage',nil);mock.setField(a,'materialConversion',nil)
+ mock.setField(a.shopping,'ready',nil);mock.setField(a.shopping,'readyWall',nil);mock.setField(a.shopping,'prices',nil)
  for _,key in ipairs({'routeSearch','routeResult','routeDecision','nativeCraftHandoff','craftBatch','poisonMerchantNeedsRead','poisonMerchantShownEpoch'})do mock.setField(a,key,nil)end
  mock.setField(a,'expectedProfession',nil);mock.setField(a,'craftQuietUntil',0);mock.setField(a,'sessions',{});mock.setField(a.character,'craftStations',{});mock.setField(a.vendorPurchase,'open',false);mock.setField(a.shopping,'livePrices',nil);mock.setField(a.shopping,'listPlanKey',nil);mock.setField(a.shopping,'managedItems',nil);mock.setField(a.shopping,'listStale',nil);mock.setField(a,'poisonDone',nil);mock.setField(a,'mapTarget',nil);mock.setField(a.character,'mapTarget',nil)
  mock.setField(a.saved,'routeOrders',{});mock.setField(a.saved,'routeActive',{});mock.setField(a.character,'poisons',{targets={}})
@@ -218,7 +220,7 @@ end
 local function cheaper()
  local c=setup();local a=c.a;c.ah();assert(a.searchShopping())
  local found=false;for _,s in ipairs(c.terms)do if s:find('Schwacher Fluxus',1,true)then found=true end end;assert(found,'99-copper AH offer incorrectly removed against 100 vendor')
- a.shopping.open=false;c.bags(10,0);a.refreshNextStep(true);assert(a.nextStepWindow.task.kind=='ah','Cheaper AH was overridden by vendor')
+ a.shopping.open=false;c.bags(10,0);a.refreshNextStep(true);if a.nextStepWindow.task.kind=='material_choice'then mock.click(a.nextStepWindow.materialStock)end;assert(a.nextStepWindow.task.kind=='ah','Cheaper AH was overridden by vendor')
  a.shopping.readyWall=time()-1801;a.shopping.ready=GetTime()-1801
  c.prices[2880]=106;a.refresh(false);a.refreshNextStep(true)
  assert(a.nextStepWindow.task.kind=='vendor','Expired 99 observation kept overriding current vendor price')

@@ -94,6 +94,11 @@ local function setup()
  local result={model={cap=75,start=23,target=31,recipes=recipes,rawRecipes=session.recipes,providers={},prices={}},best={segments=stages,transfers={},learning={},ranks={},demand={},reasons={},bought={},cashMaterials=20,cashLearning=0,cashTransfer=0,owned=0,vendor=0,knownNet=20},compared=1}
  mock.setField(a,'routeResult',result);mock.setField(a,'routeDecision',{routeOrder=order.id,profile=session.profile,current={recipe=session.recipes[3919],quote=a.quote(session.recipes[3919],{}),chance=1,unitSkill=2},stop=30,missing=0,unchecked=0})
  mock.setField(a,'decision',a.routeDecision);order.lastRoute=stages
+-- These established flow fixtures start after the user accepted owned supplies.
+ mock.setField(a,'materialStages',{});mock.setField(a,'materialStage',nil);mock.setField(a,'materialConversion',nil)
+ for _,s in ipairs(stages)do local choices={};for _,g in ipairs(session.recipes[s.recipe].groups or {})do for _,id in ipairs(g.choices)do choices['item:'..id]={source='stock',item=id}end end
+  a.materialStages['202:'..s.recipe..':'..s.to]={choices=choices,recipe=s.recipe,profession=202,target=s.to}
+ end
  c.flush=function()
   local commits=c.commits;c.commits={};for _,fn in ipairs(commits)do fn()end
   mock.fireEvent('BAG_UPDATE_DELAYED');mock.fireEvent('PLAYERBANKSLOTS_CHANGED',1);mock.waitSeconds(.1)

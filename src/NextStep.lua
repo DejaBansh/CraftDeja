@@ -257,6 +257,7 @@ function app.refreshNextStep(force)
             task=app.nextStep(plan)
         elseif reason=='requirement_cooldown'then task={kind='cooldown',key='cooldown',body=app.caption(reason)}
         else task={kind='production_choose',key='production:'..tostring(reason),body=app.caption(reason or 'production_choose')}end
+    elseif app.problem=='rank_full'and app.active.profile.cap<300 then task=app.rankTrainerTask()
     elseif app.shopping.goal=='manual'and not(app.isPoison and app.isPoison())and app.planningTarget()and app.planningTarget()<=app.active.profile.skill then
         local target=app.planningTarget()
         task={kind='done',key='skill_done:'..app.active.profile.id..':'..target,body=app.caption('skill_goal_done',target)}

@@ -67,14 +67,14 @@ local function liveMaterials(recipeId,index)
     if type(schematic)=="table"and type(schematic.reagentSlotSchematics)=="table"then
         local groups,valid={},true
         local basic=Enum and Enum.CraftingReagentType and Enum.CraftingReagentType.Basic or 1
-        for _,slot in ipairs(schematic.reagentSlotSchematics)do
+        for slotIndex,slot in ipairs(schematic.reagentSlotSchematics)do
             if slot.required~=false and (slot.reagentType==nil or slot.reagentType==basic)then
                 local n=tonumber(slot.quantityRequired)
                 if not n then valid=false
                 elseif n>0 then
                     local ids={}
                     for _,choice in ipairs(slot.reagents or {})do if choice.itemID then ids[#ids+1]=choice.itemID end end
-                    groups[#groups+1]={amount=n,choices=ids}
+                    groups[#groups+1]={amount=n,choices=ids,slotIndex=slotIndex}
                     if #ids==0 then valid=false end
                 end
             end

@@ -1,0 +1,302 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+-- Native Forever requirements/materials are explicit fixtures; planning,
+-- purchase ledger, merchant events, guide and Auctionator handoff are real modules.
+local function setup()
+ local a=_G['CraftDeja'];local c:any={a=a,skill=60,met=false,terms={},edits=0,searches=0,bag={},prices={[2840]=150,[2880]=99},x=.65,y=.4,map=1458}
+ mock.setField(a,'materialStages',{});mock.setField(a,'materialStage',nil);mock.setField(a,'materialConversion',nil)
+ mock.setField(a.shopping,'ready',nil);mock.setField(a.shopping,'readyWall',nil);mock.setField(a.shopping,'prices',nil)
+ for _,key in ipairs({'routeSearch','routeResult','routeDecision','nativeCraftHandoff','craftBatch','poisonMerchantNeedsRead','poisonMerchantShownEpoch'})do mock.setField(a,key,nil)end
+ mock.setField(a,'expectedProfession',nil);mock.setField(a,'craftQuietUntil',0);mock.setField(a,'sessions',{});mock.setField(a.character,'craftStations',{});mock.setField(a.vendorPurchase,'open',false);mock.setField(a.shopping,'livePrices',nil);mock.setField(a.shopping,'listPlanKey',nil);mock.setField(a.shopping,'managedItems',nil);mock.setField(a.shopping,'listStale',nil);mock.setField(a,'poisonDone',nil);mock.setField(a,'mapTarget',nil);mock.setField(a.character,'mapTarget',nil)
+ mock.setField(a.saved,'routeOrders',{});mock.setField(a.saved,'routeActive',{});mock.setField(a.character,'poisons',{targets={}})
+ mock.setField(a.character,'ahPurchase',{sequence=0,log={}});mock.setField(a.character,'ahMail',{});mock.setField(a.character,'vendor',{[2880]={unit=100,when=time(),limited=false}})
+ mock.setField(a.character,'inventory',{items={}});mock.setField(a.options,'language','de');mock.setField(a.options,'autoOpenMerchant',true);mock.setField(a.options,'prices','auctionator');mock.setField(a.options,'guideSeenV1',true)
+ mock.setField(a.shopping,'goal','next');mock.setField(a.shopping,'searched',nil);mock.setField(a.shopping,'open',false)
+ mock.stub(C_TradeSkillUI,'GetBaseProfessionInfo',function()return {professionID=202,professionName='Engineering',skillLevel=c.skill,maxSkillLevel=75}end)
+ mock.stub(C_TradeSkillUI,'GetAllRecipeIDs',function()return {3924}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeInfo',function(id)if id==3924 then return {recipeID=id,name='Kupferrohr',learned=true,relativeDifficulty=0,numSkillUps=1,canSkillUp=true}end end)
+ mock.stub(C_TradeSkillUI,'GetRecipeCooldown',function()return nil end)
+ mock.stub(C_TradeSkillUI,'GetRecipeRequirements',function()return {{name=c.focus or 'Amboss',type=Enum.RecipeRequirementType.SpellFocus,met=c.met},{name='Schmiedehammer',type=Enum.RecipeRequirementType.Totem,met=true}}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeOutputItemData',function()return {itemID=4361}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeSchematic',function()return {outputItemID=4361,quantityMin=1,quantityMax=1,reagentSlotSchematics={{quantityRequired=2,reagents={{itemID=2840}}},{quantityRequired=1,reagents={{itemID=2880}}}}}end)
+ for id,name in pairs({[2840]='Kupferbarren',[2880]='Schwacher Fluxus',[4361]='Kupferrohr',[2928]='Staub des Verfalls'})do mock.defineItem(id,{name=name,stackCount=20})end
+ mock.setBag(0,{slots=20,items={}});mock.player:setMoney(100000);mock.setLatency(.1)
+ mock.stub(C_Map,'GetBestMapForUnit',function()return c.map end)
+ mock.stub(C_Map,'GetPlayerMapPosition',function()return CreateVector2D(c.x,c.y)end)
+ mock.stub(_G,'GetSubZoneText',function()return 'Handwerkerviertel' end)
+ local native=CreateFrame('Frame',nil,UIParent);native:Show();native.GetCurrentRecraftingRecipeID=function()return nil end;native.CraftingPage=CreateFrame('Frame',nil,native)
+ local p=native.CraftingPage;p.SelectRecipe=function()end;p.SchematicForm={GetRecipeInfo=function()return C_TradeSkillUI.GetRecipeInfo(3924)end}
+ local input={n=1};function input:SetValue(n)self.n=n end;function input:GetValue()return self.n end
+ p.CreateMultipleInputBox=input;p.CreateButton=CreateFrame('Button',nil,p)
+ p.CreateButton:SetScript('OnClick',function()c.crafted=input.n end)
+ mock.setField(_G,'ProfessionsFrame',native)
+ local function encode(t)return t.searchString..'|'..t.quantity..'|'..tostring(t.maxPrice or 0)end
+ local api:any={GetAuctionPriceByItemID=function(_,id)return c.prices[id]or 1 end}
+ api.ConvertToSearchString=function(_,t)return encode(t)end
+ api.GetShoppingListItems=function()local t={};for i,v in ipairs(c.terms)do t[i]=v end;return t end
+ api.AlterShoppingListItem=function(_,_,old,new)for i,v in ipairs(c.terms)do if v==old then c.terms[i]=new;c.edits=c.edits+1;return end end;error('unmanaged list item')end
+ api.DeleteShoppingListItem=function(_,_,old)for i,v in ipairs(c.terms)do if v==old then table.remove(c.terms,i);c.edits=c.edits+1;return end end end
+ api.MultiSearchAdvanced=function(_,terms)c.searches=c.searches+1;c.terms={};for _,t in ipairs(terms)do c.terms[#c.terms+1]=encode(t)end end
+ mock.setField(_G,'Auctionator',{API={v1=api}});mock.setField(_G,'AUCTIONATOR_L_TEMPORARY_LOWER_CASE','temporär')
+ c.read=function()local s=a.readRecipes(a.readProfession());a.active=s;a.sessions[s.profile.id]=s;a.professionOpen=true;a.professionLoading=false;a.refresh(false)end
+ c.ah=function()a.shopping.open=true;a.shopping.ready=GetTime();a.shopping.readyWall=time();a.shopping.scanSerial=1;a.shopping.prices=c.prices;a.shopping.started=nil;a.shopping.pendingScan=nil;c.read()end
+ c.plan=function()return a.shoppingFresh()and a.shoppingPlan()or a.materialPlan(a.decision.current.recipe,a.planningTarget())end
+ c.vendor=function()mock.openMerchant({name='Daniel Bartlett',items={{id=2880,price=100,stack=1,available=-1,maxStack=20},{id=2928,price=10,stack=1,available=-1,maxStack=20}}});mock.waitSeconds(.3);a.refreshNextStep(true)end
+ c.bags=function(copper,flux)mock.setBag(0,{slots=20,items={[1]=copper>0 and {id=2840,count=copper}or nil,[2]=flux>0 and {id=2880,count=flux}or nil}});a.captureInventory();a.refresh(false)end
+ -- Recorded next-action boundary is an input: the log does not contain all 275 recipe quotes.
+ mock.stub(a,'nextActionBoundary',function()return {target=c.skill<65 and 65 or 75,kind='review'}end)
+ c.native=native;c.input=input;c.read();return c
+end
+@afterEach
+local function errors()local e=mock.errors();assert(#e==0,table.concat(e,'\n'))end
+local function sources(c)
+ local a=c.a
+ mock.stub(a,'playerFaction',function()return 'Horde'end)
+ mock.stub(_G,'UnitLevel',function()return 30 end)
+ mock.setField(a,'materialTrainerOpen',nil);mock.setField(a,'materialRankPending',nil);mock.setField(a.character,'routeProfessions',{})
+ mock.setField(a,'ownedConversionIndex',nil)
+ mock.setField(a.character,'materialSourceStages',{})
+ mock.stub(_G,'GetProfessions',function()return 1,2 end)
+ mock.stub(_G,'GetProfessionInfo',function(i)if i==1 then return 'Engineering',nil,65,75,nil,nil,202 else return 'Mining',nil,50,75,nil,nil,186 end end)
+ c.skill=65;c.met=true;c.prices[2770]=200;c.prices[2447]=101;c.prices[765]=100
+ for id,name in pairs({[2770]='Kupfererz',[2447]='Friedensblume',[765]='Silberblatt'})do mock.defineItem(id,{name=name,stackCount=20})end
+ c.stock=function(items)
+  local slots={};local n=0;for id,count in pairs(items)do n=n+1;slots[n]={id=id,count=count}end
+  mock.setBag(0,{slots=20,items=slots});a.captureInventory();a.refresh(false)
+ end
+ c.ah()
+ a.showCentralGuide()
+ c.fresh=function()local p=c.plan();a.renderNextStep(p,true,a.nextStep(p));return p end
+ return c
+end
+@test('Sources: AH-below-vendor hint is visible in compact guide with the actual one-copper difference')
+local function priceHint()
+ local c=sources(setup());local a=c.a;c.stock({});local p=c.fresh()
+ assert(a.nextStepWindow.task.body:find('Schwacher Fluxus: AH 99c statt Händler 1s 0c/Stück.',1,true),a.nextStepWindow.task.body)
+ c.prices[2880]=100;a.shopping.prices=c.prices;a.refresh(false);p=c.fresh()
+ assert(not a.nextStepWindow.task.body:find('Schwacher Fluxus: AH',1,true),'Equal vendor/AH price advertised as cheaper')
+end
+@test('Sources: bank stock prompts once and use-stock keeps the normal withdrawal step')
+local function bankStock()
+ local c=sources(setup());local a=c.a
+ local original=a.inventoryFor
+ mock.stub(a,'inventoryFor',function(id)if id==2840 then return {bags=0,bank=20,total=20,shared=0,alts={},deductibleAlts=0}end;return original(id)end)
+ local p=c.fresh();assert(a.nextStepWindow.task.kind=='material_choice')
+ mock.click(a.nextStepWindow.materialStock)
+ local q=c.plan();assert(not a.ownedSourceCandidate(q),'Choice repeated without a new stage')
+ assert(q.rows[1].buy==0 and q.rows[1].locations.bank==20)
+end
+@test('Sources: choosing AH reserves old bank stock and an internal bank move is not a new purchase')
+local function reserved()
+ local c=sources(setup());local a=c.a;local bags,bank=0,20;local original=a.inventoryFor
+ mock.stub(a,'inventoryFor',function(id)if id==2840 then return {bags=bags,bank=bank,total=bags+bank,shared=0,alts={},deductibleAlts=0}end;return original(id)end)
+ local p=c.fresh();assert(a.chooseMaterialSource(p,a.nextStepWindow.task.candidate,'ah'))
+ bags=20;bank=0;local q=c.plan();assert(q.rows[1].buy==20 and q.rows[1].locations.bags==0,'Bank move counted as AH delivery')
+ bags=40;q=c.plan();assert(q.rows[1].buy==0 and q.rows[1].locations.bags==20,'New purchase was ignored or old stock became available')
+ bags=20;q=c.plan();assert(q.rows[1].locations.bags==0,'Native craft could consume reserved original stock')
+end
+@test('Sources: same ingredient from bags is a real user choice and is not forced to AH')
+local function bagChoice()
+ local c=sources(setup());c.stock({[2840]=20});local p=c.fresh();local a=c.a
+ assert(a.nextStepWindow.materialStock:IsShown())
+ mock.click(a.nextStepWindow.materialStock);assert(c.plan().rows[1].buy==0)
+ for _=1,5 do a.refreshNextStep(true)end
+ assert(a.nextStepWindow.task.kind~='material_choice','Polling repeated the same choice')
+end
+local function alternative(c)
+ local a=c.a;local r=a.active.recipes[3924];r.groups={{choices={765,2447},amount=1}};r.outputItemID=4361
+ mock.stub(C_TradeSkillUI,'GetRecipeSchematic',function()return {outputItemID=4361,quantityMin=1,quantityMax=1,reagentSlotSchematics={{dataSlotIndex=1,quantityRequired=1,reagents={{itemID=765},{itemID=2447}}}}}end)
+ c.stock({[2447]=5});a.refresh(false);return r
+end
+@test('Sources: one-copper dearer owned alternative is offered and explicit choice changes the actual quote')
+local function alternatives()
+ local c=sources(setup());local a=c.a;local r=alternative(c);local p=c.fresh()
+ assert(a.quote(r,{}).inputs[1].item==765,'Market cheapest was not the initial default')
+ assert(a.nextStepWindow.task.candidate.kind=='alternative')
+ mock.click(a.nextStepWindow.materialStock)
+ assert(a.quote(r,{}).inputs[1].item==2447,'Explicit reagent selection was ignored')
+ local q=c.plan();assert(q.crafts==5 and q.rows[1].id==2447 and q.rows[1].buy==0,'Partial stock caused expensive extra purchases')
+ assert(not a.ownedSourceCandidate(q),'The alternative choice immediately repeated as a stock choice')
+ c.stock({});assert(a.quote(r,{}).inputs[1].item==765,'Depleted alternative stayed forced')
+end
+@test('Sources: choosing cheaper AH alternative leaves the dearer bank reagent untouched')
+local function cheaperAlternative()
+ local c=sources(setup());local a=c.a;local r=alternative(c);local p=c.fresh()
+ assert(a.chooseMaterialSource(p,a.nextStepWindow.task.candidate,'ah'))
+ assert(a.quote(r,{}).inputs[1].item==765 and C_Item.GetItemCount(2447,false)==5)
+end
+@test('Sources: unknown prices do not become zero-cost alternatives and an expired scan does not ask for an AH decision')
+local function unknown()
+ local c=sources(setup());local a=c.a;alternative(c);c.prices[2447]=nil;a.shopping.prices=c.prices
+ local p=c.fresh();assert(not a.ownedSourceCandidate(p),'Unpriced owned alternative presented as priced')
+ c.prices[2447]=101;c.stock({[2447]=5});a.shopping.readyWall=time()-1801
+ local task=a.materialSourceTask(c.plan());assert(task and task.body:find(a.caption('source_check_prices'),1,true),'Expired scan did not require a new price check')
+end
+@test('Sources: stale choice after inventory or price changes is rejected without committing a preference')
+local function stale()
+ local c=sources(setup());local a=c.a;c.stock({[2840]=20});local p=c.fresh();local candidate=a.nextStepWindow.task.candidate
+ c.stock({[2840]=10});assert(not a.chooseMaterialSource(p,candidate,'ah'))
+ local q=c.fresh();candidate=a.nextStepWindow.task.candidate;c.prices[2840]=180
+ assert(not a.chooseMaterialSource(q,candidate,'stock'),'Stale price accepted')
+end
+@test('Sources: pending native purchase blocks switching source')
+local function pending()
+ local c=sources(setup());local a=c.a;c.stock({[2840]=20});local p=c.fresh();local candidate=a.nextStepWindow.task.candidate
+ mock.stub(a,'purchasePending',function()return {id=2840,quantity=20}end)
+ assert(not a.chooseMaterialSource(p,candidate,'stock'))
+end
+local function mining(c,record)
+ local a=c.a;local profession=202
+ local info=C_TradeSkillUI.GetRecipeInfo;local schematic=C_TradeSkillUI.GetRecipeSchematic;local output=C_TradeSkillUI.GetRecipeOutputItemData;local requirements=C_TradeSkillUI.GetRecipeRequirements
+ mock.stub(C_TradeSkillUI,'GetBaseProfessionInfo',function()return {professionID=profession,professionName=profession==186 and 'Mining'or 'Engineering',skillLevel=profession==186 and 50 or c.skill,maxSkillLevel=75}end)
+ mock.stub(C_TradeSkillUI,'GetAllRecipeIDs',function()return profession==186 and {2657}or {3924}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeInfo',function(id)if id==2657 then return {recipeID=2657,name='Kupfer verhütten',learned=record~=false,relativeDifficulty=3,canSkillUp=false,numSkillUps=1}end;return info(id)end)
+ mock.stub(C_TradeSkillUI,'GetRecipeSchematic',function(id)if id==2657 then return {outputItemID=2840,quantityMin=1,quantityMax=1,reagentSlotSchematics={{quantityRequired=1,reagents={{itemID=2770}}}}}end;return schematic(id,false)end)
+ mock.stub(C_TradeSkillUI,'GetRecipeOutputItemData',function(id)if id==2657 then return {itemID=2840}end;return output(id)end)
+ mock.stub(C_TradeSkillUI,'GetRecipeRequirements',function(id)if id==2657 then return {}end;return requirements(id)end)
+ c.switch=function(p)profession=p;c.read();if record then a.recordRouteProfession(a.active)end end
+ c.native.CraftingPage.SchematicForm.GetRecipeInfo=function()return C_TradeSkillUI.GetRecipeInfo(profession==186 and 2657 or 3924)end
+ if record then c.switch(186);c.switch(202)end
+end
+@test('Sources: copper ore versus cheaper bars is compared only after native recipe proof')
+local function smelting()
+ local c=sources(setup());local a=c.a;mining(c,true);c.stock({[2770]=20,[2880]=10});local p=c.fresh()
+ local candidate=a.nextStepWindow.task.candidate
+ assert(candidate.kind=='conversion'and candidate.quantity==20 and candidate.value==4000 and candidate.ah==150)
+ assert(a.chooseMaterialSource(p,candidate,'stock'));assert(a.nextStepWindow.task.kind=='source_open')
+ c.switch(186);a.refreshNextStep(true);local q=a.ownedConversionPlan()
+ assert(q and q.production and q.crafts==20 and q.rows[1].id==2770,'Native grey smelting unavailable')
+ assert(a.craftNext(q,true),'Native smelting batch not prepared')
+ assert(a.nativeCraftHandoff and c.input.n==20,'Wrong prepared smelting quantity')
+ assert(C_Item.GetItemCount(2770,false)==20,'Guide crafted without native user click')
+ a.clearNativeCraft();c.stock({[2840]=20,[2880]=10});a.refreshNextStep(true)
+ assert(a.nextStepWindow.task.kind=='source_return','Produced bars did not complete the intermediate step')
+end
+@test('Sources: choosing AH instead of smelting leaves owned ore intact and suppresses repeat prompts')
+local function keepOre()
+ local c=sources(setup());local a=c.a;mining(c,true);c.stock({[2770]=20});local p=c.fresh()
+ assert(a.chooseMaterialSource(p,a.nextStepWindow.task.candidate,'ah'));assert(not a.materialConversion)
+ assert(C_Item.GetItemCount(2770,false)==20 and not a.ownedSourceCandidate(c.plan()))
+end
+@test('Sources: first copper discovery opens a check and never claims an unlearned recipe is craftable')
+local function probe()
+ local c=sources(setup());local a=c.a;mining(c,false);c.stock({[2770]=20});local p=c.fresh()
+ assert(a.nextStepWindow.task.candidate.probe)
+ assert(a.chooseMaterialSource(p,a.nextStepWindow.task.candidate,'stock'))
+ c.switch(186);a.refreshNextStep(true);assert(not a.ownedConversionPlan()and a.nextStepWindow.task.kind=='source_return')
+ assert(not a.nativeCraftHandoff)
+end
+@test('Sources: a mixed or variable-yield conversion is not advertised as a known deterministic supply')
+local function invalidConversion()
+ local c=sources(setup());local a=c.a;mining(c,true);c.stock({[2770]=20})
+ a.character.routeProfessions[186].recipes[2657].outputMax=2
+ local candidate=a.ownedSourceCandidate(c.plan());assert(candidate and candidate.probe,'Variable yield advertised as confirmed conversion')
+end
+@test('Sources: selected reagent is written and verified through the native transaction; missing API fails closed')
+local function allocation()
+ local c=sources(setup());local a=c.a;local r=alternative(c);r.groups[1].slotIndex=1
+ local p=c.fresh();assert(a.chooseMaterialSource(p,a.nextStepWindow.task.candidate,'stock'))
+ local selected,quantity;local allocation={GetQuantityAllocated=function(_,v)return v.itemID==selected and quantity or 0 end,Accumulate=function()return quantity end}
+ local transaction={OverwriteAllocation=function(_,slot,v,n)assert(slot==1);selected=v.itemID;quantity=n end,GetAllocations=function()return allocation end}
+ local form={transaction=transaction}
+ assert(a.validateMaterialReagents(r,form,true)and selected==2447)
+ selected=765;assert(not a.validateMaterialReagents(r,form,false),'Native reagent mismatch was accepted')
+ assert(not a.validateMaterialReagents(r,{},true),'Unsupported native reagent selection silently continued')
+end
+@test('Sources: route goal at75 cannot hide required rank training and Undercity chooses its known local trainer')
+local function rank()
+ local c=sources(setup());local a=c.a;c.skill=75;c.read();assert(a.startRouteOrder(75)==false)
+ c.skill=65;c.read();assert(a.startRouteOrder(75));local order=a.currentRouteOrder();c.skill=75;c.read();a.refreshNextStep(true)
+ assert(a.nextStepWindow.task.kind=='rank','Route goal hid rank training')
+ assert(a.nextStepWindow.task.trainer and a.nextStepWindow.task.trainer.npc==11031,'Known local rank trainer missing')
+ a.active.profile.cap=150;a.routeTask();assert(order.target==150 and not order.finished,'Newly learned rank did not extend a cap-bound route')
+end
+@test('Sources: sub-cap user goals still finish and level restrictions still block rank learning')
+local function rankBounds()
+ local c=sources(setup());local a=c.a;assert(a.startRouteOrder(70));c.skill=70;c.read();assert(a.routeTask().kind=='done')
+ c.skill=75;c.read();mock.stub(_G,'UnitLevel',function()return 5 end);mock.setField(a,'levelUpValue',0)
+ local t=a.routeTask();assert(t.kind=='rank'and t.levelBlocked)
+end
+@test('Sources: rank action buys one uniquely identified affordable offer only after a click')
+local function rankPurchase()
+ local c=sources(setup());local a=c.a;c.skill=75;c.read();local calls=0
+ mock.stub(_G,'UnitGUID',function(unit)if unit=='npc'then return 'Creature-0-0-0-0-11031-000' end end)
+ mock.stub(_G,'GetNumTrainerServices',function()return 1 end)
+ mock.stub(_G,'GetTrainerServiceInfo',function()return 'Engineering','available',135806 end)
+ mock.stub(_G,'GetTrainerServiceItemLink',function()return '|Hspell:4037|h[Engineering]|h' end)
+ mock.stub(_G,'GetTrainerServiceCost',function()return 500 end)
+ mock.stub(_G,'BuyTrainerService',function()calls=calls+1 end)
+ mock.fireEvent('TRAINER_SHOW');a.renderNextStep(nil,true,a.rankTrainerTask())
+ assert(calls==0 and a.currentMaterialRankOffer())
+ mock.click(a.nextStepWindow.primaryCTA);assert(calls==1 and not a.nextStepWindow.primaryCTA:IsEnabled())
+ mock.click(a.nextStepWindow.primaryCTA);assert(calls==1,'Duplicate rank request')
+ mock.fireEvent('TRAINER_CLOSED');assert(not a.currentMaterialRankOffer(),'Cached offer survived closing trainer')
+end
+@test('Sources: accepted AH stock reservation survives restoring saved state after reload')
+local function restored()
+ local c=sources(setup());local a=c.a;c.stock({[2840]=20});local p=c.fresh()
+ assert(a.chooseMaterialSource(p,a.nextStepWindow.task.candidate,'ah'))
+ a.materialStages=nil;a.materialStage=nil
+ local q=c.plan();assert(q.rows[1].buy==20 and q.rows[1].reservedStock==20,'Reload forgot preserved inventory')
+end
+@test('Sources: complete native smelting batch returns to the original engineering recipe without changing its order')
+local function completeConversion()
+ local c=sources(setup());local a=c.a;mining(c,true);c.stock({[2770]=20,[2880]=10});local p=c.fresh()
+ local originalProfile=a.active.profile.id
+ assert(a.chooseMaterialSource(p,a.nextStepWindow.task.candidate,'stock'));c.switch(186);a.refreshNextStep(true)
+ assert(a.craftNext(a.ownedConversionPlan(),true));local before=a.materialConversion
+ c.native.CraftingPage.CreateButton:SetScript('OnClick',function()
+  mock.fireEvent('UNIT_SPELLCAST_START','player','owned-start',2657)
+  for i=1,20 do
+   mock.setBag(0,{slots=20,items={[1]={id=2770,count=20-i},[2]={id=2840,count=i},[3]={id=2880,count=10}}})
+   mock.fireEvent('UNIT_SPELLCAST_SUCCEEDED','player','owned-'..i,2657)
+  end
+ end)
+ mock.click(c.native.CraftingPage.CreateButton);mock.waitSeconds(.6);a.captureInventory();a.refreshNextStep(true)
+ assert(not a.craftBatch and a.nextStepWindow.task.kind=='source_return')
+ mock.stub(C_TradeSkillUI,'OpenTradeSkill',function(profession)c.switch(profession);return true end)
+ assert(a.returnFromMaterialConversion()and a.active.profile.id==originalProfile and not a.materialConversion)
+ assert(before.parent.recipe.id==3924 and C_Item.GetItemCount(2770,false)==0 and C_Item.GetItemCount(2840,false)==20)
+ a.refreshNextStep(true)
+ if a.nextStepWindow.task.kind=='material_choice'then mock.click(a.nextStepWindow.materialStock)end
+ assert(a.craftNext(c.plan(),true)and a.nativeCraftHandoff.id==3924,'Original order did not resume with produced bars')
+end
+@test('Sources: fixed production orders at300 also protect old supplies when AH is chosen')
+local function productionReserve()
+ local c=sources(setup());local a=c.a;c.skill=300;c.read();c.stock({[2840]=40,[2880]=20})
+ assert(a.startProduction(a.active.recipes[3924],20))
+ local p=a.completeShoppingPlan(a.productionPlan());a.renderNextStep(p,true,a.nextStep(p))
+ assert(a.nextStepWindow.task.kind=='material_choice')
+ assert(a.chooseMaterialSource(p,a.nextStepWindow.task.candidate,'ah'))
+ local q=a.productionPlan();assert(q.rows[1].buy==40 and q.rows[1].locations.bags==0,'Production preparation could consume reserved stock')
+end
+@test('Sources: rank price changes and duplicate native services cannot purchase without review')
+local function rankChanged()
+ local c=sources(setup());local a=c.a;c.skill=75;c.read();local price,calls,count=500,0,1
+ mock.stub(_G,'UnitGUID',function(unit)if unit=='npc'then return 'Creature-0-0-0-0-11031-000'end end)
+ mock.stub(_G,'GetNumTrainerServices',function()return count end)
+ mock.stub(_G,'GetTrainerServiceInfo',function()return 'Engineering','available',135806 end)
+ mock.stub(_G,'GetTrainerServiceItemLink',function()return '|Hspell:4037|h[Engineering]|h'end)
+ mock.stub(_G,'GetTrainerServiceCost',function()return price end)
+ mock.stub(_G,'BuyTrainerService',function()calls=calls+1 end)
+ mock.fireEvent('TRAINER_SHOW');a.renderNextStep(nil,true,a.rankTrainerTask());price=501
+ a.unifiedAction(a.nextStepWindow);assert(calls==0,'Changed price was silently accepted')
+ count=2;assert(not a.currentMaterialRankOffer(),'Duplicate services were treated as unique')
+end
+@test('Sources: partial owned stock shows the full AH requirement and excludes remote alt stock from delivery')
+local function partialAH()
+ local c=sources(setup());local a=c.a;c.stock({[2840]=5});local original=a.inventoryFor
+ mock.stub(a,'inventoryFor',function(id)local r=original(id);if id==2840 then r.total=r.total+30;r.deductibleAlts=30 end;return r end)
+ local p=c.fresh();local choice=a.nextStepWindow.task.candidate
+ assert(choice.quantity==20 and choice.owned==5,'AH choice understated the complete purchase')
+ assert(a.chooseMaterialSource(p,choice,'ah'));local q=c.plan()
+ assert(q.rows[1].buy==20 and q.rows[1].locations.bags==0,'Remote stock unlocked reserved local bags')
+end
+@test('Sources: copper discovery subtracts already confirmed bar mail')
+local function mailedBars()
+ local c=sources(setup());local a=c.a;mining(c,false);c.stock({[2770]=20})
+ a.addConfirmedMaterial(2840,10,nil)
+ a.materialStage.choices['item:2840']=nil
+ local choice=a.ownedSourceCandidate(c.plan())
+ assert(choice and choice.probe and choice.quantity==10,'Discovery would produce bars already in mail')
+end

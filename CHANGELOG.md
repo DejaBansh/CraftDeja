@@ -1,5 +1,10 @@
 # CraftDeja 3.9.0-beta.20
 
+## 3.9.0-beta.25
+
+Explicit owned-stock/AH and native reagent choices, safe own-profession intermediate preparation, AH-versus-vendor price hint, protected stock quantities and cap-before-goal rank guidance. Full DE/EN notes in releases/3.9.0-beta.25/patchnotes.md. Native live acceptance remains open.
+
+
 ## 3.9.0-beta.24
 
 Consistent Auctionator stage quantities and confirmed-mail budgets; retain current AH prices across vendor visits; protect profession orders from mixed-vendor poison prompts; require native Rogue Poison unlock; mark client-confirmed crafting areas; preserve guide/button proportions. DE/EN player notes: releases/3.9.0-beta.24/patchnotes.md. Tests: 634/0/0; live Undercity acceptance pending.

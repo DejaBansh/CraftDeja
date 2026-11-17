@@ -12,11 +12,12 @@ The cost view separates missing purchases, consumed inventory, known learning fe
 
 ### One workshop console, one clear next action
 
-The new goblin workshop console brings together **Route, Materials and Settings**, with the current action and step details alongside. Prefer a smaller window? The compact guide works independently. Its green primary button tells you to **collect mail, deposit bank supplies, learn recipes or prepare crafting**, with waiting reasons and missing requirements beside the task.
+The new goblin workshop console brings together **Route, Materials and Settings**, with the current action and step details alongside. Prefer a smaller window? The compact guide works independently. Its green primary button tells you to **collect mail, deposit bank supplies, learn recipes or prepare crafting**, with waiting reasons and missing requirements beside the task. At a rank cap, the guide points to the nearest known eligible trainer.
 
 ### Connect auction house prices, supplies and recipe sources
 
 - **Auctionator shopping:** use available market prices, search for missing reagents and prepare purchase quantities. TSM can optionally supply prices.
+- **Choose your material source:** Compare owned bag/bank supplies, new AH purchases, eligible native reagent alternatives and known recipes from your own professions. Reserve original stock for a stage and see AH-versus-vendor savings in the guide.
 - **Use your supplies:** account for bags, available bank data, confirmed purchases and mail. Keep current crafting reagents and explicitly deposit or withdraw supplies for later stages.
 - **Find recipe sources:** see known trainers and vendors and mark suitable sources on the map. CraftDeja favors the nearest known eligible trainer using comparable location information.
 - **Alts and guild crafting:** consider eligible recorded stock or confirmed crafting offers as additional acquisition paths, with explicit permissions, costs and handovers.
@@ -35,4 +36,4 @@ Alchemy, Blacksmithing, Leatherworking, Tailoring, Engineering, Enchanting, Cook
 
 You confirm purchases and learning yourself. CraftDeja prepares crafting; you start it with the original profession button. Active batches receive focused progress updates rather than repeated full route comparisons.
 
-**Beta.24:** the workshop console, multi-recipe routes, bank transfers and alt/guild acquisition are part of the current beta. Prices and inventory observations may become stale. Recipe sources are known references, not a complete or universally live-verified trainer database.
+**Beta.25:** the workshop console, multi-recipe routes, bank transfers and alt/guild acquisition are part of the current beta. Prices and inventory observations may become stale. Recipe sources are known references, not a complete or universally live-verified trainer database.

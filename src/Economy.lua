@@ -41,11 +41,12 @@ end
 function app.quote(recipe,prices,sellPrices)
     if not recipe.complete then return nil end
     local selections,total,providers={},0,{}
-    for _,group in ipairs(recipe.groups or {})do
+    for index,group in ipairs(recipe.groups or {})do
         local selected,unit,provider
+        local preferred=app.preferredOwnedReagent and app.preferredOwnedReagent(recipe,index)
         for _,id in ipairs(group.choices)do
             local price,name=app.unitPrice(id,prices)
-            if price and (not unit or price<unit)then selected,unit,provider=id,price,name end
+            if price and (not unit or price<unit or id==preferred)and (not preferred or selected~=preferred or id==preferred)then selected,unit,provider=id,price,name end
         end
         if not selected or not group.amount or group.amount<=0 then return nil end
         selections[#selections+1]={item=selected,amount=group.amount,unit=unit}

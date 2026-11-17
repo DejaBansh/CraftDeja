@@ -1,5 +1,12 @@
 # Entscheidungen — Stand 15.11.2026
 
+## beta.25 — 17.11.2026
+
+- Eigener Materialbestand und zusätzliche Goldausgabe getrennt darstellen; keine Gleichsetzung von Marktwert und gesichertem Verkaufserlös. Quelle/Reagenz nur nach ausdrücklicher Wahl, alter Bestand bei AH-Wahl geschützt. Auswahl nach Rezeptabschnitt/Produktionsauftrag; native Einkauf-/Craftbestätigung bleibt erforderlich.
+- Reagenzalternativen ausschließlich aus dem nativen Schema, mit passender Transaktion und Rückprüfung. Eigene Konversionen nur mit gelerntem Rezept, festen nativen Ausgaben und eigenen Rohstoffen. Kein Weltgraph, keine Auto-Crafts.
+- Rank-Cap vor Zielabschluss; native neue Grenze als Fortsetzungsnachweis. Keine Rangzuordnung aus Namen, kein ungeprüfter Händlerpreis.
+
+
 ## beta.24 — 16.11.2026
 
 - Ein aktiver Berufsauftrag hat Vorrang vor Händler-Sonderangeboten. Gifte benötigen Schurkenklasse und aktuelle native Freischaltung; gespeicherte Jobs, Level oder Händlerbestand genügen nicht. Keine erfundenen Quest-Abschluss-IDs.

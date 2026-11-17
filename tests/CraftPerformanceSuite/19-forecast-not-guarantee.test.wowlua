@@ -34,7 +34,7 @@ local function greenSetup()
 end
 @test("Craft forecast: 19-forecast-not-guarantee")
 local function scenario()
-local a,r=greenSetup();local p=a.materialPlan(r,124)
+local a,r=greenSetup();mock.setField(a,'materialStages',{['186:1:124']={recipe=1,profession=186,target=124,choices={['item:2840']={source='stock',item=2840}}}});local p=a.materialPlan(r,124)
 a.renderNextStep(p,true,{kind="craft",key="green",available=6,batch=1,stop=124,body=""})
 local f=a.nextStepWindow;assert(f.outputCount:GetText()==a.caption("craft_safe_forecast",1,124,6),"UI conflates one prepared attempt with forecast")
 assert(f.primaryCTA:GetText()==a.caption("cta_attempt"),"Green boundary lacks attempt CTA")

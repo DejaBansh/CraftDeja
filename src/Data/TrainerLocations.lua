@@ -41,6 +41,7 @@ app.trainerLocations={
  {npc=2399,name="Daryl Stack",profession=197,fromCap=225,toCap=300,map=1424,x=63.6,y=20.8,side="Horde",level=35,skill=200,reference=true},
  {npc=11052,name="Timothy Worthington",profession=197,fromCap=225,toCap=300,map=1445,x=66.2,y=51.6,side="Alliance",level=35,skill=200,reference=true},
  {npc=3412,name="Nogg",profession=202,fromCap=75,toCap=150,map=1454,x=75.8,y=25.2,side="Horde",level=10,skill=50,reference=true},
+ {npc=11031,name="Franklin Lloyd",profession=202,fromCap=75,toCap=150,map=1458,x=76,y=74,side="Horde",level=10,skill=50,reference=true},
  {npc=5518,name="Lilliam Sparkspindle",profession=202,fromCap=75,toCap=150,map=1453,x=62.2,y=30.6,side="Alliance",level=10,skill=50,reference=true},
  {npc=5174,name="Springspindle Fizzlegear",profession=202,fromCap=150,toCap=225,map=1455,x=68.8,y=45.2,side="Alliance",level=20,skill=125,reference=true},
  {npc=11017,name="Roxxik",profession=202,fromCap=150,toCap=225,map=1454,x=76,y=25,side="Horde",level=20,skill=125,reference=true},

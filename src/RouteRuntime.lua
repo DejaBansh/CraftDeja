@@ -155,6 +155,10 @@ function app.routeTask(plan)
     local order=app.currentRouteOrder();if not order or not order.active then return end
     if order.owner~=app.characterKey then return oldOwnerTask(order)end
     if not app.active or app.active.profile.id~=order.profession then return {kind='route_profession',key='route_profession',body=app.caption('step_open_profession')}end
+    if not app.nativeCraftHandoff and not app.craftBatch and app.active.profile.skill>=app.active.profile.cap and app.active.profile.cap<300 and not app.isPoison()then
+        order.rankCheckpoint=app.active.profile.cap
+        return app.rankTrainerTask()
+    end
     if app.active and app.active.profile.skill>=order.target then return {kind='done',key='route_done',body=app.caption('route_goal_done',order.target)}end
     if app.nativeCraftHandoff or app.craftBatch then return end
     if app.routeDirty or app.routeSearch then return {kind='route_pending',key='route_pending',body=app.caption('route_calculating')}end

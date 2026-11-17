@@ -247,7 +247,7 @@ function app.checkCraftBatch()
         local count=app.try(h.input.GetValue,h.input)
         local production=h.plan and h.plan.production
         local current=app.active and app.active.recipes[h.id]
-        if not app.professionOpen or not production and (not d or d.current.recipe.id~=h.id)or not info or info.recipeID~=h.id or count~=h.count or app.missingCraftRequirement(h.plan and h.plan.recipe)or current and (current.cooldown or current.craftLimit==0)then
+        if not app.professionOpen or not production and (not d or d.current.recipe.id~=h.id)or not info or info.recipeID~=h.id or count~=h.count or app.missingCraftRequirement(h.plan and h.plan.recipe)or app.validateMaterialReagents and not app.validateMaterialReagents(h.plan and h.plan.recipe,h.form,false)or current and (current.cooldown or current.craftLimit==0)then
             app.flowLog('craft.native_preparation_changed',{recipe=h.id,quantity=count or 0})
             app.clearNativeCraft()
         end
@@ -278,6 +278,7 @@ local function prepareNativeCraft(recipe,count,stop)
     if not app.selectNativeRecipe(recipe.id)then return false,'native recipe selection not ready'end
     local info=app.try(form.GetRecipeInfo,form)
     if not info or info.recipeID~=recipe.id then return false,'native selected recipe does not match'end
+    if app.validateMaterialReagents and not app.validateMaterialReagents(recipe,form,true)then return false,'native reagent selection does not match the chosen materials'end
     input:SetValue(count)
     local accepted=input:GetValue()
     app.flowLog('craft.native_quantity',{recipe=recipe.id,requested=count,accepted=accepted})
@@ -318,7 +319,7 @@ function app.craftNext(plan,all)
     local d=app.decision
     local rod,_,rodActive=app.rodPreparationPlan()
     if rodActive and not rod then return fail('action_changed')end
-    local production=rod or app.routeSupplyCraftPlan and app.routeSupplyCraftPlan()or app.productionEnabled()and app.productionPlan()
+    local production=rod or app.ownedConversionPlan and app.ownedConversionPlan()or app.routeSupplyCraftPlan and app.routeSupplyCraftPlan()or app.productionEnabled()and app.productionPlan()
     if app.productionEnabled()and not production then return fail('production_done')end
     if not production and (not d or d.current.needsLearning or not d.current.recipe.learned)then return fail('action_recipe_missing')end
     local recipe=production and production.recipe or d.current.recipe
@@ -329,9 +330,9 @@ function app.craftNext(plan,all)
         app.selectNativeRecipe(recipe.id);return fail('action_enchant_target')
     end
     local quote=app.quote(recipe,{})
-    if production and production.toolPreparation then
+    if production and (production.toolPreparation or production.sourceConversion)then
         quote={inputs={}}
-        for _,row in ipairs(production.rows)do quote.inputs[#quote.inputs+1]={item=row.id,amount=row.total}end
+        for _,row in ipairs(production.rows)do quote.inputs[#quote.inputs+1]={item=row.id,amount=production.sourceConversion and row.total/production.crafts or row.total}end
     end
     if not quote then return fail('no_prices')end
     local quantities={}

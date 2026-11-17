@@ -58,6 +58,9 @@ local function setup()
         }
     end
     c.renderRoute=function(plan,kind)
+        -- User already chose the supplied stock for this fixture.
+        local choices={};for _,r in ipairs(plan.rows)do choices['item:'..r.id]={source='stock',item=r.id}end
+        mock.setField(c.app,'materialStages',{[plan.recipe.profession..':'..plan.recipe.id..':'..plan.target]={recipe=plan.recipe.id,profession=plan.recipe.profession,target=plan.target,choices=choices}})
         -- No task override: the real nextStep(plan) chooses the task.
         c.app.renderNextStep(plan,true)
         local g=c.guide()
