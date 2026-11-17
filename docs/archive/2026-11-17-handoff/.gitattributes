@@ -1,0 +1,2 @@
+# Preserve the captured original bytes and their manifest SHA256 across checkouts.
+* -text -whitespace

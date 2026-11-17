@@ -1,0 +1,80 @@
+{
+  "capturedAt": "2026-11-17T06:53:51.5711564+01:00",
+  "scope": "Isolated developer utility checks; no addon tests/build/install/upload",
+  "utilitySHA256": "5B00498A0AC77285DC4311AE471EE2F986E4F46B195DC824257B617E750EFD91",
+  "harnessSHA256": "B571410C56C310AE6CE518E406474BB04840DBB477E337CC5AC3643CC74BC6DC",
+  "passed": 17,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "PowerShell parser",
+      "result": "passed"
+    },
+    {
+      "name": "Complete matching fixture",
+      "result": "passed"
+    },
+    {
+      "name": "Changed source",
+      "result": "passed"
+    },
+    {
+      "name": "New source",
+      "result": "passed"
+    },
+    {
+      "name": "Missing source",
+      "result": "passed"
+    },
+    {
+      "name": "Changed test",
+      "result": "passed"
+    },
+    {
+      "name": "New test",
+      "result": "passed"
+    },
+    {
+      "name": "Missing local report with matching source",
+      "result": "passed"
+    },
+    {
+      "name": "Incorrect report checksum",
+      "result": "passed"
+    },
+    {
+      "name": "Addon version changed",
+      "result": "passed"
+    },
+    {
+      "name": "Manifest cannot escape checkout",
+      "result": "passed"
+    },
+    {
+      "name": "Missing mandatory build input cannot pass",
+      "result": "passed"
+    },
+    {
+      "name": "Skipped tests cannot be a complete release proof",
+      "result": "passed"
+    },
+    {
+      "name": "Contradictory index count cannot pass",
+      "result": "passed"
+    },
+    {
+      "name": "Duplicate current evidence ID cannot pass",
+      "result": "passed"
+    },
+    {
+      "name": "Remote credentials redacted without network",
+      "result": "passed"
+    },
+    {
+      "name": "Read-only real project snapshot and original test hashes",
+      "result": "passed"
+    }
+  ],
+  "report": "reports/context/20261117-065337-dbaf75.zip",
+  "reportSHA256": "B905FB0269B292B4282F6309F03717E401D6BA11C673D769CF1581A0A38FC628"
+}

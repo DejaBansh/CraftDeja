@@ -6,8 +6,8 @@ This repository contains the source project. Install the finished addon from [Cu
 
 - WoW Forever 1.60.1; game flavor `camelot`; Interface 16001.
 - Windows; Git 2.56.0.windows.4; wowlua 0.13.14.
-- Recorded automated run: 302 passed, 0 failed, 0 skipped in 198.23 seconds on 14 Nov 2026, Blizzard UI 1.60.1.70938. See [TEST_RESULTS.md](../TEST_RESULTS.md).
-- These are recorded results, not a CI badge or a test run performed by opening this page.
+- Current recorded evidence and scope: [TEST_RESULTS.md](../TEST_RESULTS.md) and [evidence index](evidence/index.json). Do not copy changing test counts into this setup guide.
+- Start each task with [CONTINUE.md](../CONTINUE.md) and the local read-only `tools/Get-ProjectContext.ps1 -AsJson`. See [context maintenance](PROJECT_CONTEXT.md) and [architecture](ARCHITECTURE.md).
 
 ## Get source and build
 
@@ -35,10 +35,10 @@ The project enables Blizzard UI tests. Point wowlua at your actual WoW installat
 
 ```powershell
 $env:WOWLUA_WOW_PATH = "C:\Program Files (x86)\World of Warcraft"
-wowlua test
+.\tools\Test-CraftDeja.ps1 -Profile release -OpenReportFolder
 ```
 
-Change that path if needed. wowlua reads the UI code from the installed client. The repository does not redistribute Blizzard's UI code or provide a WoW installation.
+Change that path if needed. The wrapper records logs, metadata and source hashes and creates a report ZIP even for failed runs. Do not bypass it with direct Windows `wowlua test` calls. Its default build profile is dev; explicitly select release for release verification. The test emulator itself has no build-profile selector. WoWLua reads the UI code from the installed client. The repository does not redistribute Blizzard's UI code or provide a WoW installation.
 
 Representative suites:
 

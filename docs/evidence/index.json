@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "current": "beta25-local-full",
+  "entries": [
+    {
+      "id": "beta25-local-full",
+      "version": "3.9.0-beta.25",
+      "releaseCommit": "0b5d627fb68f6ac6f65d0ad3e0faac8cc3cec5c9",
+      "reportGitCommit": "74d99f64add3d2aca1c140edd3af742636eb7eb1",
+      "manifest": "docs/evidence/beta25-source-manifest.json",
+      "report": "reports/tests/20261117-054821-3541b2.zip",
+      "reportSHA256": "66525F2631B366CB688FD6F4E694D96768F5405B3C16767DCD4CC67AD9DA1EE0",
+      "passed": 657,
+      "failed": 0,
+      "skipped": 0,
+      "profile": "release",
+      "durationSeconds": 208.54,
+      "kind": "WoWLua/Camelot source emulation",
+      "ciRun": "https://github.com/DejaBansh/CraftDeja/actions/runs/44020213463",
+      "ciDurationSeconds": 660.03,
+      "liveAcceptance": "pending"
+    }
+  ]
+}
