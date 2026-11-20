@@ -107,7 +107,10 @@ local function setup()
  c.drain=function()
   for _=1,20 do c.flush();if a.character.bankTransfer.status=='done'or a.character.bankTransfer.status=='bank_full'then break end end
  end
- c.profession=function()mock.fireEvent('TRADE_SKILL_SHOW');mock.waitSeconds(.1);assert(a.currentRouteOrder()==order)end
+ c.profession=function()
+  native:Hide();mock.fireEvent('TRADE_SKILL_CLOSE');native:Show();mock.fireEvent('TRADE_SKILL_SHOW')
+  mock.waitSeconds(.1);assert(a.currentRouteOrder()==order)
+ end
  return c
 end
 @afterEach
@@ -172,13 +175,13 @@ local function merchant()
  a.nextStepWindow:Hide();mock.openMerchant({name='Vendor',items={}});mock.fireEvent('MERCHANT_UPDATE');assert(not a.nextStepWindow:IsShown());mock.closeMerchant()
 end
 
-@test('Merchant option enabled: default and reloaded value open on a new visit without resetting route')
+@test('Merchant option enabled: default and reloaded value leave a closed guide closed')
 local function enabled()
  local c=setup();local a=c.a;a.options.autoOpenMerchant=true;a.showCentralGuide();a.nextStepWindow:Hide()
  mock.openMerchant({name='Vendor',items={{id=2589,price=4,stack=4,available=-1,maxStack=20,usable=true}}})
- assert(a.nextStepWindow:IsShown()and a.currentRouteOrder()==c.order);mock.closeMerchant()
+ assert(not a.nextStepWindow:IsShown()and a.currentRouteOrder()==c.order);mock.closeMerchant()
  a.initialize();assert(a.options.autoOpenMerchant==true);a.nextStepWindow:Hide()
- mock.openMerchant({name='Vendor',items={}});assert(a.nextStepWindow:IsShown());mock.closeMerchant()
+ mock.openMerchant({name='Vendor',items={}});assert(not a.nextStepWindow:IsShown());mock.closeMerchant()
 end
 
 @test('Bank locked items are not called full; account-only access cannot receive personal supplies')
@@ -269,6 +272,6 @@ local function settingsScreen()
  local c=setup();local a=c.a
  for _,language in ipairs({'de','en'})do
   mock.setField(a.options,'language',language);a.showUnifiedGeneral()
-  assert(a.optionsWindow.merchant:GetText():find(language=='de'and 'Beim Händler automatisch öffnen'or 'Automatically open at merchants',1,true))
+  assert(a.optionsWindow.merchant:GetText():find(language=='de'and 'Giftvorräte beim Händler prüfen'or 'Check poison stock at merchants',1,true))
  end
 end

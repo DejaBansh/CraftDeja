@@ -62,14 +62,17 @@ function app.buyVendorMaterial(id)
     local plan=app.vendorPurchasePlan();local current
     for _,row in ipairs(plan and plan.rows or {})do if row.id==id then current=row end end
     if not shown or not current then app.offerVendorPurchase();return false end
-    if current.slot~=shown.slot or current.cost~=shown.cost or current.quantity~=shown.quantity or current.price~=shown.price then
+    if current.slot~=shown.slot or current.cost~=shown.cost or current.quantity~=shown.quantity or current.price~=shown.price or current.stockVisit~=shown.stockVisit then
         state.status='vendor_buy_changed';state.plan=plan;app.renderVendorBuy();return false
     end
     local money=app.try(GetMoney);local before=bags(id)
-    if not money or money<current.cost then state.status='vendor_buy_gold';app.renderVendorBuy();return false end
+    if not money or money<current.cost then state.status='vendor_buy_gold';app.actionNotice=app.caption(state.status);app.renderVendorBuy();return false end
     if type(before)~='number'then state.status='shop_unknown_stock';app.renderVendorBuy();return false end
+    if current.stockVisit and not app.canReceiveStock(current.id,current.quantity)then
+        state.status='stock_bags_full';app.actionNotice=app.caption(state.status);app.renderVendorBuy();return false
+    end
     if type(BuyMerchantItem)~='function'then state.status='vendor_buy_unsupported';app.renderVendorBuy();return false end
-    state.pending={id=id,before=before,quantity=current.quantity,when=now()};state.status='vendor_buy_pending'
+    state.pending={id=id,before=before,quantity=current.quantity,when=now(),stockVisit=current.stockVisit};state.status='vendor_buy_pending'
     app.renderVendorBuy()
     -- Units (not number of packages), rounded to the merchant's stackCount step.
     local ok=pcall(BuyMerchantItem,current.slot,current.quantity)
@@ -81,7 +84,8 @@ function app.vendorBuyTick()
         local p=state.pending;local count=bags(p.id)
         if count and count>=p.before+p.quantity then
             state.pending=nil;state.status='vendor_buy_done'
-            if state.open then app.offerVendorPurchase()end
+            if app.captureInventory and not app.craftRefreshBusy()then app.captureInventory()end
+            if state.open then app.offerVendorPurchase()elseif app.refreshNextStep then app.refreshNextStep(true)end
         elseif now()-p.when>5 then state.status='vendor_buy_wait' end
     end
     if state.open and app.vendorBuyWindow and app.vendorBuyWindow:IsShown()then app.renderVendorBuy()end

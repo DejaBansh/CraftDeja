@@ -3,7 +3,7 @@
 local identifier,app=...
 _G.CraftDeja=app
 app.identifier=identifier
-app.release="3.9.0-beta.25"
+app.release="3.9.0-beta.26"
 app.sessions={}
 app.catalog={}
 app.names={}
@@ -29,6 +29,9 @@ function app.initialize()
     for key,value in pairs(app.options)do if saved.options[key]==nil then saved.options[key]=value end end
     saved.characters=type(saved.characters)=="table"and saved.characters or {}
     local character=app.try(UnitGUID,"player")or "local"
+    if app.characterKey and app.characterKey~=character then
+        app.active=nil;app.sessions={};app.pendingStockTarget=nil;app.stockRefillJob=nil
+    end
     saved.characters[character]=saved.characters[character]or {vendor={},seen={},transitions={}}
     app.saved=saved;app.options=saved.options;app.character=saved.characters[character];app.characterKey=character
     app.character.vendor=app.character.vendor or {};app.character.seen=app.character.seen or {};app.character.transitions=app.character.transitions or {}

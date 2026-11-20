@@ -330,9 +330,9 @@ function app.craftNext(plan,all)
         app.selectNativeRecipe(recipe.id);return fail('action_enchant_target')
     end
     local quote=app.quote(recipe,{})
-    if production and (production.toolPreparation or production.sourceConversion)then
+    if production and (production.toolPreparation or production.sourceConversion or production.stock)then
         quote={inputs={}}
-        for _,row in ipairs(production.rows)do quote.inputs[#quote.inputs+1]={item=row.id,amount=production.sourceConversion and row.total/production.crafts or row.total}end
+        for _,row in ipairs(production.rows)do quote.inputs[#quote.inputs+1]={item=row.id,amount=(production.sourceConversion or production.stock)and row.total/production.crafts or row.total}end
     end
     if not quote then return fail('no_prices')end
     local quantities={}
@@ -342,7 +342,7 @@ function app.craftNext(plan,all)
         if type(bags)~='number'or bags<n then return fail('action_materials')end
     end
     local target=production and math.huge or app.decision.stop
-    if not(production and (production.toolPreparation or production.routeSupply))and app.shopping.goal=='manual'then
+    if not production and app.shopping.goal=='manual'then
         local requested=app.planningTarget()
         if type(requested)=='number'then
             if requested<=app.active.profile.skill then return fail('skill_goal_done_button')end

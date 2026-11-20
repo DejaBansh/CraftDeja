@@ -96,6 +96,22 @@ local function liveMaterials(recipeId,index)
     return groups,true
 end
 
+function app.lookupLearnedStockRecipe(profession,id)
+    local api=C_TradeSkillUI or {}
+    local info=app.try(api.GetRecipeInfo,id)
+    if type(info)~='table'or info.learned~=true then return end
+    local owner=app.try(api.GetProfessionInfoByRecipeID,id)
+    if type(owner)~='table'or (owner.professionID~=profession and owner.parentProfessionID~=profession)then return end
+    local groups,complete,schematic=liveMaterials(id)
+    local output=app.try(api.GetRecipeOutputItemData,id)
+    local item=type(output)=='table'and output.itemID or schematic and schematic.outputItemID
+    if not item or schematic and schematic.outputItemID and schematic.outputItemID~=item then return end
+    local min=schematic and tonumber(schematic.quantityMin)
+    return {id=id,profession=profession,liveName=info.name,confirmed=true,learned=true,outputFromClient=true,
+        outputItemID=item,outputMin=min,outputMax=schematic and (tonumber(schematic.quantityMax)or min),
+        groups=groups,complete=complete,materialsFromClient=complete}
+end
+
 function app.referenceRecipe(profession,id)
     local reference=(app.catalog[profession]or {})[id]
     local record=app.copy(reference)
@@ -235,7 +251,9 @@ function app.readRecipes(profile)
         if record.confirmed then confirmed=confirmed+1;app.character.seen[profile.id][id]=record.learned end
     end
     if app.auditRead then app.auditRead(profile,confirmed)end
-    return{profile=profile,recipes=records,confirmed=confirmed}
+    return{profile=profile,recipes=records,confirmed=confirmed,
+        fullRecipeList=type(ids)=='table'and #ids>0 and confirmed==#ids,
+        legacyRecipeList=type(ids)~='table'and confirmed>0}
 end
 
 -- This is the item's SELL value, not the vendor reagent BUY price below.

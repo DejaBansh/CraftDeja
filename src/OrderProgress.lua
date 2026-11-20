@@ -3,7 +3,7 @@ local _,app=...
 local words={en={order_title='Order overview',order_ah='Shopping',order_mail='Mail',order_vendor='Vendor',order_craft='Crafting',order_done='Done',order_none='No order',order_open='Open',order_ok='Done',order_none_needed='Not needed',order_unknown='Waiting for current plan and stock.',order_units='%d units remaining',order_casts='%d crafts remaining',order_casted='%d successful crafts recorded',order_pending='%d units awaiting purchase confirmation',order_storage='Bank / alts: collect %d units',order_help='Hover over a station for open items. Purchases require confirmation; native crafting is started by you.',order_scan='Waiting for the current AH scan.',order_more='%d more item types'},de={order_title='Auftragsübersicht',order_ah='Einkaufen',order_mail='Post',order_vendor='Händler',order_craft='Herstellen',order_done='Fertig',order_none='Kein Auftrag',order_open='Offen',order_ok='Erledigt',order_none_needed='Nicht nötig',order_unknown='Warte auf aktuellen Plan und Bestand.',order_units='%d Stück offen',order_casts='%d Herstellungen offen',order_casted='%d erfolgreiche Herstellungen erfasst',order_pending='%d Stück warten auf Kaufbestätigung',order_storage='Bank / Alts: %d Stück holen',order_help='Maus über eine Station für offene Materialien. Käufe bestätigen; Herstellung startest du im Berufsfenster.',order_scan='Warte auf den aktuellen AH-Scan.',order_more='%d weitere Materialarten'}}
 for lang,entries in pairs(words)do for k,v in pairs(entries)do app.words[lang][k]=v end end
 local definitions={{'ah','coin'},{'mail','bag'},{'vendor','merchant'},{'craft','hammer'},{'done','check'}}
-local activeStage={ah='ah',ah_buy='ah',ah_confirm='ah',ah_load='ah',ah_wait='ah',ah_done='ah',scan='ah',mail='mail',vendor='vendor',tool='craft',station='craft',craft='craft',craft_native='craft',craft_queue='craft'}
+local activeStage={ah='ah',ah_buy='ah',ah_confirm='ah',ah_load='ah',ah_wait='ah',ah_done='ah',scan='ah',mail='mail',vendor='vendor',vendor_wait='vendor',tool='craft',station='craft',craft='craft',craft_native='craft',craft_queue='craft'}
 local function freshOverview()
     local v={storage=0,crafted=0}
     for _,def in ipairs(definitions)do v[def[1]]={n=0,lines={},state='pending'}end
@@ -50,7 +50,8 @@ function app.orderOverview(plan,task)
     end
     v.crafted=o and o.crafted or 0
     local production=app.productionEnabled()and app.productionJob()
-    local goalDone=not(plan and plan.toolPreparation)and (production and production.remaining<=0 or not production and (poison and app.poisonDone and not j or not poison and o and type(o.target)=='number'and prof.skill>=o.target))
+    local goalDone=not(plan and plan.toolPreparation)and (production and production.remaining<=0
+        or not production and (poison and app.poisonDone and not j or task and task.kind=='done'))
     if goalDone and o then o.finished=true end
     local scanning=task and task.kind=='scan'
     local known=plan and plan.stockKnown

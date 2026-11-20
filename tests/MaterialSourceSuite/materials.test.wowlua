@@ -95,6 +95,26 @@ local function reserved()
  bags=40;q=c.plan();assert(q.rows[1].buy==0 and q.rows[1].locations.bags==20,'New purchase was ignored or old stock became available')
  bags=20;q=c.plan();assert(q.rows[1].locations.bags==0,'Native craft could consume reserved original stock')
 end
+@test('Sources: material choice hides under scaled options and comes back with the same active step')
+local function optionsOverlay()
+ local c=sources(setup());local a=c.a
+ local inventory=a.inventoryFor
+ mock.stub(a,'inventoryFor',function(id)if id==2840 then return {bags=6,bank=0,total=6,shared=0,alts={}}end;return inventory(id)end)
+ a.options.windowScales={CraftDejaNextStep=.62}
+ c.fresh()
+ local f=a.nextStepWindow
+ assert(f.task.kind=='material_choice'and f.materialStock:IsShown()and not f.changeOrder)
+ assert(f.workshopToggle:GetTop()<f.materialStock:GetBottom())
+ mock.click(f.logButton)
+ local options=a.unifiedOptions
+ assert(options:IsVisible()and not f.materialStock:IsShown()and not f.workshopToggle:IsShown(),'Guide widgets leaked into options')
+ assert(options.note:GetTop()<options.rows[6]:GetBottom()and options.note:GetBottom()>f.back:GetTop())
+ a.refreshNextStep(true);assert(not f.materialStock:IsShown(),'Background refresh showed the guide action')
+ mock.click(f.back)
+ assert(not options:IsVisible()and f.task.kind=='material_choice'and f.materialStock:IsShown())
+ assert(f.materialStock:GetText()==a.caption('source_stock'))
+ mock.click(f.materialStock);assert(f.task.kind~='material_choice')
+end
 @test('Sources: same ingredient from bags is a real user choice and is not forced to AH')
 local function bagChoice()
  local c=sources(setup());c.stock({[2840]=20});local p=c.fresh();local a=c.a

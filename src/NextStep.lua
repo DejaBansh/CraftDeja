@@ -38,7 +38,7 @@ function app.nextStep(plan)
                         local offer=app.ahBuyStatus(plan)
                         return {kind=offer.phase,key='buy:'..offer.phase..':'..tostring(offer.id),offer=offer,body=offer.body}
                     end
-                    return {kind='ah',key='ah',body=app.caption(app.shopping.open and 'step_ah_here'or 'step_ah_visit')}
+                    return {kind='ah',key='ah',body=app.caption(app.shopping.open and 'step_ah_here'or 'step_ah_visit')..'\n'..app.caption('order_units',r.buy-mail)..' · '..r.name}
                 elseif mail>0 then
                     local n=math.min(r.buy,mail)
                     items[#items+1]=n..' x '..r.name;keys[#keys+1]=r.id..':'..n
@@ -58,6 +58,8 @@ function app.nextStep(plan)
     end
     for _,row in ipairs(plan.rows)do
         if row.buy>0 and row.vendor then
+            local pending=app.vendorPurchase and app.vendorPurchase.pending
+            if pending and pending.id==row.id then return {kind='vendor_wait',key='vendor_wait:'..row.id,body=app.caption('vendor_buy_wait')}end
             local v=app.nearestMerchant(row.id)
             local atVendor=false
             if app.vendorPurchase and app.vendorPurchase.open and app.vendorPurchasePlan then
@@ -126,7 +128,12 @@ function app.renderNextStep(plan,keepVisible,override)
             elseif t.kind=='ah_buy'or t.kind=='ah_confirm'or t.kind=='ah_load'or t.kind=='ah_wait'or t.kind=='ah_done'then app.performAHBuy(f.plan,t.offer)
             elseif f.plan then app.showDetails(f.plan.recipe,true)end
         end)
-        f.onDismiss=function()f.dismissed=f.task and f.task.key end
+        f.onDismiss=function()app.guideRequested=false end
+        f:HookScript('OnShow',function()if app.updateProfessionGuideButtons then app.updateProfessionGuideButtons()end end)
+        f:HookScript('OnHide',function()
+            app.guideRequested=false
+            if app.updateProfessionGuideButtons then app.updateProfessionGuideButtons()end
+        end)
     end
     if app.craftBatch then plan=app.craftBatch.plan elseif app.nativeCraftHandoff then plan=app.nativeCraftHandoff.plan end
     local f=app.nextStepWindow;local task=override or app.nextStep(plan)
@@ -137,7 +144,7 @@ function app.renderNextStep(plan,keepVisible,override)
     end
     app.tracePlan(plan,task)
     if f.taskKey~=task.key then
-        f.taskKey=task.key;f.dismissed=nil;f.marked=false;app.actionNotice=nil
+        f.taskKey=task.key;f.marked=false;app.actionNotice=nil
         if task.vendor then f.marked=app.markMerchant(task.vendor)end
         if task.trainer and not task.levelBlocked then f.marked=app.markMerchant(task.trainer)end
         if task.sourceTarget then f.marked=app.markMerchant(task.sourceTarget)end
@@ -211,13 +218,12 @@ function app.renderNextStep(plan,keepVisible,override)
     if task.kind=='learn'and task.sourceTarget then f.action:SetText(app.caption('recipe_source_map'));app.styleButton(f.action,'map',false)end
     if task.kind=='station'then f.action:SetText(app.caption('station_check'))end
     if task.kind=='production_choose'then f.action:SetText(app.caption('ui_change'))end
-    if f.dismissed~=task.key then f:Show()else f:Hide()end
+    if app.guideRequested then f:Show()else f:Hide()end
     app.updateNativeCue(task,plan)
 end
 
 -- The task window is independent from both the scan result and shopping UI.
--- Every profession/AH opening explicitly restores it; scan/recipe transitions
--- replace its contents rather than hiding it.
+-- Refreshing the task never changes the user's visibility preference.
 function app.refreshNextStep(force)
     if not app.saved then return end
     local f=app.nextStepWindow
@@ -251,7 +257,9 @@ function app.refreshNextStep(force)
         local job=app.productionJob()
         local recipe=job and app.active.recipes[job.recipe]or app.selectedProductionRecipe()
         local tool=recipe and app.craftRequirementTask(recipe,true)
-        if tool then task=tool;plan=nil
+        if reason=='production_done'then task={kind='done',key='production_done',body=app.caption(reason)}
+        elseif reason=='stock_wait'then task={kind='stock_wait',key='stock_wait',body=app.caption(reason)}
+        elseif tool then task=tool;plan=nil
         elseif plan then
             plan=app.completeShoppingPlan(plan)
             task=app.nextStep(plan)
@@ -273,7 +281,6 @@ function app.refreshNextStep(force)
     elseif app.craftRequirementTask(d.current.recipe,true)then task=app.craftRequirementTask(d.current.recipe,true)
     else
         local target=app.planningTarget()
-        if app.shopping.goal=='manual'and not app.professionOpen and not app.shopping.open and f and f.plan and f.plan.recipe.id==d.current.recipe.id then target=f.plan.target end
         local reason
         if app.shoppingFresh()then plan,reason=app.shoppingPlan()
         else
@@ -285,6 +292,5 @@ function app.refreshNextStep(force)
         if plan and app.craftAvailability(plan)==0 and not app.craftBatch and app.shopping.open and not app.shoppingFresh()then task={kind='scan',key='scan',body=app.caption(app.shopping.started and 'step_auto_scanning'or app.shopping.autoReason or 'step_auto_scan')}end
         if not plan then task={kind='review',key='plan:'..tostring(reason),body=app.caption(reason or 'open')}end
     end
-    if force and f then f.dismissed=nil end
     app.renderNextStep(plan,true,task)
 end

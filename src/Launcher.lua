@@ -52,27 +52,43 @@ function app.registerAddonSettings()
     end
     app.renderLauncher()
 end
-local function nativeShown()
-    if not app.saved then return end
-    -- OnShow can occur without TRADE_SKILL_SHOW (panel replacements/reopening
-    -- an already selected profession). Restore only UI here, not a full scan.
-    app.openFromLauncher()
+app.words.de.guide_toggle_open='Guide öffnen'
+app.words.de.guide_toggle_close='Guide schließen'
+app.words.en.guide_toggle_open='Open guide'
+app.words.en.guide_toggle_close='Close guide'
+function app.updateProfessionGuideButtons()
+    for _,name in ipairs({'ProfessionsFrame','TradeSkillFrame','CraftFrame'})do
+        local frame=_G[name]
+        local button=frame and frame.craftDejaGuideToggle
+        if button then
+            local guide=app.nextStepWindow
+            button:SetText(app.caption(guide and guide:IsShown()and 'guide_toggle_close'or 'guide_toggle_open'))
+        end
+    end
+end
+function app.beginProfessionGuideVisit()
+    if not app.saved or app.guideProfessionVisit then return end
+    app.guideProfessionVisit=true
+    app.showCentralGuide()
 end
 function app.bindProfessionVisibility()
     for _,name in ipairs({'ProfessionsFrame','TradeSkillFrame','CraftFrame'})do
         local f=_G[name]
         if f and type(f.HookScript)=='function'and not f.craftDejaVisibilityHook then
-            f.craftDejaVisibilityHook=true;f:HookScript('OnShow',nativeShown)
+            f.craftDejaVisibilityHook=true
+            local button=app.createButton(f,0,0,130,app.caption('guide_toggle_open'),function()
+                local guide=app.nextStepWindow
+                if guide and guide:IsShown()then guide.onDismiss();guide:Hide()
+                else app.openFromLauncher()end
+                app.updateProfessionGuideButtons()
+            end)
+            button:SetHeight(24);button:ClearAllPoints();button:SetPoint('TOPRIGHT',f,'TOPRIGHT',-37,-4)
+            f.craftDejaGuideToggle=button
+            f:HookScript('OnShow',app.beginProfessionGuideVisit)
+            f:HookScript('OnHide',function()if app.nativeProfessionVisible()~=true then app.guideProfessionVisit=nil end end)
         end
     end
-    if C_TradeSkillUI and type(C_TradeSkillUI.OpenTradeSkill)=='function'and not app.professionOpenHook and type(hooksecurefunc)=='function'then
-        app.professionOpenHook=true
-        hooksecurefunc(C_TradeSkillUI,'OpenTradeSkill',function()
-            -- An explicit second profession click may leave the native panel
-            -- shown, generating neither OnShow nor TRADE_SKILL_SHOW.
-            if app.nativeProfessionVisible()==true then nativeShown()end
-        end)
-    end
+    app.updateProfessionGuideButtons()
 end
 function app.setupLauncher()
     if Minimap and not app.minimapButton then

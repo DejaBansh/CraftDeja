@@ -122,7 +122,7 @@ local function fixture()
  -- A representative saved engineering order; real source APIs and guide model.
  stages[3]={recipe=3924,from=31,to=50,crafts=19};r.model.rawRecipes[3924]=a.copy(a.catalog[202][3924]);r.model.rawRecipes[3924].id=3924
  r.model.target=50;c.order.target=50;r.best.cashMaterials=13420;r.best.cashLearning=200;r.best.knownNet=12800
- c.profession();a.refreshNextStep(true);return c
+ c.profession();a.showCentralGuide();return c
 end
 local function visibleAction(a)
  local g=a.nextStepWindow;assert(g.primaryCTA:IsVisible()and g.workshopStatus:IsVisible())
@@ -227,7 +227,7 @@ local function languageSwitch()
 end
 @test('Workshop: same-order vendor bank native-craft withdrawal flow keeps visible actions correct')
 local function fullOrder()
- local c=setup();local a=c.a;a.showRouteWindow(31);c.set(0,1,nil);c.profession();a.refreshNextStep(true)
+ local c=setup();local a=c.a;a.showRouteWindow(31);c.set(0,1,nil);c.profession();a.showCentralGuide()
  mock.openMerchant({name='Vendor',items={{id=2589,price=4,stack=4,available=-1,maxStack=20,usable=true}}})
  mock.stub(_G,'BuyMerchantItem',function(_,n)c.add(0,2589,n);c.money=c.money-n;mock.fireEvent('BAG_UPDATE_DELAYED')end)
  a.offerVendorPurchase();visibleAction(a);assert(a.buyVendorMaterial(2589));a.vendorBuyTick();assert(c.count(2589,false)==8)
@@ -256,7 +256,7 @@ local function processing()
 end
 @test('Workshop: AH mail trainer rank alt and guild use the same visible action projection')
 local function stations()
- local c=setup();local a=c.a;local p=a.materialPlan(a.active.recipes[3919],30);a.showRouteWindow(31)
+ local c=setup();local a=c.a;local p=a.materialPlan(a.active.recipes[3919],30);a.showCentralGuide();a.showRouteWindow(31)
  for _,kind in ipairs({'ah','ah_buy','ah_confirm','ah_wait','mail','learn','rank','route_supply_alt','route_supply_guild'})do
   local task={kind=kind,key='ws:station:'..kind,body='Konkrete nächste Aufgabe: '..kind,recipe=p.recipe}
   if kind=='rank'then task.trainer=a.nearestRankTrainer(202,75)end

@@ -23,7 +23,8 @@ end
 @test("CTA: 07-order-page-overlay")
 local function scenario()
 local a,_plan,render=setup();local f=render("ah")
-mock.click(f.changeOrder)
+mock.click(f.workshopOpen);local dashboard=a.routeWindow.workshop
+mock.click(dashboard.navigation.advanced);mock.click(dashboard.editOrder)
 assert(a.skillOrderView:IsVisible() and not f.ctaInfo:IsShown(),"CTA overlay blocks hosted page")
 mock.click(f.back)
 assert(not a.skillOrderView:IsVisible() and f.ctaInfo:IsShown(),"CTA overlay not restored")

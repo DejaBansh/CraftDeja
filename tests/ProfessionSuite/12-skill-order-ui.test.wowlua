@@ -76,7 +76,8 @@ end
 local function scenario()
 
  local c=setup();c.open("Blacksmithing",3100,164)
- mock.click(c.guide().changeOrder)
+ mock.click(c.guide().workshopOpen);local dashboard=c.app.routeWindow.workshop
+ mock.click(dashboard.navigation.advanced);mock.click(dashboard.editOrder)
  local v=c.app.skillOrderView
  assert(v and v:IsVisible(),"Skill target page missing")
  assert(not v.quantity:IsShown(),"Manual quantity exposed below 300")

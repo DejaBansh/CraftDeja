@@ -84,11 +84,9 @@ function app.poisonStock(r)
     local _,id=app.craftDisplay(r);local produced=yieldFor(r)
     if type(id)~='number'or id<=0 or not produced then return nil end
     app.inventoryState.tracked[id]=true
-    local bags=app.try(C_Item and C_Item.GetItemCount or GetItemCount,id,false,false,false,false)
-    if type(bags)~='number'or bags<0 or bags~=math.floor(bags)then return nil end
-    local goal=state().stockTargets[r.id]or 0
-    local missing=math.max(0,goal-bags)
-    return {id=id,bags=bags,goal=goal,missing=missing,crafts=math.ceil(missing/produced),yield=produced,locations=app.inventoryFor(id)}
+    local stock=app.stockPosition(id,state().stockTargets[r.id]or 0,produced)
+    if stock then stock.locations=app.inventoryFor(id)end
+    return stock
 end
 function app.setPoisonRestock(enabled)
     if state().job or app.craftBatch or app.nativeCraftHandoff or app.purchasePending()or nativePurchaseBusy()then return notice('poison_locked')end
@@ -100,16 +98,16 @@ function app.reconcilePoisonStock()
     if not j or not j.restock or app.craftBatch or app.nativeCraftHandoff or app.purchasePending()or app.poisonVendorQueue then return end
     if (app.try(GetTime)or 0)<(app.poisonStockSettleUntil or 0)then return end
     local any=false
-    for id,n in pairs(j.remaining)do if n>0 then
+    for id,n in pairs(j.remaining)do
         local r=app.active and app.active.recipes[id];local stock=r and app.poisonStock(r)
         -- Never enlarge a confirmed order when a poison is consumed or moved.
         -- A new refill always requires a new explicit click.
-        if stock and stock.id==j.outputs[id]then
+        if n>0 and stock and stock.id==j.outputs[id]then
             j.remaining[id]=math.min(n,math.ceil(math.max(0,j.goals[id]-stock.bags)/j.yield[id]))
         end
-        any=any or j.remaining[id]>0
-    end end
-    if not any then state().job=nil;app.poisonDone=true;app.poisonAutoPrepare=false end
+        any=any or j.remaining[id]>0 or not stock or stock.id~=j.outputs[id]or stock.bags<j.goals[id]
+    end
+    if not any then state().job=nil;app.poisonDone=true;app.poisonDoneRestock=true;app.poisonAutoPrepare=false end
 end
 function app.setPoisonTarget(id,value)
     local s=state()
@@ -117,23 +115,32 @@ function app.setPoisonTarget(id,value)
     local r=app.isPoison()and app.active.recipes[id]
     if not r or not r.learned then return false end
     local n=tonumber(value);if not n or n~=n then return false end
-    targets()[id]=math.max(0,math.min(200,math.floor(n)))
+    local maximum=s.restock and math.max(200,s.stockTargets[id]or 0)or 200
+    n=math.max(0,math.min(maximum,math.floor(n)))
+    local output=s.restock and app.stockRecipeOutput(r)
+    if output then
+        if not app.setStockTarget(output,n,r)then return false end
+    else
+        targets()[id]=n
+    end
     app.poisonDone=false;app.actionNotice=nil
     if app.poisonWindow then app.poisonWindow.status:SetText(app.routeSummary())end
     return true
 end
-function app.startPoisonOrder()
+function app.startPoisonOrder(refillRecipe)
     if not app.isPoison()then return notice('poison_open')end
     local s=state()
     if s.job or app.purchasePending()or nativePurchaseBusy()or app.craftBatch or app.nativeCraftHandoff then return notice('poison_locked')end
-    local job={remaining={},initial={},yield={},fingerprints={},requested={},restock=s.restock,outputs={},goals={}}
+    local restock=refillRecipe~=nil or s.restock
+    local selectedTargets=refillRecipe and {[refillRecipe]=s.stockTargets[refillRecipe]}or targets()
+    local job={remaining={},initial={},yield={},fingerprints={},requested={},restock=restock,outputs={},goals={}}
     local outputs,selected={},false
-    for id,n in pairs(targets())do if n>0 then
+    for id,n in pairs(selectedTargets)do if n>0 then
         selected=true
         local r=app.active.recipes[id];local produced=r and yieldFor(r)
         if not r or not r.learned or r.disabled or not inputs(r)or not produced then return notice('poison_output')end
         local count
-        if s.restock then
+        if restock then
             local stock=app.poisonStock(r);if not stock then return notice('poison_stock_unknown')end
             if outputs[stock.id]then return notice('poison_stock_duplicate')end;outputs[stock.id]=true
             count=stock.crafts;job.outputs[id]=stock.id;job.goals[id]=n
@@ -148,12 +155,12 @@ function app.startPoisonOrder()
         end
     end end
     if not next(job.remaining)then
-        if s.restock and selected then app.poisonDone=true;app.actionNotice=nil;app.refresh(false);return true end
+        if restock and selected then app.poisonDone=true;app.poisonDoneRestock=true;app.actionNotice=nil;app.refresh(false);return true end
         return notice('poison_choose')
     end
     s.serial=s.serial+1;job.serial=s.serial;s.job=job
-    app.poisonDone=false;app.poisonAutoPrepare=false;app.actionNotice=nil;app.newPurchasePlan()
-    app.flowLog('poison.plan',{serial=s.serial,mode=s.restock and 'stock' or 'extra'});app.refresh(false);return true
+    app.poisonDone=false;app.poisonDoneRestock=nil;app.poisonAutoPrepare=false;app.actionNotice=nil;app.newPurchasePlan()
+    app.flowLog('poison.plan',{serial=s.serial,mode=restock and 'stock' or 'extra'});app.refresh(false);return true
 end
 function app.cancelPoisonOrder()
     if app.purchasePending()or nativePurchaseBusy()or app.craftBatch then return notice('poison_locked')end
@@ -194,7 +201,7 @@ end
 function app.poisonPlan()
     if not app.isPoison()or app.active.invalidated then return nil,'session_stale'end
     app.reconcilePoisonStock()
-    local ids,j=remaining();if not j or #ids==0 then return nil,'poison_choose'end
+    local ids,j=remaining();if not j or #ids==0 then return nil,j and j.restock and 'stock_wait'or 'poison_choose'end
     local totals,total={},0
     for _,id in ipairs(ids)do
         local r=app.active.recipes[id]
@@ -304,7 +311,9 @@ app.refreshNextStep=function(force)
         return app.renderNextStep(h.plan,true,task)
     end
     local aggregate,why=app.poisonPlan()
-    if not aggregate then return app.renderNextStep(nil,true,{kind='poison',key='poison_config',body=app.caption(app.poisonDone and (state().restock and 'poison_stock_done'or 'poison_done')or why or 'poison_choose')})end
+    if why=='stock_wait'then return app.renderNextStep(nil,true,{kind='stock_wait',key='poison_stock_wait',body=app.caption(why)})end
+    if not aggregate and app.poisonDone then return app.renderNextStep(nil,true,{kind='done',key='poison_done',body=app.caption(app.poisonDoneRestock and 'poison_stock_done'or 'poison_done')})end
+    if not aggregate then return app.renderNextStep(nil,true,{kind='poison',key='poison_config',body=app.caption(why or 'poison_choose')})end
     local current=app.decision and app.decision.current.recipe
     local plan=current and app.poisonRecipePlan(current)
     local batch=plan and app.craftBatchInfo(plan)
@@ -323,7 +332,10 @@ function app.poisonEvent(event,unit,guid,id)
     app.poisonLastGUID=guid;j.remaining[id]=j.remaining[id]-1
     app.poisonStockSettleUntil=(app.try(GetTime)or 0)+1.5
     app.flowLog('poison.completed',{recipe=id,remaining=j.remaining[id]})
-    if #remaining()==0 then s.job=nil;app.poisonDone=true;app.poisonAutoPrepare=false end
+    if #remaining()==0 then
+        app.poisonAutoPrepare=false
+        if not j.restock then s.job=nil;app.poisonDone=true end
+    end
 end
 function app.preparePoisonQueue()
     if not app.isPoison()or not state().job then return notice('poison_choose')end
@@ -433,6 +445,7 @@ function app.showPoisonMerchantPrompt()
     app.applyProfessionTheme(f,40);f:Show()
 end
 function app.autoOpenPoisonMerchant()
+    if app.options.autoOpenMerchant==false then return false end
     if not app.poisonMerchantEligible()then return false end
     if not app.vendorPurchase.open or app.poisonMerchantShownEpoch==app.poisonMerchantEpoch or not app.isPoisonMerchant()then return false end
     app.poisonMerchantShownEpoch=app.poisonMerchantEpoch;app.poisonMerchantRetries=0
@@ -443,6 +456,12 @@ function app.autoOpenPoisonMerchant()
     local ready=app.isPoison()and not app.active.invalidated and (app.active.confirmed or 0)>0
     app.flowLog('poison.vendor_open',{recipesReady=ready==true,hasOrder=state().job~=nil})
     if not ready then app.showPoisonMerchantPrompt();return true end
+    if app.options.stockRefill==true and not state().job then
+        for id,goal in pairs(state().stockTargets)do
+            local recipe=app.active.recipes[id];local stock=recipe and app.poisonStock(recipe)
+            if goal>0 and stock and stock.missing>0 and app.stockMerchantRelevant(recipe)then app.startPoisonOrder(id);break end
+        end
+    end
     if app.poisonMerchantWindow then app.poisonMerchantWindow:Hide()end
     if app.unifiedUI then
         app.observeMerchant();app.refresh(false);app.offerVendorPurchase();app.refreshNextStep(true);return true

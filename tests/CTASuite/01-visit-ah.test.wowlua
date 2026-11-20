@@ -29,5 +29,5 @@ assert(f.body:GetText()==a.caption("cta_ah_visit"),"Wrong outside-AH headline")
 assert(f.primaryCTA==f.action and f.action:IsEnabled(),"Next action not primary")
 mock.click(f.primaryCTA);assert(calls==1,"CTA changed original visit/check behavior")
 assert(not f.route:IsShown() and not f.place:IsShown() and not f.notice:IsShown(),"Extra paragraphs still visible")
-assert(f.changeOrder.ctaPriority=="secondary" and f.changeOrder:GetWidth()<f.primaryCTA:GetWidth(),"Order button competes with CTA")
+assert(not f.changeOrder and f.workshopToggle:GetWidth()==f.primaryCTA:GetWidth(),"Compact footer retains the order edit slot")
 end

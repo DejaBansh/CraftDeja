@@ -52,6 +52,7 @@ local function setup(options)
         mock.waitSeconds(c.latency + 0.2)
     end
     c.show = function()
+        app.showCentralGuide() -- Explicit user entry before checking merchant CTA.
         app.offerVendorPurchase()
         local row = app.vendorPurchase.plan and app.vendorPurchase.plan.rows[1]
         assert(row, "FIXTURE: no offered ingredient")

@@ -326,6 +326,13 @@ trainerEvents:SetScript('OnEvent',function(_,event)
     if app.saved and not app.craftRefreshBusy()then app.refreshNextStep()end
 end)
 local paint=app.paintWorkshopGuide
+local function addMaterialAction(f,button)
+    local _,_,_,_,y=f.workshopToggle:GetPoint()
+    button:ClearAllPoints();button:SetPoint('TOPLEFT',20,y)
+    button:SetWidth(380);button.label:SetWidth(340);app.styleCTAButton(button,false)
+    f.workshopToggle:ClearAllPoints();f.workshopToggle:SetPoint('TOPLEFT',20,y-36)
+    f:SetHeight(f:GetHeight()+36)
+end
 app.paintWorkshopGuide=function(f)
     paint(f);if not f or not f.task or app.unifiedView then return end
     if not f.materialStock then f.materialStock=app.createButton(f,20,0,380,'',function()
@@ -334,9 +341,8 @@ app.paintWorkshopGuide=function(f)
     local show=f.task.kind=='material_choice'or app.materialConversion~=nil and not busy()
     f.materialStock:SetShown(show)
     if show then
-        f.materialStock:ClearAllPoints();f.materialStock:SetPoint('TOPLEFT',20,-f:GetHeight()+8);f.materialStock:SetWidth(380)
         f.materialStock:SetText(app.caption(f.task.kind=='material_choice'and (f.task.candidate.probe and 'source_probe'or 'source_stock')or 'source_return'))
-        app.styleCTAButton(f.materialStock,false);f:SetHeight(f:GetHeight()+36)
+        addMaterialAction(f,f.materialStock)
     end
     if not f.materialReview then f.materialReview=app.createButton(f,20,0,380,'',function()
         if busy()or not f.plan then return end
@@ -344,7 +350,7 @@ app.paintWorkshopGuide=function(f)
     end)end
     local review=not show and f.plan and stage(f.plan)and app.materialStage and next(app.materialStage.choices)~=nil and not busy()
     f.materialReview:SetShown(review==true)
-    if review then f.materialReview:ClearAllPoints();f.materialReview:SetPoint('TOPLEFT',20,-f:GetHeight()+8);f.materialReview:SetText(app.caption('source_review'));app.styleCTAButton(f.materialReview,false);f:SetHeight(f:GetHeight()+36)end
+    if review then f.materialReview:SetText(app.caption('source_review'));addMaterialAction(f,f.materialReview)end
     app.workshopFit(f,420,f:GetHeight(),app.options.windowScales and app.options.windowScales.CraftDejaNextStep or app.options.scale)
 end
 local supply=app.routeBankRows

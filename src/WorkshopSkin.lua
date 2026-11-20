@@ -156,6 +156,8 @@ function app.paintWorkshopGuide(f)
     b:SetWidth(380);point(b,20,112);app.styleCTAButton(b,true)
     if f.task and (f.task.kind=='route_bank'or f.task.kind=='route_bank_withdraw')then f.body:SetText(b:GetText())end
     local status={}
+    local stock=app.guideStockPosition(f.plan,f.task)
+    if stock then status[#status+1]=app.caption('stock_counts',app.itemName(stock.id),stock.bags,stock.goal,stock.missing)end
     if f.task and f.task.body and f.task.body~=''then status[#status+1]=f.task.body end
     if app.actionNotice and app.actionNotice~=''then status[#status+1]=app.actionNotice end
     if not b:IsEnabled()and #status==0 then status[1]=app.caption('ws_wait')end
@@ -187,9 +189,9 @@ function app.paintWorkshopGuide(f)
         if show then point(f.bankLater,20,y);f.bankLater:SetWidth(380);f.bankLater.label:SetWidth(340);y=y+32 end
     end
     if f.secondaryCTA then point(f.secondaryCTA,20,y);f.secondaryCTA:SetWidth(183);f.secondaryCTA.label:SetWidth(143);app.styleCTAButton(f.secondaryCTA,false);y=y+32 end
-    point(f.workshopToggle,20,y);f.workshopToggle:SetText(app.caption(f.workshopExpanded and 'ws_less'or 'ws_details'));f.workshopToggle:Show()
-    point(f.changeOrder,217,y);f.changeOrder:SetWidth(183);f.changeOrder.label:SetWidth(143)
-    f:SetHeight(y+48);app.workshopFit(f,420,f:GetHeight(),app.options.windowScales and app.options.windowScales.CraftDejaNextStep or app.options.scale)
+    point(f.workshopToggle,20,y);f.workshopToggle:SetWidth(380);f.workshopToggle.label:SetWidth(340)
+    f.workshopToggle:SetText(app.caption(f.workshopExpanded and 'ws_less'or 'ws_details'));f.workshopToggle:Show()
+    f:SetHeight(y+42);app.workshopFit(f,420,f:GetHeight(),app.options.windowScales and app.options.windowScales.CraftDejaNextStep or app.options.scale)
     if f.surface then
         f.surface:ClearAllPoints();f.surface:SetPoint('TOPLEFT',12,-48);f.surface:SetPoint('BOTTOMRIGHT',-12,12)
         f.surface:SetColorTexture(.014,.025,.045,.3)

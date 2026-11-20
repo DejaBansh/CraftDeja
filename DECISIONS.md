@@ -33,6 +33,12 @@ Die vollständige Entscheidungshistorie bleibt im [Archiv](docs/archive/2026-11-
   Account-/Gildenbank nicht stillschweigend einschließen. Anzeigeunterdrückung ändert keinen Auftrag.
 - **Ansichten:** Hauptfenster/kompakter Guide projizieren denselben Auftrag. DE/EN, konkrete CTA,
   optionale Details, proportionale Assets. Einmaliger sichtbarer Bereitschaftsimpuls; kein Dauerblinken.
+- **Zielbestände:** Ein Ziel je fertigem Gegenstand und Charakter. Fehlmenge zählt bestätigte
+  Taschenstücke. Händlerstapel und feste native Rezeptmengen runden die nächste Aktion.
+  Alte Giftziele erst nach bestätigter Ausgabe zuordnen. Einmalige Zusatzproduktion bleibt getrennt.
+  Die Liste speichert clientbestätigte Rezepte pro Charakter. Berufszauber sind Hinweise
+  und werden über Lernstatus, Berufszuordnung und Ausgabe geprüft. Vollständigkeit und
+  tatsächliche Herstellbarkeit folgen aus dem geöffneten Berufsfenster.
 - **Release:** Spielerpakete release-only ohne Dev-Runtime/automatische Instrumentierung.
   Exakte Tags und versionierte DE/EN-Texte nach passendem tatsächlich veröffentlichtem Vorgänger.
   Offizielle Upload API, keine blinden POST-Retries. Hauptbeschreibung manuell über Author Console.

@@ -131,12 +131,25 @@ function app.productionCraftEvent(unit,guid,id)
 end
 function app.productionPlan()
     local j=app.productionJob()
+    return app.makeProductionPlan(j)
+end
+function app.makeProductionPlan(j)
     if not j then return nil,'production_choose'end
     if j.remaining<=0 then return nil,'production_done'end
     local p=app.active.profile;local r=app.active.recipes[j.recipe]
     if not r or not r.learned or not r.complete or r.disabled then return nil,'production_missing'end
     if r.cooldown or r.craftLimit==0 then return nil,'requirement_cooldown'end
     local q=app.quote(r,{})
+    if not q and j.stock then
+        -- A known fixed recipe with a single reagent per slot can use owned
+        -- ingredients even when the market has no quote for them.
+        q={inputs={}}
+        for _,group in ipairs(r.groups or {})do
+            if #group.choices~=1 then return nil,'no_prices'end
+            local id=group.choices[1]
+            q.inputs[#q.inputs+1]={item=id,amount=group.amount,unit=app.unitPrice(id)or 0}
+        end
+    end
     if not q then return nil,'no_prices'end
     local count=math.min(j.remaining,r.craftLimit or j.remaining)
     local totals={}
@@ -153,5 +166,5 @@ function app.productionPlan()
         purchase=purchase+row.buy*row.unit;rows[#rows+1]=row
     end
     table.sort(rows,function(a,b)return a.id<b.id end)
-    return {production=true,jobSerial=j.serial,purchaseSlice=type(r.craftLimit)=='number'and j.initial-j.remaining or nil,recipe=r,from=p.skill,target=p.skill,crafts=count,rows=rows,purchase=purchase,stockKnown=known,estimated=false}
+    return {production=true,stock=j.stock,jobSerial=j.serial,purchaseSlice=type(r.craftLimit)=='number'and j.initial-j.remaining or nil,recipe=r,from=p.skill,target=p.skill,crafts=count,rows=rows,purchase=purchase,stockKnown=known,estimated=false}
 end

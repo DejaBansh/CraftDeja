@@ -1,0 +1,283 @@
+import test, afterEach from 'wowlua:test'
+import * as mock from 'wowlua:mock'
+
+local function setup()
+ local a=_G['CraftDeja']
+ mock.setField(a.options,'language','de');mock.setField(a.options,'stockRefill',true)
+ mock.setField(a.shopping,'goal','next');mock.setField(a.shopping,'open',false)
+ mock.setField(a,'active',nil);mock.setField(a,'guideRequested',false);mock.setField(a,'stockRefillJob',nil)
+ mock.setField(a,'craftBatch',nil);mock.setField(a,'nativeCraftHandoff',nil)
+ mock.setField(a.character,'stockTargets',{});mock.setField(a.character,'poisons',{targets={},stockTargets={},serial=0,restock=true})
+ mock.setField(a.character,'stockRecipes',nil)
+ mock.setField(a.character,'productionJobs',{});mock.setField(a.character,'ahPurchase',{sequence=0,log={}})
+ mock.setField(a.vendorPurchase,'open',false);mock.setField(a.vendorPurchase,'pending',nil)
+ mock.setField(a.saved,'routeActive',{});mock.setField(a.saved,'routeOrders',{})
+ for id,name in pairs({[159]='Erfrischendes Quellwasser',[117]='Dörrfleisch',[118]='Schwacher Heiltrank',[765]='Silberblatt',[3371]='Leere Phiole',[6947]='Sofort wirkendes Gift'})do
+  mock.defineItem(id,{name=name,stackCount=20})
+ end
+ mock.stub(C_Item,'GetItemInfoInstant',function(id)return id,nil,nil,nil,nil,(id==765 or id==3371)and 7 or 0,0 end)
+ mock.stub(C_Container,'GetContainerNumFreeSlots',function(bag)return bag==0 and 12 or 0,0 end)
+ mock.player:setMoney(100000);mock.setLatency(.1)
+ return a
+end
+local function supplies(water,food)
+ mock.setBag(0,{slots=20,items={[1]={id=159,count=water},[2]={id=117,count=food}}})
+end
+local function merchant()
+ mock.openMerchant({name='Lebensmittelhändler',items={{id=159,price=25,stack=5,available=-1,maxStack=20},{id=117,price=5,stack=1,available=-1,maxStack=20}}})
+end
+@afterEach
+local function errors()local all=mock.errors();assert(#all==0,table.concat(all,'\n'))end
+
+@test('Stock: shared finished-item arithmetic and fixed batch rounding')
+local function mathCases()
+ local a=setup();supplies(12,3)
+ local water=a.stockPosition(159,20,5);assert(water.missing==8 and water.crafts==2)
+ local food=a.stockPosition(117,6,1);assert(food.missing==3 and food.crafts==3)
+ supplies(20,5);assert(a.stockPosition(159,20,5).missing==0)
+ supplies(25,5);assert(a.stockPosition(159,20,5).crafts==0)
+end
+@test('Stock: hidden merchant visit stages multiple targets, one pending buy across reopen and delayed inventory')
+local function vendor()
+ local a=setup();supplies(12,3)
+ assert(a.setStockTarget(159,20)and a.setStockTarget(117,6))
+ local sent:any={};mock.stub(_G,'BuyMerchantItem',function(slot,n)sent[#sent+1]={slot=slot,n=n}end)
+ mock.openMerchant({name='Lebensmittelhändler',items={}});assert(not a.nextStepWindow:IsShown())
+ mock.closeMerchant();merchant();mock.fireEvent('MERCHANT_UPDATE')
+ local g=a.nextStepWindow;assert(not g:IsShown()and #sent==0)
+ local p=a.vendorPurchasePlan();assert(#p.rows==2 and p.rows[1].missing==8 and p.rows[1].quantity==10 and p.rows[1].cost==50)
+ assert(p.rows[2].missing==3 and p.rows[2].quantity==3)
+ a.showCentralGuide();assert(g.task.kind=='stock_vendor'and g.task.body:find('8 fehlen',1,true))
+ mock.click(g.primaryCTA);assert(#sent==1 and sent[1].n==10 and a.vendorPurchase.pending)
+ mock.closeMerchant();merchant();mock.fireEvent('MERCHANT_UPDATE');mock.waitSeconds(1.2)
+ assert(g.task.kind=='vendor_wait');mock.click(g.primaryCTA);assert(#sent==1)
+ supplies(22,3);mock.fireEvent('BAG_UPDATE_DELAYED');mock.waitSeconds(1.2)
+ assert(g.task.kind=='stock_vendor'and g.task.offer.id==117 and g.task.offer.quantity==3)
+ mock.click(g.primaryCTA);assert(#sent==2 and sent[2].n==3)
+ supplies(22,6);mock.waitSeconds(1.2);assert(not a.vendorPurchase.pending and not a.vendorPurchasePlan())
+ assert(g.task.key=='stock_vendor_done')
+ mock.closeMerchant();supplies(19,6);merchant();assert(g.task.offer.id==159 and g.task.offer.missing==1 and g.task.offer.quantity==5)
+ assert(#sent==2,'A new vendor visit sent a purchase without a click')
+end
+@test('Stock: gold and full bags are rejected, disabled refill offers no purchase')
+local function blocked()
+ local a=setup();supplies(12,6);assert(a.setStockTarget(159,20));merchant();a.showCentralGuide()
+ local sent=0;mock.stub(_G,'BuyMerchantItem',function()sent=sent+1 end)
+ local g=a.nextStepWindow;mock.player:setMoney(49);mock.click(g.primaryCTA)
+ assert(sent==0 and not a.vendorPurchase.pending and a.vendorPurchase.status=='vendor_buy_gold')
+ mock.player:setMoney(100000)
+ mock.stub(C_Container,'GetContainerNumFreeSlots',function()return 0,0 end)
+ mock.click(g.primaryCTA);assert(sent==0 and a.vendorPurchase.status=='stock_bags_full'and not a.vendorPurchase.pending)
+ a.options.stockRefill=false;a.refreshNextStep(true);assert(g.task.kind~='stock_vendor')
+end
+@test('Stock: first relevant visit after session reload uses targets without an active profession')
+local function reload()
+ local a=setup();supplies(12,25);assert(a.setStockTarget(159,20))
+ a.initialize();assert(a.options.stockRefill and a.character.stockTargets[159].goal==20)
+ merchant();local p=a.vendorPurchasePlan();assert(p and p.rows[1].quantity==10 and not a.nextStepWindow:IsShown())
+end
+@test('Stock: a draft for additional poisons does not replace the active food vendor action')
+local function draftPriority()
+ local a=setup();supplies(12,6)
+ mock.setField(a,'active',{profile={id=40,skill=65,cap=75},recipes={},confirmed=1})
+ mock.stub(a,'poisonDraft',function()return 1,20,nil,'poison-draft'end)
+ assert(a.setStockTarget(159,20));merchant();a.refreshNextStep(true)
+ assert(a.nextStepWindow.task.kind=='stock_vendor'and a.nextStepWindow.task.offer.id==159)
+end
+@test('Stock: late merchant item data discovers the offer in the same visit')
+local function lateData()
+ local a=setup();supplies(12,25);assert(a.setStockTarget(159,20))
+ local ready=false
+ mock.stub(_G,'GetMerchantNumItems',function()return ready and 1 or 0 end)
+ mock.stub(a,'readMerchantOffer',function(slot)return {id=159,name='Quellwasser',slot=slot,unit=5,bundle=5,price=25,available=-1}end)
+ mock.stub(_G,'GetMerchantItemMaxStack',function()return 20 end)
+ mock.fireEvent('MERCHANT_SHOW');assert(not a.vendorPurchasePlan())
+ ready=true;mock.fireEvent('MERCHANT_UPDATE');assert(a.vendorPurchasePlan().rows[1].quantity==10 and not a.nextStepWindow:IsShown())
+end
+@test('Stock: learned alchemy recipe starts on reagent merchant visit and waits for actual multi-yield output')
+local function alchemy()
+ local a=setup()
+ local r={id=2330,profession=171,learned=true,confirmed=true,complete=true,materialsFromClient=true,outputFromClient=true,
+  outputItemID=118,outputMin=3,outputMax=3,groups={{choices={3371},amount=1},{choices={765},amount=1}},colour='grey'}
+ mock.setField(a,'active',{profile={id=171,skill=65,cap=75},recipes={[2330]=r},confirmed=1})
+ mock.stub(a,'quote',function()return {inputs={{item=3371,amount=1,unit=20},{item=765,amount=1,unit=100}}}end)
+ mock.stub(a,'inventoryFor',function(id)local n=C_Item.GetItemCount(id,false);return {bags=n,total=n}end)
+ mock.setBag(0,{slots=20,items={{id=118,count=12},{id=3371,count=3},{id=765,count=3}}})
+ assert(a.setStockTarget(118,19,r));assert(a.setStockTarget(118,20));assert(not a.setStockTarget(765,20))
+ assert(a.character.stockTargets[118].recipe==2330 and a.character.stockTargets[118].reagents[3371])
+ mock.openMerchant({name='Alchemiebedarf',items={{id=3371,price=20,stack=1,available=-1,maxStack=20}}})
+ local p=a.productionPlan();assert(p and p.stock.missing==8 and p.crafts==3 and p.rows[1].buy==0 and p.rows[2].buy==0)
+ assert(not a.nextStepWindow:IsShown())
+ mock.setField(a,'craftBatch',{id=2330,plan=p,remaining=3})
+ a.productionCraftEvent('player','pot-1',2330);a.productionCraftEvent('player','pot-1',2330)
+ a.productionCraftEvent('player','pot-2',2330);a.productionCraftEvent('player','pot-3',2330)
+ mock.setField(a,'craftBatch',nil);local waiting,why=a.productionPlan();assert(not waiting and why=='stock_wait')
+ mock.setBag(0,{slots=20,items={{id=118,count=21}}});local complete,reason=a.productionPlan()
+ assert(not complete and reason=='production_done')
+end
+
+@test('Stock: Workshop home, German search, editable target and confirmed vendor refill')
+local function workshop()
+ local a=setup()
+ mock.setField(a,'routeWindow',nil)
+ supplies(12,3)
+ a.showRouteWindow(nil,'route')
+ local f=a.routeWindow;local d=f.workshop
+ assert(d.stockOverview:IsShown()and d.stockOverview:GetText():find('0 Ziele',1,true))
+ mock.click(d.stockOverview);local p=d.stockPage
+ assert(d.page=='stock'and p:IsShown()and not d.center:IsShown())
+ mock.click(p.add);p.search:SetText('ERFRISCHENDES QUELLWASSER')
+ p.search:GetScript('OnTextChanged')(p.search)
+ assert(#p.filtered==1 and p.filtered[1].id==159,'Unexpected German name results: '..#p.filtered)
+ mock.click(p.pool[1].name)
+ assert(p.selected==159 and not a.character.stockTargets[159] and p.amount:GetText():find('Taschen 12',1,true))
+ p.goal:SetText('20');p.goal:GetScript('OnEnterPressed')(p.goal)
+ assert(a.character.stockTargets[159].goal==20 and p.pool[1].missing:GetText()=='8')
+ assert(p.overview:GetText():find('1 unter Ziel',1,true))
+ merchant()
+ assert(p.guideReady and p.preview:GetText():find('Quellwasser',1,true))
+ assert(not a.nextStepWindow:IsShown())
+ mock.click(p.action)
+ assert(a.nextStepWindow:IsShown()and a.nextStepWindow.task.offer.quantity==10)
+ mock.click(a.nextStepWindow.primaryCTA);mock.waitSeconds(1.2)
+ assert(C_Item.GetItemCount(159,false)==22 and not a.vendorPurchase.pending)
+ assert(a.nextStepWindow.task.key=='stock_vendor_done')
+end
+
+@test('Stock: long German names and pooled rows scroll, filter and retain selected recipe')
+local function layout()
+ local a=setup();mock.setField(a,'routeWindow',nil)
+ local r={id=2330,profession=171,learned=true,confirmed=true,complete=true,materialsFromClient=true,outputFromClient=true,
+  outputItemID=118,outputMin=3,outputMax=3,groups={{choices={3371},amount=1}}}
+ mock.setField(a,'active',{profile={id=171,skill=65,cap=75},recipes={[2330]=r},confirmed=1})
+ mock.setField(a,'professionOpen',true)
+ local native={CraftingPage={SchematicForm={GetRecipeInfo=function()return {recipeID=2330}end}}}
+ mock.setField(_G,'ProfessionsFrame',native)
+ for i=1,16 do
+  mock.defineItem(30000+i,{name='Äußerst lange benannte Verbrauchsware Nummer '..i,stackCount=20})
+  assert(a.setStockTarget(30000+i,5))
+ end
+ a.showStockTargets();local f=a.routeWindow;local p=f.workshop.stockPage
+ assert(#p.filtered==17 and #p.pool==8)
+ p.search:SetText('ÄUSSERST LANGE');p.search:GetScript('OnTextChanged')(p.search);assert(#p.filtered==16)
+ p.scroll:SetVerticalScroll(500)
+ assert(p.pool[1].entry.id~=p.filtered[1].id)
+ p.search:SetText('');mock.click(p.recipe)
+ p.goal:SetText('20');mock.click(p.save)
+ assert(a.character.stockTargets[118].recipe==2330 and p.selected==118)
+ assert(a.setStockTarget(118,20)and a.character.stockTargets[118].recipe==2330)
+ for _,scale in ipairs({.55,.8,1.1})do
+  a.options.windowScales={CraftDejaRoute=scale}
+  a.renderWorkshopDashboard()
+  assert(p.help:GetTop()<p.scroll:GetBottom())
+  assert(p.headings[3]:GetRight()<p.headings[4]:GetLeft())
+ end
+end
+
+@test('Stock: migrate unlocked poison targets by output and keep the extra order independent')
+local function migrate()
+ local a=setup()
+ local r={id=8681,profession=40,learned=true,confirmed=true,complete=true,materialsFromClient=true,
+  outputItemID=6947,outputMin=1,outputMax=1,groups={{choices={3371},amount=1}}}
+ mock.setField(a,'active',{profile={id=40,skill=65,cap=75},recipes={[8681]=r},confirmed=1})
+ mock.stub(a,'poisonUnlocked',function()return true end)
+ mock.stub(a,'craftDisplay',function()return nil,6947,1,1 end)
+ mock.stub(a,'auditMaterials',function()return 'known'end)
+ mock.setField(a.character.poisons,'stockTargets',{[8681]=20})
+ mock.setField(a.character.poisons,'targets',{[8681]=20})
+ mock.setField(a.character.poisons,'restock',false)
+ mock.setBag(0,{slots=20,items={{id=6947,count=12}}})
+ a.syncPoisonStockTargets()
+ local row=a.stockTargetRows()[1];assert(row.id==6947 and row.bags==12 and row.goal==20 and row.missing==8)
+ assert(a.startStockTarget(6947))
+ assert(a.character.poisons.job.restock and a.character.poisons.job.remaining[8681]==8)
+ assert(not a.setStockTarget(6947,5),'A confirmed poison order was edited while running')
+ assert(a.cancelPoisonOrder())
+ assert(a.startPoisonOrder()and not a.character.poisons.job.restock and a.character.poisons.job.remaining[8681]==20)
+ assert(a.cancelPoisonOrder()and a.setStockTarget(6947,22))
+ assert(a.character.poisons.stockTargets[8681]==22 and a.character.poisons.targets[8681]==20)
+ assert(a.setStockTarget(6947,0)and not a.character.poisons.stockTargets[8681])
+end
+@test('Stock: learned recipes persist across professions and reload and merge sources by output ID')
+local function learnedCatalogue()
+ local a=setup();mock.setField(a,'routeWindow',nil)
+ mock.stub(a,'poisonUnlocked',function()return true end)
+ mock.stub(_G,'GetProfessions',function()return 1,2 end)
+ mock.stub(_G,'GetProfessionInfo',function(i)return nil,nil,65,nil,nil,nil,i==1 and 171 or 185 end)
+ local function recipe(id,profession,output)
+  return {id=id,profession=profession,confirmed=true,learned=true,complete=true,materialsFromClient=true,
+   outputFromClient=true,outputItemID=output,outputMin=1,outputMax=1,groups={{choices={3371},amount=1}}}
+ end
+ local potion=recipe(2330,171,118)
+ local gift=recipe(8681,40,6947)
+ local food=recipe(2538,185,117)
+ local alternate=recipe(8682,171,6947)
+ local session={profile={id=171},recipes={[2330]=potion,[8682]=alternate},confirmed=2,fullRecipeList=true}
+ a.recordStockProfession(session)
+ a.recordStockProfession({profile={id=40},recipes={[8681]=gift},confirmed=1,fullRecipeList=true})
+ a.showStockTargets();local p=a.routeWindow.workshop.stockPage
+ assert(p.search:GetText()==''and #p.filtered==2 and p.read:GetText():find('Kochkunst',1,true))
+ a.recordStockProfession({profile={id=185},recipes={[2538]=food},confirmed=1,fullRecipeList=true})
+ mock.setField(a,'active',{profile={id=202,skill=65,cap=75},recipes={},confirmed=1})
+ mock.setField(a,'sessions',{});a.initialize()
+ mock.openMerchant({name='Testhändler',items={{id=6947,price=10,stack=1,available=-1,maxStack=20}}})
+ mock.setBag(0,{slots=20,items={{id=6947,count=12}}})
+ a.showStockTargets();assert(#p.filtered==3)
+ local hits=0
+ for i,entry in ipairs(p.filtered)do if entry.id==6947 then
+  hits=hits+1;assert(entry.icon and #entry.recipes==2 and entry.vendor)
+  mock.click(p.pool[i].name)
+ end end
+ assert(hits==1 and p.selected==6947 and p.sourceButtons[3]:IsShown())
+ for _,button in ipairs(p.sourceButtons)do if button.sourceKey==8681 then mock.click(button);break end end
+ p.goal:SetText('20');mock.click(p.save)
+ assert(a.character.stockTargets[6947].recipe==8681 and p.amount:GetText():find('Fehlen 8',1,true))
+ mock.stub(C_TradeSkillUI,'GetProfessionInfoByRecipeID',function()return {professionID=171}end)
+ mock.fireEvent('NEW_RECIPE_LEARNED',2331);a.renderWorkshopDashboard()
+ assert(p.read:GetText():find('Alchemie',1,true))
+ local new=recipe(2331,171,159)
+ session.recipes[2331]=new;session.confirmed=3;a.recordStockProfession(session)
+ a.renderWorkshopDashboard();assert(#p.filtered==4 and not p.read:GetText():find('Alchemie',1,true))
+ mock.stub(_G,'UnitGUID',function()return 'Player-1-OtherStockCharacter'end)
+ a.initialize();a.showStockTargets()
+ assert(#a.routeWindow.workshop.stockPage.filtered==0 and not a.active)
+end
+@test('Stock: poison planner uses bag-only target and preserves configured amounts')
+local function poison()
+ local a=setup();local r={id=8681,profession=40,outputItemID=6947,outputMin=1,outputMax=1}
+ mock.setField(a.character.poisons,'stockTargets',{[8681]=20})
+ mock.stub(a,'craftDisplay',function()return nil,6947,1,1 end)
+ mock.setBag(0,{slots=20,items={{id=6947,count=12}}})
+ local stock=a.poisonStock(r);assert(stock and stock.goal==20 and stock.missing==8 and stock.crafts==8)
+end
+@test('Stock: cross-profession client spell hints require learned recipe and matching profession')
+local function professionHints()
+ local a=setup();mock.setField(a,'routeWindow',nil)
+ mock.stub(a,'poisonUnlocked',function()return false end)
+ mock.stub(_G,'GetProfessions',function()return 1 end)
+ mock.stub(_G,'GetProfessionInfo',function()return nil,nil,65,nil,nil,nil,171 end)
+ mock.stub(C_TradeSkillUI,'GetProfessionSpells',function(id)if id==171 then return {2330,2331,2332}end end)
+ mock.stub(C_TradeSkillUI,'GetRecipeInfo',function(id)return {name='Rezept '..id,learned=id~=2331}end)
+ mock.stub(C_TradeSkillUI,'GetProfessionInfoByRecipeID',function(id)return {professionID=id==2332 and 185 or 171}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeOutputItemData',function()return {itemID=118}end)
+ mock.stub(C_TradeSkillUI,'GetRecipeSchematic',function()return {outputItemID=118,quantityMin=1,quantityMax=1,
+    reagentSlotSchematics={{quantityRequired=1,reagents={{itemID=3371}}}}}end)
+ a.showStockTargets();local p=a.routeWindow.workshop.stockPage
+ assert(#p.filtered==1 and #p.filtered[1].recipes==1 and p.filtered[1].recipes[1].id==2330)
+ assert(p.filtered[1].id==118 and p.read:GetText():find('Alchemie',1,true))
+end
+@test('Stock: poison restock keeps pending output open, then only confirmed bag stock completes it')
+local function poisonWait()
+ local a=setup();local r={id=8681,profession=40,learned=true,confirmed=true,complete=true,materialsFromClient=true,
+  outputItemID=6947,outputMin=1,outputMax=1,groups={{choices={3371},amount=1}}}
+ mock.setField(a,'active',{profile={id=40,skill=65,cap=75},recipes={[8681]=r},confirmed=1})
+ mock.stub(a,'craftDisplay',function()return nil,6947,1,1 end)
+ mock.stub(a,'auditMaterials',function()return 'known' end)
+ mock.setField(a.character.poisons,'stockTargets',{[8681]=20})
+ mock.setBag(0,{slots=20,items={{id=6947,count=19},{id=3371,count=1}}})
+ assert(a.startPoisonOrder() and a.character.poisons.job.remaining[8681]==1)
+ a.poisonEvent('UNIT_SPELLCAST_SUCCEEDED','player','test-poison',8681)
+ local _,reason=a.poisonPlan();assert(reason=='stock_wait'and a.character.poisons.job and not a.poisonDone)
+ mock.setBag(0,{slots=20,items={{id=6947,count=20}}});mock.waitSeconds(1.6);a.reconcilePoisonStock()
+ assert(not a.character.poisons.job and a.poisonDone)
+end

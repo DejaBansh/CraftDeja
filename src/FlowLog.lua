@@ -45,7 +45,10 @@ function app.traceState()
 end
 function app.tracePlan(plan,task)
     local fields={task=task.kind,goal=app.shopping and app.shopping.goal or '-',recipe=plan and plan.recipe.id or 0,from=plan and plan.from or 0,target=plan and plan.target or 0,crafts=plan and plan.crafts or 0,
-        bagCrafts=task.available or 0,batch=task.batch or 0,offer=task.offer and task.offer.phase or '-'}
+        bagCrafts=task.available or 0,batch=task.batch or 0,offer=task.offer and task.offer.phase or '-',guideShown=app.guideRequested==true}
+    if task.kind=='stock_vendor'and task.offer then
+        fields.item=task.offer.id;fields.quantity=task.offer.quantity;fields.missing=task.offer.missing
+    end
     local signature=fieldsText(fields);local rows={}
     for _,r in ipairs(plan and plan.rows or {})do
         local loc=r.locations or {}

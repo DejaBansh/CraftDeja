@@ -38,6 +38,9 @@ function app.refresh(rescan)
             if session.confirmed>0 then
                 if profile.id==40 and (not app.active or app.active.profile.id~=40)and app.professionOpen then app.poisonShowOnRead=true end
                 app.active=session;app.sessions[profile.id]=session;app.professionLoading=false;app.expectedProfession=nil
+                if app.nativeProfessionVisible()~=false and not app.try(C_TradeSkillUI and C_TradeSkillUI.IsTradeSkillLinked)
+                    and not app.try(IsTradeSkillLinked)then app.recordStockProfession(session)end
+                if profile.id==40 then app.syncPoisonStockTargets()end
                 if app.actionNotice==app.caption('action_opening')or app.actionNotice==app.caption('profession_loading')then app.actionNotice=nil end
                 if app.catalogWindow and app.catalogWindow:IsShown()then app.catalogWindow.profession=profile.id end
             else app.professionLoading=app.professionOpen end
@@ -74,6 +77,7 @@ function app.onProfessionOpened(expected)
     open=true;app.professionOpen=true;app.professionLoading=true;app.options.visible=true
     app.poisonShowOnRead=true
     if expected then app.expectedProfession=expected end
+    if app.bindProfessionVisibility then app.bindProfessionVisibility();app.beginProfessionGuideVisit()end
     app.refresh(true);schedule();app.refreshNextStep(true)
     if app.pendingRecipeSelection then app.selectNativeRecipe(app.pendingRecipeSelection)end
 end
@@ -82,6 +86,7 @@ local function professionClosed(force)
     app.clearNativeCraft()
     open=false;app.professionOpen=false;app.professionLoading=false;app.expectedProfession=nil;pending=false
     app.poisonShowOnRead=nil
+    app.guideProfessionVisit=nil
     if force or wasOpen then app.keepNextStepOnly()end
 end
 local function relevantItem(id)
@@ -99,7 +104,7 @@ local function relevantItem(id)
     return app.itemInterest[id]==true
 end
 local events=CreateFrame('Frame');app.events=events
-for _,event in ipairs({'ADDON_LOADED','AUCTION_HOUSE_SHOW','AUCTION_HOUSE_CLOSED','TRADE_SKILL_SHOW','TRADE_SKILL_CLOSE','TRADE_SKILL_LIST_UPDATE','TRADE_SKILL_DATA_SOURCE_CHANGED','TRADE_SKILL_DETAILS_UPDATE','SKILL_LINES_CHANGED','UNIT_SPELLCAST_SUCCEEDED','BAG_UPDATE_DELAYED','GET_ITEM_INFO_RECEIVED','MERCHANT_SHOW','MERCHANT_UPDATE','MERCHANT_CLOSED','NEUTRAL_FACTION_SELECT_RESULT','PLAYER_ENTERING_WORLD','PLAYER_LEVEL_UP','BANKFRAME_OPENED','BANKFRAME_CLOSED','PLAYERBANKSLOTS_CHANGED','PLAYERREAGENTBANKSLOTS_CHANGED','BANK_TABS_CHANGED','PLAYER_LOGOUT','COMMODITY_PURCHASE_SUCCEEDED','COMMODITY_PURCHASE_FAILED','COMMODITY_PURCHASED','MAIL_SHOW','MAIL_CLOSED','UNIT_SPELLCAST_FAILED','UNIT_SPELLCAST_INTERRUPTED','UI_ERROR_MESSAGE','UNIT_SPELLCAST_START','UNIT_SPELLCAST_CHANNEL_START','ADDON_ACTION_BLOCKED','ADDON_ACTION_FORBIDDEN','COMMODITY_SEARCH_RESULTS_UPDATED'})do app.try(events.RegisterEvent,events,event)end
+for _,event in ipairs({'ADDON_LOADED','AUCTION_HOUSE_SHOW','AUCTION_HOUSE_CLOSED','TRADE_SKILL_SHOW','TRADE_SKILL_CLOSE','TRADE_SKILL_LIST_UPDATE','TRADE_SKILL_DATA_SOURCE_CHANGED','TRADE_SKILL_DETAILS_UPDATE','NEW_RECIPE_LEARNED','SKILL_LINES_CHANGED','UNIT_SPELLCAST_SUCCEEDED','BAG_UPDATE_DELAYED','GET_ITEM_INFO_RECEIVED','MERCHANT_SHOW','MERCHANT_UPDATE','MERCHANT_CLOSED','NEUTRAL_FACTION_SELECT_RESULT','PLAYER_ENTERING_WORLD','PLAYER_LEVEL_UP','BANKFRAME_OPENED','BANKFRAME_CLOSED','PLAYERBANKSLOTS_CHANGED','PLAYERREAGENTBANKSLOTS_CHANGED','BANK_TABS_CHANGED','PLAYER_LOGOUT','COMMODITY_PURCHASE_SUCCEEDED','COMMODITY_PURCHASE_FAILED','COMMODITY_PURCHASED','MAIL_SHOW','MAIL_CLOSED','UNIT_SPELLCAST_FAILED','UNIT_SPELLCAST_INTERRUPTED','UI_ERROR_MESSAGE','UNIT_SPELLCAST_START','UNIT_SPELLCAST_CHANNEL_START','ADDON_ACTION_BLOCKED','ADDON_ACTION_FORBIDDEN','COMMODITY_SEARCH_RESULTS_UPDATED'})do app.try(events.RegisterEvent,events,event)end
 events:SetScript('OnEvent',function(_,event,arg,castGUID,spellID)
     app.shoppingEvent(event)
     if event=='COMMODITY_SEARCH_RESULTS_UPDATED'and app.saved then app.observeCommodityResults(arg)end
@@ -119,22 +124,30 @@ events:SetScript('OnEvent',function(_,event,arg,castGUID,spellID)
     end
     if app.saved and app.rodCraftEvent then app.rodCraftEvent(event,arg,castGUID,spellID)end
     if app.saved and app.orderProgressEvent then app.orderProgressEvent(event,arg,castGUID,spellID)end
+    local previousBatch=app.craftBatch
     if app.craftBatchEvent then app.craftBatchEvent(event,arg,castGUID,spellID)end
     if app.poisonEvent and app.saved then app.poisonEvent(event,arg,castGUID,spellID)end
     if app.ahBuyingEvent then app.ahBuyingEvent(event,arg,castGUID)end
     app.inventoryEvent(event)
+    if app.saved and previousBatch and not app.craftBatch then
+        -- A native interruption or the last success ends the running CTA
+        -- immediately. Re-read progress now and schedule the full pass once
+        -- the native series and its inventory notifications settle.
+        app.refreshCraftProgress();schedule()
+    end
     if event=='ADDON_LOADED'then
         if arg~=app.identifier then return end
         app.initialize();app.initializeInventory();app.initializeShopping();app.installFlowErrorHook();app.flowLog('session.start',{version=app.release,locale=app.try(GetLocale)});app.ensureMain();app.refreshUI()
         SLASH_CRAFTDEJA1='/cdj';SLASH_CRAFTDEJA2='/craftdeja';SLASH_CRAFTDEJA3='/edj';SlashCmdList.CRAFTDEJA=app.command
         if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage('|cffd8b966'..app.caption('boot',app.release)..'|r')end
     elseif not app.saved then return
-    elseif event=='PLAYER_ENTERING_WORLD'and not app.options.guideSeenV1 and not app.guideAutoShown then
-        app.guideAutoShown=true;app.showGuide(true)
     elseif event=='PLAYER_LEVEL_UP'then
         app.levelUpValue=tonumber(arg)or app.levelUpValue;app.refresh(false);app.refreshNextStep(true)
     elseif event=='TRADE_SKILL_SHOW'then
         app.onProfessionOpened()
+    elseif event=='NEW_RECIPE_LEARNED'then
+        app.noteStockRecipeLearned(arg)
+        if open then schedule()else app.invalidateWorkshopStock()end
     elseif event=='TRADE_SKILL_CLOSE'then
         professionClosed(true)
         -- Blizzard's crafting panel may close when the AH opens. CraftDeja is
@@ -142,14 +155,13 @@ events:SetScript('OnEvent',function(_,event,arg,castGUID,spellID)
         app.refresh(false)
     elseif event=='MERCHANT_SHOW'or event=='MERCHANT_UPDATE'then
         app.merchantUIEvent=true
-        if event=='MERCHANT_SHOW'then app.guideOnly=nil end
         app.observeMerchant();app.vendorBuyEvent(event);if open then schedule()end
         app.merchantUIEvent=nil
-    elseif event=='MERCHANT_CLOSED'then app.vendorBuyEvent(event)
+        app.invalidateWorkshopStock()
+    elseif event=='MERCHANT_CLOSED'then app.vendorBuyEvent(event);app.invalidateWorkshopStock()
     elseif event=='AUCTION_HOUSE_SHOW'then
         if app.nativeProfessionVisible()==true then open=true;app.professionOpen=true;schedule()else professionClosed()end
         poll=0;app.refresh(open)
-        if app.active and app.options.visible then if app.unifiedUI then app.refreshNextStep(true)else app.main:Show()end end
         app.guideOnly=nil -- a new AH visit may open its shopping panel after a successful scan
         app.refreshNextStep(true)
     elseif event=='AUCTION_HOUSE_CLOSED'then if open then schedule()end
@@ -170,6 +182,7 @@ events:SetScript('OnEvent',function(_,event,arg,castGUID,spellID)
         if open then schedule()end
     elseif event=='GET_ITEM_INFO_RECEIVED'then
         if castGUID==true and relevantItem(arg)then schedule()end
+        if castGUID==true and arg then app.invalidateWorkshopStock(arg)end
     elseif event=='BAG_UPDATE_DELAYED'or event=='SKILL_LINES_CHANGED'or event=='PLAYERBANKSLOTS_CHANGED'
         or event=='PLAYERREAGENTBANKSLOTS_CHANGED'or event=='BANK_TABS_CHANGED'or event=='BANKFRAME_OPENED'or event=='BANKFRAME_CLOSED'then
         if open then schedule()elseif app.active then app.refresh(false)end

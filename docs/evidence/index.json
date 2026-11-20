@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "current": "beta25-local-full",
+  "current": "stock-guide-rc-local-full",
   "entries": [
     {
       "id": "beta25-local-full",
@@ -18,6 +18,38 @@
       "kind": "WoWLua/Camelot source emulation",
       "ciRun": "https://github.com/DejaBansh/CraftDeja/actions/runs/44020213463",
       "ciDurationSeconds": 660.03,
+      "liveAcceptance": "pending"
+    },
+    {
+      "id": "stock-ui-rc-local-full",
+      "version": "3.9.0-beta.25",
+      "releaseCommit": null,
+      "reportGitCommit": "b0807276f8feaec2eeb3d83630a93caf308ce2d8",
+      "manifest": "docs/evidence/stock-ui-rc-source-manifest.json",
+      "report": "reports/tests/20261120-210852-88c2a0.zip",
+      "reportSHA256": "CB90494FA6C4F462180B7E4BA23E5C24B22858FE7A71A928DED00B094251D4D3",
+      "passed": 672,
+      "failed": 0,
+      "skipped": 0,
+      "profile": "release",
+      "durationSeconds": 230.51,
+      "kind": "Local release candidate / WoWLua Camelot source emulation",
+      "liveAcceptance": "pending"
+    },
+    {
+      "id": "stock-guide-rc-local-full",
+      "version": "3.9.0-beta.25",
+      "releaseCommit": null,
+      "reportGitCommit": "b0807276f8feaec2eeb3d83630a93caf308ce2d8",
+      "manifest": "docs/evidence/stock-guide-rc-source-manifest.json",
+      "report": "reports/tests/20261120-213753-9e940a.zip",
+      "reportSHA256": "1A5EEDF9EC15BC8F74EA7F4C910FE5D5E10E2F5AF6D07B1920C0A28FDBC9D841",
+      "passed": 675,
+      "failed": 0,
+      "skipped": 0,
+      "profile": "release",
+      "durationSeconds": 216.4,
+      "kind": "Local release candidate / WoWLua Camelot source emulation",
       "liveAcceptance": "pending"
     }
   ]

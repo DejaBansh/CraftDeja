@@ -1,0 +1,17 @@
+{
+  "version": "3.9.0-beta.26",
+  "channel": "beta",
+  "projectId": 1796977,
+  "gameVersion": "1.60.1",
+  "gameVersionTypeId": 88568,
+  "approved": true,
+  "historyReviewComplete": true,
+  "baseline": {
+    "channel": "beta",
+    "displayName": "CraftDeja-3.9.0-beta.25",
+    "fileId": 9660180,
+    "gitCommit": "0b5d627fb68f6ac6f65d0ad3e0faac8cc3cec5c9",
+    "sha256": "5D87821D290827637FABC46C15C7EE167380606FCE6123534870701EAF003976",
+    "status": "Official API accepted; downloadable public CDN ZIP rechecked on 2026-11-20"
+  }
+}

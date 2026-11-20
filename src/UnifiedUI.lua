@@ -34,7 +34,9 @@ function app.poisonModeSummary()
     return mode..'\n'..counts,lines,known
 end
 local original={}
-local coreNames={'output','outputName','outputCount','route','body','place','notice','action','craftAll','orderBar','attention','alertTitle','changeOrder','ctaInfo','requirementName'}
+local coreNames={'output','outputName','outputCount','route','body','place','notice','action','craftAll','orderBar',
+    'attention','alertTitle','ctaInfo','requirementName','workshopStatus','workshopExtra','workshopToggle',
+    'routeSkip','bankLater','materialStock','materialReview'}
 local function root()return app.nextStepWindow end
 local function clearView()
     if app.unifiedView then app.unifiedView:Hide()end
@@ -80,8 +82,6 @@ local function chrome(f)
         end
         f.back=app.createButton(f,18,0,324,'',function()app.showCentralGuide()end)
         f.back.fixedRole=true;app.styleButton(f.back,'prev',false)
-        f.changeOrder=app.createButton(f,18,0,324,'',function()app.editUnifiedOrder()end)
-        f.changeOrder.fixedRole=true;app.styleButton(f.changeOrder,'bag',false)
         f.surface=f:CreateTexture(nil,'BACKGROUND',nil,1);f.surface:SetColorTexture(.07,.035,.12,.92)
     end
     f.surface:ClearAllPoints();f.surface:SetPoint('TOPLEFT',12,-48)
@@ -113,9 +113,11 @@ local function paintView()
     f.back:SetText(app.caption('ui_back'));f.back:SetWidth(f:GetWidth()-36);f.back.label:SetWidth(f:GetWidth()-75)
     move(f.back,18,v:GetHeight()+4);f.back:Show()
     chrome(f)
+    if app.workshopFit then app.workshopFit(f,f:GetWidth(),f:GetHeight(),app.options.scale)end
 end
 local function mount(v,key)
     if not v then return end
+    app.guideRequested=true
     if not root()then app.refreshNextStep(true)end
     local f=root();if not f then return end
     if app.unifiedView~=v then clearView()end
@@ -136,15 +138,18 @@ local function mount(v,key)
 end
 app.mountGuidePage=mount
 function app.showCentralGuide()
+    app.guideRequested=true
     clearView();app.refreshNextStep(true);hideMain()
 end
 local oldNext=app.renderNextStep
 app.renderNextStep=function(plan,keep,task)
     local s=app.character and app.character.poisons
+    local stockTask=task and (task.kind=='stock_vendor'or task.kind=='stock_open'
+        or task.key=='stock_vendor_wait'or task.key=='stock_vendor_done')
     if app.poisonMerchantNeedsRead and (not app.poisonUnlocked()or app.poisonMerchantNeedsRead~='explicit'and not app.poisonMerchantEligible())then app.poisonMerchantNeedsRead=nil end
-    if not app.professionLoading and app.poisonMerchantNeedsRead and (app.vendorPurchase.open or app.poisonMerchantNeedsRead=='explicit')and not app.isPoison()then
+    if not stockTask and not app.professionLoading and app.poisonMerchantNeedsRead and (app.vendorPurchase.open or app.poisonMerchantNeedsRead=='explicit')and not app.isPoison()then
         task={kind='poison_open',key='poison_open',body=app.caption('ui_open_poison')}
-    elseif not app.professionLoading and app.isPoison()then
+    elseif not stockTask and not app.professionLoading and app.isPoison()then
         app.poisonMerchantNeedsRead=nil
         if not(s and s.job)and not app.poisonDone then
             local count,total,_,signature=app.poisonDraft()
@@ -198,8 +203,7 @@ app.renderNextStep=function(plan,keep,task)
         f.route:SetScript('OnEnter',function()local text,lines=app.poisonModeSummary();app.showTip(f.route,text,lines)end)
         f.route:SetScript('OnLeave',app.hideTip)
     end
-    local h=f:GetHeight();f:SetHeight(h+38)
-    f.changeOrder:SetText(app.caption('ui_change'));move(f.changeOrder,18,h-2);f.changeOrder:Show();if app.professionLoading then f.changeOrder:Disable()else f.changeOrder:Enable()end;f.back:Hide()
+    f.back:Hide()
     if plan and not app.isPoison()and app.active then
         f.outputCount:SetText(f.outputCount:GetText()..' · '..app.caption('skill',app.active.profile.skill,app.active.profile.cap))
     end
@@ -247,7 +251,7 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='rod_wait'then title,label='cta_rod_wait','cta_wait'
     elseif kind=='cooldown'then title,label='cta_cooldown','cta_wait'
     elseif kind=='craft'then
-        title,label='cta_craft','cta_prepare'
+        title,label='cta_craft',app.professionOpen and 'cta_prepare'or 'cta_open'
         if f.craftAll:IsShown()then primary,secondary=f.craftAll,f.action;secondary:SetText(app.caption('cta_single'))end
         if plan and plan.recipe.profession==333 and not plan.toolPreparation then title,label='cta_enchant','cta_enchant_target'end
         if plan and plan.toolPreparation then title='cta_rod'end
@@ -258,6 +262,9 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='craft_queue'then
         title,label='cta_running','cta_wait'
         if f.craftAll:IsShown()then secondary=f.craftAll;secondary:SetText(app.caption('cta_stop'))end
+    elseif kind=='vendor_wait'or kind=='stock_wait'then title,label='cta_purchase_check','cta_wait'
+    elseif kind=='stock_vendor'then title,label='stock_vendor_status','cta_buy'
+    elseif kind=='stock_open'then title,label='stock_open','cta_open'
     elseif kind=='done'then title,label='cta_done','cta_finished'
     elseif kind=='open'then title,label='cta_open','cta_open'
     elseif kind=='loading'then title,label='cta_loading','cta_wait'
@@ -268,10 +275,11 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='production_choose'then title,label='cta_production','cta_production'end
     local stationCTA=kind=='station'and app.craftStationCTA(task)
     primary:SetText(stationCTA or kind=='vendor'and task.atVendor and f.vendorOffer and app.caption('vendor_named_action',f.vendorOffer.name,f.vendorOffer.quantity)or app.caption(label))
-    if kind=='cooldown'or kind=='rod_wait'then primary:Disable()end
+    if kind=='cooldown'or kind=='rod_wait'or kind=='vendor_wait'or kind=='stock_wait'then primary:Disable()end
     local cost=task.offer and task.offer.cost
     if kind=='vendor'and task.atVendor then local offer=app.isPoison()and f.vendorQuote or f.vendorOffer;cost=offer and offer.cost end
     if cost and (kind=='ah_buy'or kind=='ah_confirm'or kind=='vendor'and task.atVendor)then primary:SetText(primary:GetText()..' · '..app.money(cost))end
+    if kind=='stock_vendor'then primary:SetText(app.caption('vendor_named_action',task.offer.name,task.offer.quantity)..' · '..app.money(cost))end
     f.primaryCTA=primary;f.secondaryCTA=secondary
     local extra=task.requirement and 22 or 0
     if not f.requirementName then f.requirementName=app.createLabel(f,12,18,-92,324);f.requirementName:SetHeight(20);f.requirementName:SetJustifyH('CENTER')end
@@ -312,9 +320,7 @@ function app.applyGuideCTA(f,plan)
         secondary:SetWidth(156);secondary.label:SetWidth(117);move(secondary,18,y);app.styleCTAButton(secondary,false)
         secondary.tipLines=function()return f.ctaDetails end
     end
-    f.changeOrder:SetWidth(132);f.changeOrder.label:SetWidth(93);move(f.changeOrder,210,y)
-    app.styleCTAButton(f.changeOrder,false)
-    f:SetHeight(y+42)
+    f:SetHeight(y+12)
 end
 function app.unifiedAction(f)
     local t=f.task
@@ -345,7 +351,6 @@ app.showShopping=function()app.refreshNextStep(true)end
 app.showPoisonMerchantPrompt=function()if app.poisonMerchantEligible()then app.poisonMerchantNeedsRead=true;app.refreshNextStep(true)end end
 local oldNextRefresh=app.refreshNextStep
 app.refreshNextStep=function(force)
-    if force and root()then root().dismissed=nil end
     if app.professionLoading then return app.renderNextStep(nil,true,{kind='loading',key='loading',body=app.caption('profession_loading')})end
     return oldNextRefresh(force)
 end
@@ -369,7 +374,7 @@ app.renderPoisonPlanner=function()
 end
 app.showPoisonPlanner=function()
     if not app.poisonUnlocked()then app.poisonMerchantNeedsRead=nil;return false end
-    if not app.isPoison()then app.poisonMerchantNeedsRead='explicit';app.refreshNextStep(true);return end
+    if not app.isPoison()then app.poisonMerchantNeedsRead='explicit';app.showCentralGuide();return end
     oldPlanner();local f=app.poisonWindow
     if not f.unifiedApply then
         f.unifiedApply=true
@@ -389,10 +394,10 @@ for name,entry in pairs(pages)do
         fn(...);local v=app[attribute];if v and v:IsShown()then mount(v,pageKey)end
     end
 end
-function app.selectedProductionRecipe()
+function app.selectedProductionRecipe(requireSelection)
     local form=ProfessionsFrame and ProfessionsFrame.CraftingPage and ProfessionsFrame.CraftingPage.SchematicForm
     local info=app.professionOpen and form and app.try(form.GetRecipeInfo,form)
-    local job=app.productionJob()
+    local job=not requireSelection and app.productionJob()
     local id=info and info.recipeID or job and job.recipe
     return id and app.active and app.active.recipes[id]
 end
@@ -443,13 +448,13 @@ function app.showUnifiedGeneral()
 end
 function app.showOptions(tab)
     if not app.unifiedOptions then
-        local f=app.createWindow('CraftDejaGuideOptions',480,370);app.unifiedOptions=f;f.tabs={};f.rows={};f.tab='settings'
+        local f=app.createWindow('CraftDejaGuideOptions',480,410);app.unifiedOptions=f;f.tabs={};f.rows={};f.tab='settings'
         for i,key in ipairs({'settings','lookup','help'})do
             local tabKey=key;f.tabs[i]=app.createButton(f,24+(i-1)*146,-54,140,'',function()app.showOptions(tabKey)end)
             app.styleButton(f.tabs[i],({'gear','book','help'})[i],false);f.tabs[i].fixedRole=true
         end
-        for i=1,5 do f.rows[i]=app.createButton(f,24,-99-(i-1)*40,432,'',function(self)if self.run then self.run()end end)end
-        f.note=app.createLabel(f,10,24,-310,432);f.note:SetHeight(40)
+        for i=1,6 do f.rows[i]=app.createButton(f,24,-99-(i-1)*40,432,'',function(self)if self.run then self.run()end end)end
+        f.note=app.createLabel(f,10,24,-350,432);f.note:SetHeight(40)
     end
     local f=app.unifiedOptions;if type(tab)=='string'then f.tab=tab end
     app.renderUnifiedOptions();mount(f,'menu')
@@ -476,7 +481,8 @@ function app.renderUnifiedOptions()
         {app.caption('ui_limit',app.shopping.tolerance),'coin',function()app.shopping.tolerance=({[0]=5,[5]=10,[10]=20,[20]=0})[app.shopping.tolerance]or 0;app.options.shoppingTolerance=app.shopping.tolerance;app.renderUnifiedOptions()end},
         {app.caption('ui_alts',app.caption(app.options.inventoryAlts and 'enabled'or 'disabled')),'alts',function()app.options.inventoryAlts=not app.options.inventoryAlts;app.refresh(false);app.renderUnifiedOptions()end},
         {app.caption('ui_unlock'),'unlock',function()app.newPurchasePlan();app.renderUnifiedOptions()end},
-        {app.caption('ui_center'),'center',function()local g=root();g:ClearAllPoints();g:SetPoint('CENTER');app.options.guidePosition=nil end}}
+        {app.caption('ui_center'),'center',function()local g=root();g:ClearAllPoints();g:SetPoint('CENTER');app.options.guidePosition=nil end},
+        {app.caption('stock_title'),'bag',app.showStockTargets}}
     end
     for i,b in ipairs(f.rows)do local e=entries[i];if e then b:SetText(e[1]);app.styleButton(b,e[2],false);b.fixedRole=true;b.run=e[3];b:Show()else b:Hide()end end
     f.note:SetText('CraftDeja '..app.release..'\n'..(app.actionNotice or app.caption('ui_resize')))

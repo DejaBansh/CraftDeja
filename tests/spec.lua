@@ -2345,7 +2345,7 @@ test('profession header changes reject stale foreign recipe lists before auditin
     profile={professionID=333,professionName='Enchanting',skillLevel=116,maxSkillLevel=150}
     app.onProfessionOpened()
     eq(app.professionLoading,true);eq(app.active,poison);eq(app.nextStepWindow.task.kind,'loading')
-    eq(app.nextStepWindow.action.enabled,false);eq(app.nextStepWindow.changeOrder.enabled,false)
+    eq(app.nextStepWindow.action.enabled,false);eq(app.nextStepWindow.changeOrder,nil)
     eq(app.auditCount(),0)
     live={[7748]=info('Enchant Chest - Lesser Health',1,true,{[10940]=2,[10938]=2}),[990101]=live[990101],
         [990999]=info('New valid enchant',0,true,{[10940]=1})}

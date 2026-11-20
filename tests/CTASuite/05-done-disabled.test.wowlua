@@ -23,5 +23,5 @@ end
 @test("CTA: 05-done-disabled")
 local function scenario()
 local _a,_plan,render=setup();local f=render("done")
-assert(not f.primaryCTA:IsEnabled() and f.changeOrder.ctaPriority=="secondary","Completed state invites invalid action")
+assert(not f.primaryCTA:IsEnabled() and not f.changeOrder,"Completed state invites invalid action")
 end

@@ -38,8 +38,9 @@ local function augment(f)
     d.goblin=f:CreateTexture(nil,'ARTWORK');d.goblin:SetTexture(app.uiPath('WorkshopGoblin'));d.goblin:SetSize(102,102);d.goblin:SetPoint('TOPRIGHT',-57,-4)
     d.subtitle=label(f,13,80,53,870)
     d.sidebar=card(f,18,104,178,638);d.navigation={}
-    for i,key in ipairs({'route','materials','settings','advanced'})do
+    for i,key in ipairs({'route','materials','stock','settings','advanced'})do
         local page=key;local b=app.createButton(d.sidebar,16,-28-(i-1)*62,146,'',function()
+            if page=='stock'and d.page~=page then app.resetWorkshopStock(d)end
             d.page=page;d.selectedItem=nil
             if page=='materials'and not app.craftRefreshBusy()then
                 local decision=app.decision
@@ -47,7 +48,7 @@ local function augment(f)
             end
             app.renderRouteWindow()
         end)
-        b:SetHeight(46);b.fixedRole=true;app.styleButton(b,({route='book',materials='bag',settings='gear',advanced='alts'})[key],false);d.navigation[key]=b
+        b:SetHeight(46);b.fixedRole=true;app.styleButton(b,({route='book',materials='bag',stock='bag',settings='gear',advanced='alts'})[key],false);d.navigation[key]=b
         b.label:SetWidth(110);b.label:SetWordWrap(true)
     end
     d.guide=app.createButton(d.sidebar,16,-552,146,'',function()app.showCentralGuide();f:Hide()end);d.guide:SetHeight(54);d.guide.label:SetWidth(110);d.guide.label:SetWordWrap(true)
@@ -68,10 +69,13 @@ local function augment(f)
     d.source=app.createButton(d.bottom,734,-76,292,'',function()
         local r=d.selectedRecipe;if r then app.showDetails(r,false,true)end
     end)
+    d.stockOverview=app.createButton(d.bottom,734,-23,292,'',function()app.showStockTargets()end)
+    d.stockOverview:SetHeight(40);d.stockOverview.label:SetWidth(256);d.stockOverview.label:SetWordWrap(true)
     -- Keep every original control and script in an explicitly chosen advanced
     -- page. This includes guild/twink terms, handover and planned trainer clicks.
     d.advanced=CreateFrame('ScrollFrame',nil,f,'UIPanelScrollFrameTemplate');d.advanced:SetPoint('TOPLEFT',222,-91);d.advanced:SetSize(1000,633)
-    d.advancedChild=CreateFrame('Frame',nil,d.advanced);d.advancedChild:SetSize(760,735);d.advanced:SetScrollChild(d.advancedChild)
+    d.advancedChild=CreateFrame('Frame',nil,d.advanced);d.advancedChild:SetSize(970,735);d.advanced:SetScrollChild(d.advancedChild)
+    d.editOrder=app.createButton(d.advancedChild,770,-48,200,'',function()app.editUnifiedOrder()end)
     for _,name in ipairs(advancedNames)do local w=f[name];if w then
         local p,_,r,x,y=w:GetPoint();w:SetParent(d.advancedChild);w:ClearAllPoints();w:SetPoint(p,d.advancedChild,r,x,y)
     end end
@@ -94,22 +98,34 @@ local function rowAt(d,i)
 end
 function app.renderWorkshopDashboard()
     local f=app.routeWindow;if not f or not f.workshop or not f:IsShown()then return end
-    local d=f.workshop;local g=guide();local task=g and g.task;local plan=g and g.plan
-    if plan then d.materialPlan=plan elseif d.materialPlan and app.decision and app.decision.current and d.materialPlan.recipe.id~=app.decision.current.recipe.id then d.materialPlan=nil end
-    plan=plan or d.materialPlan
-    local search=app.routeSuggestion or app.routeResult;local order=app.currentRouteOrder();local profile=app.active and app.active.profile
-    if d.model~=(search and search.model)then d.model=search and search.model;d.selectedRecipe=nil;d.selectedSegment=nil;d.selectedItem=nil end
-    f.title:SetText('CraftDeja');d.subtitle:SetText(app.caption('workshop')..'  /  '..app.caption('ws_'..(d.page=='advanced'and 'advanced'or d.page)))
-    d.rightTitle:SetText(app.caption('ws_next'))
+    local d=f.workshop
+    local stock=d.page=='stock'
+    local route=d.page=='route'
+    local advanced=d.page=='advanced';d.advanced:SetShown(advanced)
+    for _,name in ipairs({'center','right','bottom'})do d[name]:SetShown(not advanced and not stock)end
+    if d.stockPage then d.stockPage:SetShown(stock)end
+    local stocks=(route or stock)and app.stockTargetRows()
+    local low=0
+    for _,row in ipairs(stocks or {})do if row.missing and row.missing>0 then low=low+1 end end
+    d.stockOverview:SetShown(route)
+    if route then d.stockOverview:SetText(app.caption('stock_overview',#stocks,low))end
+    f.title:SetText('CraftDeja');d.subtitle:SetText(app.caption('workshop')..'  /  '..app.caption('ws_'..d.page))
     for key,b in pairs(d.navigation)do
-        b:SetText(app.caption('ws_'..key));local active=key==d.page
+        b:SetText(app.caption('ws_'..key)..(key=='stock'and low>0 and ' · '..low or ''));local active=key==d.page
         local t=b:GetNormalTexture();if t then t:SetColorTexture(unpack(active and {.10,.29,.36,1}or {.035,.055,.09,1}))end
         b.label:SetTextColor(unpack(active and {.62,1,.88}or {.75,.83,.94}))
     end
     d.guide:SetText(app.caption('ws_guide'))
-    local advanced=d.page=='advanced';d.advanced:SetShown(advanced)
-    for _,name in ipairs({'center','right','bottom'})do d[name]:SetShown(not advanced)end
-    if advanced then app.workshopFit(f,1280,760,app.options.windowScales and app.options.windowScales.CraftDejaRoute or app.options.scale);return end
+    d.editOrder:SetText(app.caption('ui_change'))
+    app.workshopFit(f,1280,760,app.options.windowScales and app.options.windowScales.CraftDejaRoute or app.options.scale)
+    if stock then app.renderWorkshopStock(f,d,stocks,low);return end
+    if advanced then return end
+    local g=guide();local task=g and g.task;local plan=g and g.plan
+    if plan then d.materialPlan=plan elseif d.materialPlan and app.decision and app.decision.current and d.materialPlan.recipe.id~=app.decision.current.recipe.id then d.materialPlan=nil end
+    plan=plan or d.materialPlan
+    local search=app.routeSuggestion or app.routeResult;local order=app.currentRouteOrder();local profile=app.active and app.active.profile
+    if d.model~=(search and search.model)then d.model=search and search.model;d.selectedRecipe=nil;d.selectedSegment=nil;d.selectedItem=nil end
+    d.rightTitle:SetText(app.caption('ws_next'))
     local settings=d.page=='settings';d.settings:SetShown(settings)
     for _,name in ipairs({'profession','skill','progress','list'})do d[name]:SetShown(not settings)end
     d.centerTitle:SetText(app.caption(settings and 'ws_settings'or d.page=='materials'and 'ws_materials'or 'ws_route'))
@@ -170,12 +186,14 @@ function app.renderWorkshopDashboard()
     local known=best and not best.provisional and not search.costsStale
     d.summary:SetText(app.caption('ws_cost')..'  ·  '..app.caption('ws_estimate')..'\n'..(best and app.caption('route_costs',app.money(known and best.cashMaterials or nil),app.money(known and best.cashLearning or nil),app.money(known and best.cashTransfer or nil),app.money(best.owned),app.money(best.vendor),app.money(known and best.knownNet or nil))or app.caption('ws_no_price')))
     d.summary:SetWidth(690);d.source:SetText(app.caption('ws_source'));d.source:SetShown(d.selectedRecipe~=nil and d.page~='materials')
-    app.workshopFit(f,1280,760,app.options.windowScales and app.options.windowScales.CraftDejaRoute or app.options.scale)
 end
 local show=app.showRouteWindow
-app.showRouteWindow=function(...)
+app.showRouteWindow=function(target,page)
     -- Creation and route configuration stay in the existing implementation.
-    show(...);local f=app.routeWindow;augment(f);app.renderWorkshopDashboard()
+    show(target);local f=app.routeWindow;augment(f)
+    if page=='stock'then app.resetWorkshopStock(f.workshop)end
+    if page then f.workshop.page=page end
+    app.renderWorkshopDashboard()
     app.refreshNextStep(true)
 end
 local render=app.renderRouteWindow
