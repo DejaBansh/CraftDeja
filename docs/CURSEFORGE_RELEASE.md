@@ -4,11 +4,16 @@
 
 The workflow `.github/workflows/curseforge-release.yml` handles tags, manual dispatch and the single dedicated test branch `codex/curseforge-dry-run`. No previous local or remote GitHub workflow existed; normal branch pushes remain unchanged. All tags reach strict validation: only `vX.Y.Z` (release) and `vX.Y.Z-beta.N` (beta, N > 0) are accepted. Package manifest, runtime release string and built TOC must match exactly. Alpha, unknown, dirty and mismatched packages cannot publish.
 
-## Current release: beta.24, 16 November 2026
+## Current release: beta.26, 20 November 2026
 
-Released tag v3.9.0-beta.24 points to a52b9cf09f047b4bdcedf596a7007cdc3ba97409. Actions run43969872088 passed all634 tests and26 pipeline checks, then performed one official upload: CurseForge file9656532, beta, resolved Forever version17053 (name1.60.1/type88568). The public CDN ZIP was downloaded and its SHA256 matches the uploaded artifact: F16968A9AFD2A33A50E6A6F6DEFC6F6C3B8C3158683D4DA80E5A20AC4AA26116. CF_API_TOKEN's upload access is now proven. Separate moderation approval is not asserted from the POST response.
+Tag `v3.9.0-beta.26` resolves to `e6cb2909067f41ebc2e3e9def59e3c0274c58606`.
+[Actions run 44815834310](https://github.com/DejaBansh/CraftDeja/actions/runs/44815834310)
+passed 675 tests and uploaded [CurseForge file 9722537](https://www.curseforge.com/wow/addons/craftdeja/files/9722537)
+as Beta for Forever 1.60.1 (version 17053, type 88568). The public CDN ZIP matches
+the upload receipt. See TEST_RESULTS.md and releases/published-history.json.
 
-The description job succeeded in preparing the exact tag text; its status remains manual_author_console_required. Copy releases/3.9.0-beta.24/description.md through the official Author Console. Do not rerun the file upload to change a description. No main merge. Detailed evidence and known live/station/data limits: docs/UNDERCITY_GUIDE_BETA24.md and CONTINUE.md.
+The description job prepared releases/3.9.0-beta.26/description.md for the official
+Author Console. Its status is `manual_author_console_required`.
 ## Previous published file and setup test (history)
 
 The user has already published beta.23 as file **9654021**, changed its type to **Beta**, and supplied an **Approved** Author Console screenshot. The user also reports completing the description edit and adding CF_API_TOKEN. These observations are recorded in `releases/published-history.json`; token permissions remain unverified. The public CDN ZIP has now been downloaded and is byte-identical to the local verified beta.23 release (SHA256 F0633ABFBB186A479ECC85FB33FFE0FE1E194B4C4D6B645B07B0D250052A3A31), establishing source e4b8bdcb69dccd71a05b854d446ee7c8b0cf9d9d as the next Beta baseline. The legacy published TOC still contains 3.9.0-beta.23-alpha+e4b8bdc; future workflow packages require exact tag versions. Do not push a beta.23 release tag or upload it again. The next actual release needs a new version, genuine changes and its own reviewed texts.
@@ -58,14 +63,18 @@ pwsh -NoProfile -File tools/New-CurseForgeRelease.ps1 -Tag v3.9.0-beta.23 -DryRu
 
 Run from a clean committed worktree. Artifacts live in `<OutputPath>/artifacts/`: installable ZIP, description.md, patchnotes.md, release.json, REVIEW.md, upload-metadata.preview.json, release-evidence.json and TEST-REPORT.zip. The contained source clone/tag stays local and does not affect real refs. Failed tests retain automatic ZIP reports under `<OutputPath>/source/reports/tests/`.
 
-## Next actual upload — a new version, later, after approval
+## Publishing a new approved beta
 
-The beta.24 commands below are an example for the next actual update; beta.24 has not been implemented or approved. Do not run them now. Prepare its new version fields, release directory, baseline and tests first. Push the reviewed feature branch for code review as appropriate; do not push a release tag while approval/history is incomplete. Once all blockers above are resolved, the secret is configured and the selected commit includes the workflow and both approved texts:
+Prepare the new version fields, release directory, verified baseline and dry run first.
+Push the reviewed feature branch. Once the selected commit contains both approved texts and
+has passed the dry run, create and push its new tag. Substitute the actual approved version
+and commit in this PowerShell example.
 
 ```powershell
-git status --short
-git tag -a v3.9.0-beta.24 -m "CraftDeja 3.9.0-beta.24"
-git push origin refs/tags/v3.9.0-beta.24
+$tag = 'vX.Y.Z-beta.N'
+$reviewedCommit = 'REVIEWED_COMMIT_SHA'
+git tag -a $tag $reviewedCommit -m "CraftDeja $tag"
+git push origin "refs/tags/$tag"
 ```
 
 The tag push makes the tagged workflow available even before any separate main merge; do not force or move an existing tag. If this version was already manually uploaded, use the next version with newly reviewed texts instead. A stable release uses `v3.9.0` only after changing both actual version fields, creating that version's approved release directory and testing it; this is not a way to relabel the current beta as stable.

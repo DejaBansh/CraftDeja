@@ -12,17 +12,17 @@ Optionen und Guide-Aktionen haben getrennte Sichtbarkeit. Die Forever-Abnahme is
 |---|---|
 | Repository / lokaler Ordner | DejaBansh/CraftDeja / C:\Users\Tim\Projects\CraftDeja |
 | Addon-Version im Arbeitszweig | 3.9.0-beta.26, wowlua.json und src/Start.lua |
-| Freigegebener Release-Commit | 0b5d627fb68f6ac6f65d0ad3e0faac8cc3cec5c9 |
-| Release-Tag | v3.9.0-beta.25 |
+| Freigegebener Release-Commit | e6cb2909067f41ebc2e3e9def59e3c0274c58606 |
+| Release-Tag | v3.9.0-beta.26 |
 | Arbeitsbranch / HEAD / Änderungen | Mit Get-ProjectContext.ps1 ermitteln; nicht mit Release gleichsetzen |
 | Letzter geprüfter main | 711d463af4c17f1e711248bb409f1dd5fecfe303; kein Merge dieser Arbeit |
-| CurseForge | Projekt 1796977, Datei 9660180, Beta, Forever 1.60.1 / Versions-ID 17053 |
-| Veröffentlichung | API angenommen, öffentliches CDN-ZIP per SHA256 geprüft; Approved-Status nicht separat abgefragt |
-| Lokales Paket | dist/packages/CraftDeja-3.9.0-beta.25-release.zip (ignoriert; nicht in jedem Checkout vorhanden) |
-| Paket SHA256 | 5D87821D290827637FABC46C15C7EE167380606FCE6123534870701EAF003976 |
+| CurseForge | Projekt 1796977, Datei 9722537, Beta, Forever 1.60.1 / Versions-ID 17053 |
+| Veröffentlichung | API angenommen, öffentliches CDN-ZIP per SHA256 geprüft; Moderationsstatus nicht separat abgefragt |
+| Lokales Paket | dist/packages/CraftDeja-3.9.0-beta.26.zip (Download aus dem öffentlichen CurseForge-CDN) |
+| Paket SHA256 | F4873231D36A064EFA2CE74A8CD017796ABB527128E9952E84EDF68C06F88F58 |
 | Installationsnachweis | Lokaler Guide-Testbuild `3.9.0-beta.25-alpha+9e44f40`, Release-Profil `725c8fab`. Alle 77 Dateien entsprechen bytegenau dem getesteten Build. |
 | Spielziel | C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\CraftDeja |
-| Lokaler Zielbestands-Kandidat | In TEST_RESULTS.md verlinkt. Release-Profil aus dem Arbeitsbaum auf Basis b080727. |
+| Zielbestands-Kandidat und exakter Release-Test | In TEST_RESULTS.md verlinkt. Spielerfeedback zum lokalen Kandidaten positiv. |
 
 Installationsangabe ist der protokollierte Stand, keine fortlaufende Überwachung.
 Installation am 20.11.2026 aus der privaten Quellkopie mit Commit

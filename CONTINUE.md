@@ -24,8 +24,10 @@ Vorhandene Werbe-/Logoänderungen wurden im Arbeitsbaum erhalten.
 Zielbestände: Der Reiter zeigt erlernte Verbrauchsrezepte berufsübergreifend pro Charakter.
 Die Zeile ist je Item-ID eindeutig. Bezugsweg und Zielmenge stehen rechts. „Auftrag ändern“
 liegt in „Auftrag & Angebote“. Gastgeberseiten wie Optionen blenden die Materialaktionen
-des kompakten Guides aus. Release-Kandidat mit 675/0/0 und Nachweis in TEST_RESULTS.md.
-Als Nächstes STOCK-UI nach docs/GUIDE_FULL_FLOW_DEV.md in Forever abnehmen.
+des kompakten Guides aus. Nutzer meldet den Kandidaten als gut laufend. Beta.26 ist auf
+CurseForge verfügbar, mit 675/0/0 im Tag-Lauf und verifiziertem CDN-Paket. Commit und
+Datei-ID stehen in PROJECT_STATE.md. Die Author-Console-Beschreibung und die detaillierten
+STOCK-UI-Livefälle bleiben offen.
 
 Offene Live-Abnahme: Forever/deDE nach docs/GUIDE_FULL_FLOW_DEV.md prüfen (GUIDE-DEV).
 Besonders native Unterbrechung, Rückkehr zum Beruf, TSM/Bank und verspätete Händler-/Postdaten prüfen.

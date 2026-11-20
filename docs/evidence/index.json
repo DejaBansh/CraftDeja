@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "current": "stock-guide-rc-local-full",
+  "current": "beta26-tag-full",
   "entries": [
     {
       "id": "beta25-local-full",
@@ -51,6 +51,23 @@
       "durationSeconds": 216.4,
       "kind": "Local release candidate / WoWLua Camelot source emulation",
       "liveAcceptance": "pending"
+    },
+    {
+      "id": "beta26-tag-full",
+      "version": "3.9.0-beta.26",
+      "releaseCommit": "e6cb2909067f41ebc2e3e9def59e3c0274c58606",
+      "reportGitCommit": "e6cb2909067f41ebc2e3e9def59e3c0274c58606",
+      "manifest": "docs/evidence/beta26-source-manifest.json",
+      "report": "reports/beta26-release-check/reports/local-dry-run/artifacts/TEST-REPORT.zip",
+      "reportSHA256": "C60845F5EBB7089920394BED36DD306D2ACBE5827E2C37D2A3C4ED72CF864240",
+      "passed": 675,
+      "failed": 0,
+      "skipped": 0,
+      "profile": "release",
+      "durationSeconds": 219.9,
+      "kind": "WoWLua/Camelot release dry run in clean clone; raw checkout line endings differ from working tree",
+      "ciRun": "https://github.com/DejaBansh/CraftDeja/actions/runs/44815834310",
+      "liveAcceptance": "user_played_candidate_positive_detailed_matrix_pending"
     }
   ]
 }

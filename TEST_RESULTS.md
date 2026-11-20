@@ -2,7 +2,21 @@
 
 Stand: 20.11.2026. Maschinenlesbare Nachweise in [docs/evidence/index.json](docs/evidence/index.json).
 
-## Berufsübergreifende Zielbestände und Guide, aktueller Release-Kandidat
+## Veröffentlichung von beta.26
+
+- Exakter Tag `v3.9.0-beta.26`, Commit `e6cb2909067f41ebc2e3e9def59e3c0274c58606`.
+  Lokaler Dry Run mit **675/0/0** in 219,90 Sekunden und **26/0** Pipeline-Prüfungen.
+  [Lokaler Testbericht](reports/beta26-release-check/reports/local-dry-run/artifacts/TEST-REPORT.zip).
+- [GitHub Actions](https://github.com/DejaBansh/CraftDeja/actions/runs/44815834310) mit
+  **675/0/0**, erfolgreichem Beta-Upload als Datei 9722537 und vorbereiteter Projektbeschreibung.
+  Die 81 entpackten Dateien des CI-Pakets entsprechen dem Dry Run. Die öffentlich
+  heruntergeladene ZIP stimmt bytegenau mit dem Upload-Beleg überein.
+- Der lokale Dry Run wurde in einem sauberen Klon ausgeführt. Die erfassten
+  Test- und Eingabedateien stimmen nach Zeilenende-Normalisierung mit dem Arbeitsbaum überein.
+  Rohprüfsummen beziehen sich auf den Klon. Der Nutzer hat den vorherigen Kandidaten im Spiel
+  als gut laufend bestätigt. Die detaillierte Forever-Matrix bleibt offen.
+
+## Berufsübergreifende Zielbestände und Guide, Kandidat vor Veröffentlichung
 
 - Vollsuite mit WoWLua 0.13.14 und Camelot unter Windows, **675 bestanden,
   0 fehlgeschlagen, 0 übersprungen**, 325 Dateien, 216,40 Sekunden. Der
