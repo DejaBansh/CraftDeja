@@ -395,7 +395,7 @@ test('search hands exact quantities and copper ceilings to Auctionator and block
     app.shoppingWindow.unlock.scripts.OnClick();eq(app.shopping.searched,nil)
     app.shopping.tolerance=0;eq(app.searchShopping(),true);eq(submitted[1].maxPrice,96)
     fullscan({auction(10938,.05,20),auction(10940,88)})
-    eq(app.searchShopping(),true);near(submitted[1].maxPrice,.05);eq(app.money(.05),'<1c')
+    eq(app.searchShopping(),true);near(submitted[1].maxPrice,.05);eq(app.money(.05),'<1|cffe49a70c|r')
 end)
 test('inventory is rechecked at handoff; unknown stock, vendor inputs and failures',function()
     beginShopping();fullscan();stock[10938]=7

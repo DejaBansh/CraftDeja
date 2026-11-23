@@ -85,9 +85,9 @@ function app.decorateStationTask(task)
     else task.body=task.body..'\n'..app.caption('station_unknown',task.requirement.name or '?')end
     return task
 end
-function app.clearStationMarker()
+function app.clearGuideMarker(field)
     local own=app.mapTarget or app.character and app.character.mapTarget
-    if not own or not own.stationKey then return end
+    if not own or not own[field] then return end
     local point=app.try(C_Map and C_Map.GetUserWaypoint)
     local x,y
     if point and point.position then x,y=app.try(point.position.GetXY,point.position);x=x or point.position.x;y=y or point.position.y end
@@ -97,6 +97,7 @@ function app.clearStationMarker()
     app.mapTarget=nil;if app.character then app.character.mapTarget=nil end
     if app.mapPin then app.mapPin:Hide()end
 end
+function app.clearStationMarker() app.clearGuideMarker('stationKey') end
 function app.showCraftStation(task,openMap)
     if not task or not task.station then return false end
     local v=app.copy(task.station);v.stationKey=task.key

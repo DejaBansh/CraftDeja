@@ -3,7 +3,7 @@
 local identifier,app=...
 _G.CraftDeja=app
 app.identifier=identifier
-app.release="3.9.0-beta.26"
+app.release="3.9.0-beta.27"
 app.sessions={}
 app.catalog={}
 app.names={}
@@ -52,14 +52,19 @@ function app.recipeName(recipe)
     local name=(app.names[app.lang()]or {})[recipe.id]
     return name or recipe.liveName or app.caption("recipe_number",recipe.id)
 end
+local goldUnit="|cffffd166g|r"
+local silverUnit="|cffd4dce5s|r"
+local copperUnit="|cffe49a70c|r"
 function app.money(value)
     if type(value)~="number"then return app.caption("missing_price")end
     if value<0 then return '-'..app.money(-value)end
-    if value>0 and value<1 then return '<1c'end
+    if value>0 and value<1 then return '<1'..copperUnit end
     local n=math.floor(value+0.5)
-    if n>=10000 then return string.format("%dg %ds %dc",math.floor(n/10000),math.floor(n/100)%100,n%100)end
-    if n>=100 then return string.format("%ds %dc",math.floor(n/100),n%100)end
-    return n.."c"
+    local copper=(n%100)..copperUnit
+    if n<100 then return copper end
+    local silver=(math.floor(n/100)%100)..silverUnit
+    if n<10000 then return silver.." "..copper end
+    return math.floor(n/10000)..goldUnit.." "..silver.." "..copper
 end
 function app.professionName(id)
     return (app.professionLabels[app.lang()]or app.professionLabels.en)[id]or tostring(id or "?")

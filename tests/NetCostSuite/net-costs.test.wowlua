@@ -160,7 +160,8 @@ end
 
 @test("Net cost 19: negative costs remain signed")
 local function case19()
-    local a,_,_,make=setup();local q=a.quote(make(1,500,700));near(q.netCost,-200);assert(a.money(-200)=="-2s 0c" and a.money(-0.5)=="-<1c")
+    local a,_,_,make=setup();local q=a.quote(make(1,500,700));near(q.netCost,-200)
+    assert(a.money(-200)=="-2|cffd4dce5s|r 0|cffe49a70c|r" and a.money(-0.5)=="-<1|cffe49a70c|r")
 end
 
 @test("Net cost 20: zero cost ties prefer higher chance")

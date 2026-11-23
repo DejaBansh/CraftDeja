@@ -18,6 +18,22 @@ function app.nextStep(plan)
         if requirement then app.clearNativeCraft();return requirement end
         return {kind='craft_native',key='craft_native:'..app.nativeCraftHandoff.id,body=app.caption('craft_native_confirm',app.nativeCraftHandoff.count)}
     end
+    -- Take the planned vendor portion while this supplier is already open.
+    -- Uncollected AH materials can be picked up on the same trip afterwards.
+    if plan and plan.stockKnown and (plan.vendorRows or 0)>0 and app.vendorPurchase.open and not app.isPoison() then
+        local vendorPlan=app.vendorPurchasePlan()
+        local offer=vendorPlan and vendorPlan.rows[1]
+        if offer then
+            local pending=app.vendorPurchase.pending
+            if pending then return {kind='vendor_wait',key='vendor_wait:'..pending.id,body=app.caption('vendor_buy_wait')} end
+            for _,row in ipairs(plan.rows)do
+                if row.vendor and row.id==offer.id and row.buy>0 then
+                    return {kind='vendor',key='vendor_here:'..row.id..':'..offer.quantity,atVendor=true,id=row.id,
+                        body=app.caption('step_vendor_here',offer.quantity,row.name)}
+                end
+            end
+        end
+    end
     local craft=app.craftBatchInfo(plan)
     if craft.available>0 then
         local requirement=app.craftRequirementTask(plan.recipe)
@@ -58,6 +74,8 @@ function app.nextStep(plan)
     end
     for _,row in ipairs(plan.rows)do
         if row.buy>0 and row.vendor then
+            local missing=math.max(0,row.buy-app.confirmedMail(row.id))
+            if missing==0 then return {kind='mail',key='mail_vendor:'..row.id,body=app.caption('step_mail_list')..'\n'..row.buy..' x '..row.name} end
             local pending=app.vendorPurchase and app.vendorPurchase.pending
             if pending and pending.id==row.id then return {kind='vendor_wait',key='vendor_wait:'..row.id,body=app.caption('vendor_buy_wait')}end
             local v=app.nearestMerchant(row.id)
@@ -67,7 +85,7 @@ function app.nextStep(plan)
                 for _,offer in ipairs(vp and vp.rows or {})do if offer.id==row.id then atVendor=true end end
             end
             return {kind='vendor',key='vendor:'..row.id..':'..row.buy..':'..(v and (v.map..':'..v.x..':'..v.y)or 'unknown'),vendor=v,atVendor=atVendor,id=row.id,
-                body=app.caption(atVendor and 'step_vendor_here'or 'step_vendor',row.buy,row.name)}
+                body=app.caption(atVendor and 'step_vendor_here'or 'step_vendor',missing,row.name)}
         end
     end
     for _,row in ipairs(plan.rows)do
@@ -115,6 +133,7 @@ function app.renderNextStep(plan,keepVisible,override)
             elseif t.kind=='ah_list'then app.refreshShoppingList();app.refreshNextStep(true)
             elseif t.kind=='scan'then app.autoScanTick(true)
             elseif t.kind=='review'then app.showCatalogue()
+            elseif t.kind=='recipe_owned'then app.refresh(app.professionOpen==true);app.refreshNextStep(true)
             elseif t.kind=='learn'then f.marked=app.showRecipeSource(t.recipe or app.decision.current.recipe)
             elseif t.kind=='station'then app.refresh(false);app.refreshNextStep(true);if f.task and f.task.kind=='station'then app.showCraftStation(f.task,true)end
             elseif t.kind=='rod_collect'then app.refresh(false);app.refreshNextStep(true)
@@ -137,6 +156,7 @@ function app.renderNextStep(plan,keepVisible,override)
     end
     if app.craftBatch then plan=app.craftBatch.plan elseif app.nativeCraftHandoff then plan=app.nativeCraftHandoff.plan end
     local f=app.nextStepWindow;local task=override or app.nextStep(plan)
+    if not task.sourceTarget and app.clearGuideMarker then app.clearGuideMarker('recipeID')end
     if (task.kind~='station'or not task.station)and app.clearStationMarker then app.clearStationMarker()end
     if plan and app.syncShoppingList then app.syncShoppingList(plan);if not override and app.shopping.listStale then task=app.nextStep(plan)end end
     if app.shopping.open and not app.shoppingFresh()and app.active and not app.craftBatch and task.kind~='open'and task.kind~='loading'then
@@ -205,7 +225,7 @@ function app.renderNextStep(plan,keepVisible,override)
     end
     if app.actionNotice then f.notice:SetText(app.actionNotice)end
     f.craftAll:Hide();f.action:SetWidth(324);f.action.label:SetWidth(285)
-    local craftButtons=(task.kind=='craft_native'or task.kind=='craft_queue'or task.kind=='craft'and app.professionOpen and app.nativeProfessionVisible()~=false)and plan and (plan.recipe.profession~=333 or plan.toolPreparation)
+    local craftButtons=(task.kind=='craft_native'or task.kind=='craft_queue'or task.kind=='craft'and app.professionOpen and app.nativeProfessionVisible()~=false)and plan and (not app.requiresEnchantTarget(plan.recipe) or plan.toolPreparation)
     if craftButtons then
         f.action:SetWidth(156);f.action.label:SetWidth(117);f.craftAll:Show();f.craftAll:Enable()
         f.craftAll:ClearAllPoints();f.craftAll:SetPoint('TOPLEFT',186,-buttonY)
@@ -213,7 +233,7 @@ function app.renderNextStep(plan,keepVisible,override)
         f.craftAll.fixedRole=true;f.craftAll.tipLines=function()return {app.caption('craft_all_tip')}end
     end
     f.action:Enable()
-    local label=task.kind=='done'and 'skill_goal_done_button'or task.kind=='rank'and 'goal_rank_button'or task.kind=='craft_native'and 'craft_native_show'or task.kind=='craft_queue'and 'craft_queue_button'or task.kind=='review'and 'step_review_button'or task.kind=='loading'and 'profession_loading_button'or task.kind=='scan'and 'scan_locked_button'or task.kind=='open'and 'open'or task.kind=='learn'and 'learn_first'or task.kind=='vendor'and (task.atVendor and 'step_buy'or 'step_map')or task.kind=='ah'and 'compact_search'or task.kind=='craft'and (app.professionOpen and app.nativeProfessionVisible()~=false and (plan and plan.recipe.profession==333 and 'action_enchant_select'or 'action_craft_one')or 'open')or 'step_details'
+    local label=task.kind=='done'and 'skill_goal_done_button'or task.kind=='rank'and 'goal_rank_button'or task.kind=='craft_native'and 'craft_native_show'or task.kind=='craft_queue'and 'craft_queue_button'or task.kind=='review'and 'step_review_button'or task.kind=='loading'and 'profession_loading_button'or task.kind=='scan'and 'scan_locked_button'or task.kind=='open'and 'open'or task.kind=='learn'and 'learn_first'or task.kind=='vendor'and (task.atVendor and 'step_buy'or 'step_map')or task.kind=='ah'and 'compact_search'or task.kind=='craft'and (app.professionOpen and app.nativeProfessionVisible()~=false and (plan and app.requiresEnchantTarget(plan.recipe) and 'action_enchant_select'or 'action_craft_one')or 'open')or 'step_details'
     f.action:SetText(task.kind=='poison'and app.caption('poison_title')or task.kind=='rank'and task.trainer and app.caption(task.levelBlocked and 'trainer_later'or 'trainer_show')or task.kind=='mail'and app.caption('step_mail_check')or task.offer and task.offer.button or app.caption(label));if task.kind=='done'or task.kind=='scan'or task.kind=='rank'and not task.trainer or task.kind=='loading'or task.kind=='craft_queue'or task.offer and task.offer.disabled then f.action:Disable()end;app.styleButton(f.action,task.offer and 'coin'or task.kind=='rank'and 'merchant'or task.kind=='vendor'and 'merchant'or task.kind=='ah'and 'coin'or task.kind=='craft'and 'hammer'or 'bag',false)
     if task.kind=='learn'and task.sourceTarget then f.action:SetText(app.caption('recipe_source_map'));app.styleButton(f.action,'map',false)end
     if task.kind=='station'then f.action:SetText(app.caption('station_check'))end

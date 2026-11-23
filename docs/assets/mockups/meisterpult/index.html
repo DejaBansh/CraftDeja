@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CraftDeja · Meisterpult</title>
+<style>
+*{box-sizing:border-box} :root{color-scheme:dark;--ink:#f2ebdd;--muted:#c1b9a5;--brass:#c3a672;--line:#605541;--leather:#65412b;--wood:#392b23} body{margin:0;background:radial-gradient(ellipse at top left,#403127,#201812 70%);color:var(--ink);font:16px/1.5 "Segoe UI",sans-serif;min-height:100vh} main{max-width:1200px;margin:auto;padding:4vh 24px} header,.tools,.bar,.pair{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap} header{margin-bottom:25px} h1,h2,h3,p{margin:0} h1,h2,h3{font:normal 32px/1.15 Georgia,serif} h1{font-size:25px} h3{font-size:24px} small,.label,dt{color:var(--muted)} .label{font-size:12px;letter-spacing:.12em;text-transform:uppercase} button,select,input{font:inherit;color:inherit} button,select{cursor:pointer;border:1px solid var(--line);border-radius:4px;background:#392e25;padding:7px 12px} button:hover,select:hover{border-color:var(--brass)} button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #e5bf7c;outline-offset:3px} button:active:enabled{transform:translateY(1px)} button:disabled{background:#32342f;color:#b4b3aa;border-color:#626056;cursor:default} .layout{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(278px,1fr);gap:24px;align-items:start} .case{padding:7px;border:1px solid #937950;border-radius:9px;background:repeating-linear-gradient(3deg,#392b23 0px,#433329 4px,#392b23 7px);box-shadow:0 10px 25px #0004} .inside{background:#34271f;border:1px solid #665b44;border-radius:4px;overflow:hidden} .bar{background:#423126;padding:13px 18px;border-bottom:1px solid var(--line)} .brand{display:flex;align-items:center;gap:12px;font-family:Georgia,serif;font-size:23px}.brand img{width:43px;height:43px;border-radius:50%;border:2px solid var(--brass)} .body{padding:22px}.route{margin:20px 0;border-block:1px solid var(--line);padding:12px 0;display:flex;gap:8px;flex-wrap:wrap}.route span{padding:4px 10px;color:var(--muted)}.route .here{color:var(--ink);background:#4e3b2c;border-left:3px solid var(--brass)} .track{height:7px;background:#241a14;margin-top:10px}.track i{height:100%;display:block;background:#c3a672} table{border-collapse:collapse;width:100%;margin-top:12px;font-variant-numeric:tabular-nums} th,td{border-bottom:1px solid #594637;padding:10px 4px;text-align:right} th{color:var(--muted);font-weight:500} th:first-child,td:first-child{text-align:left}.guide .body{display:grid;gap:16px}.guide h2{font-size:29px}.primary{background:linear-gradient(#795139,var(--leather));border:1px solid #c3a671;box-shadow:inset 0 0 0 2px #503321;border-radius:6px;min-height:46px;font-weight:650}.primary:hover:enabled{background:#82583c}.recess{background:#2b2019;box-shadow:inset 0 2px 3px #1118;min-height:36px}.recess[aria-expanded=true]{border-left:3px solid var(--brass)}.slider{display:grid;gap:5px}.slider input{width:100%;accent-color:#bb9a60}.slider .pair{font-size:14px}.guide p{color:#ddd6c6} [hidden]{display:none!important}.solo{grid-template-columns:minmax(270px,370px);justify-content:center}.foot{margin-top:20px;color:var(--muted);font-size:13px}@media(max-width:790px){.layout{grid-template-columns:1fr} main{padding:16px}.body{padding:15px}.tools{gap:8px}}
+</style>
+<main>
+<header><div><div class="label">CraftDeja · Designvorschau</div><h1>Das Meisterpult</h1></div><div class="tools"><select id="scenario" aria-label="Beispielauftrag"><option>Kupferrohr</option><option>Steinschuppenkabeljau</option></select><button id="solo">Nur Guide zeigen</button><button id="restart">Neu starten</button></div></header>
+<div class="layout" id="layout">
+<section class="case" id="desk"><div class="inside"><div class="bar"><div class="brand"><img src="../../marketing/2026-11-21-curseforge/media/project-logo.png" alt="">CraftDeja</div><span class="label">Werkstattpult</span></div><div class="body">
+<div class="label">Aktiver Berufsauftrag</div><div class="pair"><h2 id="profession"></h2><strong id="skill"></strong></div><div class="track"><i id="progress"></i></div>
+<div class="route" id="route"></div><h3 id="recipe"></h3><table><thead><tr><th>Zutat</th><th>Tasche</th><th>Bedarf</th><th>Fehlt</th></tr></thead><tbody id="items"></tbody></table>
+</div></div></section>
+<aside class="case guide"><div class="inside"><div class="bar"><span class="brand">Nächster Schritt</span><span aria-hidden="true" style="color:#c3a672">◆</span></div><div class="body" aria-live="polite"><div class="label" id="where"></div><h2 id="action"></h2><p id="hint"></p>
+<label class="slider" id="slider"><span class="pair">Seriengröße <output id="qty"></output></span><input id="range" type="range" min="1" aria-label="Seriengröße"></label>
+<button class="primary" id="go"></button><button class="recess" id="details" aria-expanded="false" aria-controls="extra">Details aufklappen</button><p id="extra" hidden></p>
+</div></div></aside></div><p class="foot">Interaktive Konzeptansicht · Käufe, Ankunft und Herstellung werden hier simuliert.</p></main>
+<script>
+const el=id=>document.getElementById(id);
+let stage,fish,bars,flux,made,quantity;
+function reset(){stage=0;fish=33;bars=20;flux=0;made=0;quantity=6;render()}
+function render(){
+ const cook=el('scenario').selectedIndex===1, done=cook?stage===1:stage===3, craft=!cook&&stage===2, max=cook?Math.min(30,fish):Math.min(bars/2,flux);
+ const labels=cook?['Kochstelle','Serie beendet']:['Händler','Amboss','Herstellen','Fertig'];
+ el('profession').textContent=cook?'Kochkunst':'Ingenieurskunst';el('skill').textContent=cook?'219 / 225':'65 / 75';el('progress').style.width=(cook?219/225:65/75)*100+'%';
+ el('recipe').textContent=cook?'Steinschuppenkabeljau':'Kupferrohr';el('route').replaceChildren(...labels.map((name,i)=>{const tag=document.createElement('span');tag.textContent=name;if(i===stage)tag.className='here';return tag}));
+ const data=cook?[['Roher Steinschuppenkabeljau',fish,Math.max(0,30-made)]]:[['Kupferbarren',bars,2*(10-made)],['Schwacher Fluxus',flux,10-made]];
+ el('items').replaceChildren(...data.map(([name,bag,need])=>{const row=document.createElement('tr');for(const v of [name,bag,need,Math.max(0,need-bag)])row.insertCell().textContent=v;return row}));
+ el('where').textContent=labels[stage];el('slider').hidden=done||!(cook||craft);
+ if(!el('slider').hidden){quantity=Math.min(quantity,max);el('range').max=max;el('range').value=quantity;el('qty').textContent=quantity+' Stück'}
+ const copy=cook?(done?['Serie abgeschlossen',made+' Fische verarbeitet. Der nächste Schritt hängt vom neuen Skillstand ab.','Serie beendet']:['Fisch zubereiten','6 Skillpunkte bis 225. Geschätzt 30 Versuche. Material für 33 Versuche liegt in der Tasche.',quantity+' Fische zubereiten']):
+ [['Schwachen Fluxus kaufen','Daniel Bartlett · Unterstadt. Für 10 Kupferrohre fehlen 10 Schwacher Fluxus zu je 1 Silber.','10 kaufen · 10 Silber'],['Zum Amboss gehen','Alle Zutaten liegen in der Tasche. Der nächste Schritt beginnt in Reichweite eines Ambosses.','Ankunft simulieren'],['Kupferrohr herstellen',made+' von 10 Kupferrohren hergestellt.',quantity+' Kupferrohre herstellen'],['Auftrag abgeschlossen','10 Kupferrohre hergestellt.','Fertig']][stage];
+ el('action').textContent=copy[0];el('hint').textContent=copy[1];el('go').textContent=copy[2];el('go').disabled=done;
+ el('extra').textContent=cook?'Die Schätzung enthält Versuche ohne Skillpunkt. Die gewählte Seriengröße ist eine Stückzahl.':'Pro Kupferrohr werden 2 Kupferbarren und 1 Schwacher Fluxus verbraucht.';
+}
+el('go').onclick=()=>{if(el('scenario').selectedIndex===1){fish-=quantity;made+=quantity;stage=1}else if(stage===0){flux=10;stage=1}else if(stage===1){quantity=10;stage=2}else if(stage===2){bars-=2*quantity;flux-=quantity;made+=quantity;if(made===10)stage=3}render()};
+el('range').oninput=e=>{quantity=Number(e.target.value);render()};el('scenario').onchange=reset;el('restart').onclick=reset;
+el('details').onclick=()=>{const show=el('extra').hidden;el('extra').hidden=!show;el('details').setAttribute('aria-expanded',String(show));el('details').textContent=show?'Details zuklappen':'Details aufklappen'};
+el('solo').onclick=()=>{el('desk').hidden=!el('desk').hidden;el('layout').classList.toggle('solo',el('desk').hidden);el('solo').textContent=el('desk').hidden?'Werkstattpult zeigen':'Nur Guide zeigen'};reset();
+</script>
+</html>

@@ -22,10 +22,19 @@ function app.recipeSourceTarget(recipe)
             if not best or app.locationBefore(source,best,context)then best=app.copy(source)end
         end
     end
-    if best then best.npc=best.id;best.name=app.sourceTitle(best)end
+    if best then best.recipeID=recipe.id;best.npc=best.id;best.name=app.sourceTitle(best)end
     return best
 end
 function app.recipeLearningTask(recipe)
+    local item=app.accessInfo(recipe).item or recipe.scroll
+    if item and not recipe.learned then
+        local stock=app.inventoryFor(item)
+        local bags=app.try(C_Item and C_Item.GetItemCount or GetItemCount,item,false,false,false,false)
+        local where=bags and bags>0 and 'bag' or stock and (stock.total or 0)>0 and 'storage' or app.confirmedMail(item)>0 and 'mail'
+        if where then
+            return {kind='recipe_owned',key='recipe_owned:'..item..':'..where,recipe=recipe,item=item,body=app.caption('recipe_in_'..where,app.itemName(item))}
+        end
+    end
     local source=app.recipeSourceTarget(recipe)
     local key='learn:'..recipe.id
     if source then key=key..':'..tostring(source.id)..':'..source.map..':'..source.x..':'..source.y end
@@ -52,7 +61,7 @@ function app.showRecipeSource(recipe)
     return marked
 end
 function app.setMerchantMarker(v)
-    app.mapTarget={name=v.name,map=v.map,x=v.x,y=v.y,npc=v.npc,stationKey=v.stationKey,floor=v.floor}
+    app.mapTarget={name=v.name,map=v.map,x=v.x,y=v.y,npc=v.npc,recipeID=v.recipeID,stationKey=v.stationKey,floor=v.floor}
     if app.character then app.character.mapTarget=app.copy(app.mapTarget)end
     return WorldMapFrame and type(WorldMapFrame.GetCanvas)=='function'or false
 end

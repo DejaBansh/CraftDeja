@@ -2,7 +2,7 @@ import test, afterEach from "wowlua:test"
 import * as mock from "wowlua:mock"
 -- Native Forever requirements/materials are explicit fixtures; planning,
 -- purchase ledger, merchant events, guide and Auctionator handoff are real modules.
-local function setup()
+local function setup(journey)
  local a=_G['CraftDeja'];local c:any={a=a,skill=60,met=false,terms={},edits=0,searches=0,bag={},prices={[2840]=150,[2880]=99},x=.65,y=.4,map=1458}
  mock.setField(a,'materialStages',{['202:3924:65']={recipe=3924,profession=202,target=65,choices={['item:2840']={source='stock',item=2840},['item:2880']={source='stock',item=2880}}},['202:3924:75']={recipe=3924,profession=202,target=75,choices={['item:2840']={source='stock',item=2840},['item:2880']={source='stock',item=2880}}}});mock.setField(a,'materialStage',nil);mock.setField(a,'materialConversion',nil)
  mock.setField(a.shopping,'ready',nil);mock.setField(a.shopping,'readyWall',nil);mock.setField(a.shopping,'prices',nil)
@@ -44,11 +44,145 @@ local function setup()
  c.vendor=function()mock.openMerchant({name='Daniel Bartlett',items={{id=2880,price=100,stack=1,available=-1,maxStack=20},{id=2928,price=10,stack=1,available=-1,maxStack=20}}});mock.waitSeconds(.3);a.refreshNextStep(true)end
  c.bags=function(copper,flux)mock.setBag(0,{slots=20,items={[1]=copper>0 and {id=2840,count=copper}or nil,[2]=flux>0 and {id=2880,count=flux}or nil}});a.captureInventory();a.refresh(false)end
  -- Recorded next-action boundary is an input: the log does not contain all 275 recipe quotes.
- mock.stub(a,'nextActionBoundary',function()return {target=c.skill<65 and 65 or 75,kind='review'}end)
- c.native=native;c.input=input;c.read();return c
+ if not journey then mock.stub(a,'nextActionBoundary',function()return {target=c.skill<65 and 65 or 75,kind='review'}end)end
+ c.native=native;c.input=input;if not journey then c.read()end;return c
 end
 @afterEach
 local function errors()local e=mock.errors();assert(#e==0,table.concat(e,'\n'))end
+@test('Engineering journey: one deDE order from 1 to 300 via AH mail vendor native craft and training')
+local function engineeringJourney()
+ local c=setup(true);local a=c.a
+ local log=a.flowLog
+ mock.stub(a,'flowLog',function(event,fields)
+  if event=='craft.native_prepare_failed'or event=='craft.native_preparation_changed'then print(event,tostring(fields.message))end
+  return log(event,fields)
+ end)
+ c.skill=1;c.met=true;c.prices[2880]=106
+ mock.defineItem(2880,{name='Schwacher Fluxus',stackCount=200})
+ local cap,copper,flux,casts,requests=75,0,0,0,0
+ mock.setField(a.catalog,202,{[3924]={skill=1,yellow=301,green=301,grey=302,rangeVerified=true,ingredients={[2840]=2,[2880]=1}}})
+ mock.stub(C_TradeSkillUI,'GetBaseProfessionInfo',function()return {professionID=202,professionName='Ingenieurskunst',skillLevel=c.skill,maxSkillLevel=cap,skillModifier=0}end)
+ mock.stub(C_TradeSkillUI,'OpenTradeSkill',function()c.native:Show();mock.fireEvent('TRADE_SKILL_SHOW');return true end)
+ mock.stub(_G,'UnitLevel',function()return 60 end)
+ mock.stub(a,'playerFaction',function()return 'Horde'end)
+ local guid=UnitGUID
+ mock.stub(_G,'UnitGUID',function(unit)return unit=='npc'and 'Creature-0-0-0-0-11031-000'or guid(unit)end)
+ mock.stub(_G,'GetNumTrainerServices',function()return 1 end)
+ mock.stub(_G,'GetTrainerServiceInfo',function()return 'Ingenieurskunst','available',135806 end)
+ mock.stub(_G,'GetTrainerServiceItemLink',function()return '|Hspell:'..(({[75]=4037,[150]=4038,[225]=12656})[cap]or 0)..'|h[Ingenieurskunst]|h'end)
+ mock.stub(_G,'GetTrainerServiceCost',function()return 500 end)
+ local trained=false
+ local function train()
+  requests=requests+1;trained=true
+ end
+ mock.stub(_G,'BuyTrainerService',train)
+ local trainerButton=CreateFrame('Button',nil,UIParent)
+ trainerButton:SetScript('OnClick',train)
+ local function bags()
+  mock.setBag(0,{slots=20,items={[1]=copper>0 and {id=2840,count=copper}or nil,[2]=flux>0 and {id=2880,count=flux}or nil}})
+  mock.fireEvent('BAG_UPDATE_DELAYED')
+ end
+ local function step(expected,event)
+  mock.waitSeconds(1.4);a.refreshNextStep(true)
+  local g=a.nextStepWindow
+  print(('Ingenieurskunst %d/%d | %s | erwartet %s | Aktion %s (%s) | Barren %d | Fluxus %d | Plan %s'):format(
+   c.skill,cap,event,expected,tostring(g.task.kind),g.primaryCTA:GetText(),copper,flux,tostring(g.plan and g.plan.crafts)))
+  assert(g.task.kind==expected or expected=='ah/ah_list'and (g.task.kind=='ah'or g.task.kind=='ah_list'),'Erster blockierender Übergang: '..event..' bei '..c.skill..'/'..cap..
+   ', erwartet '..expected..', tatsächlich '..g.task.kind..' / '..g.primaryCTA:GetText()..' / '..tostring(g.task.body))
+  return g
+ end
+ mock.fireEvent('TRADE_SKILL_SHOW');mock.waitSeconds(1.4)
+ a.showRouteWindow(75,'advanced');mock.click(a.routeWindow.plan)
+ local order=a.currentRouteOrder();assert(order and order.profession==202,'Beruf 1/75: Route planen erzeugte keinen Auftrag')
+ a.routeWindow:Hide();a.showCentralGuide()
+ for visit=1,8 do
+  local g=step('ah','Route geplant oder Rang gelernt')
+  mock.fireEvent('AUCTION_HOUSE_SHOW')
+  -- Fixture supplies the completed price scan at the Auctionator boundary.
+  a.shopping.ready=GetTime();a.shopping.readyWall=time();a.shopping.scanSerial=(a.shopping.scanSerial or 0)+1
+  a.shopping.prices=c.prices;a.shopping.started=nil;a.shopping.pendingScan=nil
+  a.refresh(false);g=step('ah/ah_list','AH geöffnet / Preisstand verfügbar')
+  if g.primaryCTA:IsEnabled()then mock.click(g.primaryCTA)end
+  local function buy(n)
+   local p=a.shoppingPlan()or g.plan;assert(p,'Kein AH-Materialplan')
+   a.ensurePurchaseBatch(p);local dialog={}
+   assert(a.observeAHQuote(dialog,{itemID=2840,quantity=n,total=n*150}),'AH-Angebot')
+   assert(a.markAHConfirm(dialog),'AH bestätigen');mock.fireEvent('COMMODITY_PURCHASE_SUCCEEDED')
+  end
+  local planned=g.plan and g.plan.crafts or cap-c.skill
+  assert(planned==cap-c.skill,'Planmenge stimmt nicht mit verbleibenden Skillpunkten überein')
+  if visit==1 then
+   buy(2);assert(a.confirmedMail(2840)==2,'Teilkauf nicht genau einmal verbucht')
+   local remainder=step('ah_load','Teilkauf verbucht; Einkauf bleibt offen')
+   assert(remainder.task.body:find('146 x Kupferbarren',1,true),'Teilkauf wurde vom Restbedarf nicht abgezogen')
+   buy(2*planned-2)
+  else buy(2*planned)end
+  step('mail','AH-Käufe bestätigt')
+  mock.fireEvent('AUCTION_HOUSE_CLOSED');mock.fireEvent('MAIL_SHOW')
+  copper=2*planned;bags();mock.waitSeconds(1.4);mock.fireEvent('MAIL_CLOSED')
+  mock.openMerchant({name='Daniel Bartlett',items={{id=2880,price=100,stack=1,available=-1,maxStack=200}}})
+  g=step('vendor','Post verbucht / Händler geöffnet')
+  assert(a.confirmedMail(2840)==0)
+  while flux<planned do
+   local before=flux;local quote=g.vendorOffer
+   g=step('vendor','Händler-Restbedarf '..(planned-before))
+   quote=g.vendorOffer
+   assert(quote and quote.quantity<=planned-before,'Händlermenge über Planbedarf')
+   mock.click(g.primaryCTA);mock.waitSeconds(2.4);flux=C_Item.GetItemCount(2880,false)
+   assert(flux>before,('Bei %d/%d: Händlerklick erwartete %d Fluxus, Bestand blieb %d; Status %s, sichtbare Aktion %s'):format(
+    c.skill,cap,quote.quantity,before,tostring(a.vendorPurchase.status),g.primaryCTA:GetText()))
+   a.refreshNextStep(true)
+  end
+  mock.closeMerchant()
+  local function craft()
+   g=step('craft','Materialien in Taschen')
+   if not a.professionOpen then mock.click(g.primaryCTA);g=step('craft','Beruf erneut geöffnet')end
+   -- The emulator can load its Blizzard frame on the first TRADE_SKILL_SHOW.
+   -- Bind the already configured client fixture after that load.
+   mock.setField(_G,'ProfessionsFrame',c.native)
+   mock.click(g.primaryCTA)
+   assert(a.nativeCraftHandoff,('Bei %d/%d: Herstellung vorbereiten erwartet native Übergabe; tatsächlich %s (%s), Meldung %s, weitere Aktion %s'):format(
+    c.skill,cap,g.task.kind,g.primaryCTA:GetText(),tostring(a.actionNotice),tostring(g.secondaryCTA and g.secondaryCTA:GetText())))
+   c.native.CraftingPage.CreateButton:SetScript('OnClick',function()
+    local count=c.input.n
+    for _=1,count do
+     casts=casts+1;local cast='engineering-journey-'..casts
+     mock.fireEvent('UNIT_SPELLCAST_START','player',cast,3924)
+     copper=copper-2;flux=flux-1
+     if casts>1 then c.skill=math.min(cap,c.skill+1)end
+     bags();mock.fireEvent('UNIT_SPELLCAST_SUCCEEDED','player',cast,3924)
+    end
+   end)
+   mock.click(c.native.CraftingPage.CreateButton);mock.waitSeconds(1.6)
+  end
+  craft()
+  if c.skill<cap and copper>=2 and flux>=1 then craft()end
+  if c.skill<cap then
+   assert(visit==1 and c.skill==cap-1,'Restbedarf nach Herstellserie: erwartete Ranggrenze oder genau einen fehlenden Skillpunkt')
+   step('ah','Herstellung ohne Skillpunkt verbrauchte Material; ein Skillpunkt bleibt offen')
+  else
+  if cap==300 then
+   g=step('done','Skill 300 bestätigt')
+   assert(g.primaryCTA:GetText()=='Fertig'and not g.primaryCTA:IsEnabled()and copper==0 and flux==0)
+   break
+  end
+  g=step('rank','Ranggrenze per Client-Ereignis erreicht')
+  mock.fireEvent('TRAINER_SHOW');g=step('rank','Passender Trainer geöffnet')
+  local before=requests
+  trained=false
+  mock.click(g.primaryCTA)
+  if cap==75 then assert(trained and requests==before+1,'Erster blockierender Übergang: 75/75, bestätigtes Angebot nicht gelernt')
+  else
+   assert(not trained,'Unbestätigtes Rangangebot versehentlich gekauft')
+   mock.click(trainerButton);assert(trained,'Orig. Trainerklick fehlte')
+  end
+  cap=cap+75;mock.fireEvent('TRAINER_UPDATE');mock.fireEvent('SKILL_LINES_CHANGED')
+  mock.fireEvent('TRAINER_CLOSED');mock.waitSeconds(1.5)
+  assert(a.currentRouteOrder()==order,'Rangwechsel hat den Auftrag ersetzt')
+  end
+ end
+ assert(c.skill==300 and casts>=300,'Skill 300 oder craft ohne Skillpunkt fehlt')
+end
 @test('Undercity: mixed poison vendor cannot replace engineering guide even with cached poisons')
 local function merchant()
  local c=setup();local a=c.a;c.skill=65;c.prices[2880]=106;c.read();c.bags(20,0)
@@ -264,6 +398,42 @@ local function proportions()
  end
  a.paintWorkshopGuide(g);g:SetScale(.8);assert(g.primaryCTA.label:GetText():find('Fluxus',1,true))
  assert(g.workshopStatus:GetTop()<g.primaryCTA:GetBottom(),'Status overlaps primary action')
+end
+local function openMerchantGuide()
+ local c=setup();local a=c.a;c.skill=65;c.prices[2880]=106;c.read();c.bags(20,0)
+ a.showCentralGuide();c.vendor();a.refreshNextStep(true)
+ local g=a.nextStepWindow
+ assert(g:IsVisible() and g.primaryCTA:IsVisible() and g.primaryCTA.meisterpultAction)
+ assert(g.guideFrameAsset=='MeisterpultFrame' and g.vendorOffer.quantity==10)
+ return a,g
+end
+@test('Meisterpult merchant controls share the guide finish')
+local function merchantFinish()
+ local _,g=openMerchantGuide()
+ assert(not g.workshopOpen and not g.workshopBadge)
+ assert(g.materialReview:IsVisible() and not g.materialReview.ctaBorder:IsShown())
+ assert(not g.materialReview.icon:IsShown() and not g.procurementButton.icon:IsShown())
+end
+@test('Merchant hint shows offered item and purchase quantity; hovering reveals its name')
+local function compactMerchantHint()
+ local a,g=openMerchantGuide()
+ assert(g.vendorItemHint:IsVisible() and g.workshopStatus:GetText()=='× 10')
+ assert(g.vendorItemHint.icon:GetTexture()==a.itemIcon(2880))
+ local title
+ mock.stub(a,'showTip',function(owner,name)if owner==g.vendorItemHint then title=name end end)
+ g.vendorItemHint:GetScript('OnEnter')(g.vendorItemHint)
+ assert(title=='Schwacher Fluxus')
+ mock.click(g.logButton);assert(not g.vendorItemHint:IsVisible())
+ mock.click(g.back);assert(g.vendorItemHint:IsVisible())
+end
+@test('Meisterpult options expose the console and keep the guide header')
+local function optionsFinish()
+ local a,g=openMerchantGuide();mock.click(g.logButton)
+ local page=a.unifiedOptions
+ assert(page:IsVisible() and page.rows[7]:GetText()==a.caption('workshop'))
+ assert(page.note:GetTop()<page.rows[7]:GetBottom())
+ assert(g.back:IsVisible() and not g.materialReview:IsVisible())
+ assert(g.guideFrameAsset=='MeisterpultFrame')
 end
 @test('Undercity: genuine active poison order still offers poison ingredients at a mixed merchant')
 local function poison()

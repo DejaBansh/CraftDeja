@@ -72,7 +72,7 @@ end
 @test('Sources: AH-below-vendor hint is visible in compact guide with the actual one-copper difference')
 local function priceHint()
  local c=sources(setup());local a=c.a;c.stock({});local p=c.fresh()
- assert(a.nextStepWindow.task.body:find('Schwacher Fluxus: AH 99c statt Händler 1s 0c/Stück.',1,true),a.nextStepWindow.task.body)
+ assert(a.nextStepWindow.task.body:find('Schwacher Fluxus: AH '..a.money(99)..' statt Händler '..a.money(100)..'/Stück.',1,true),a.nextStepWindow.task.body)
  c.prices[2880]=100;a.shopping.prices=c.prices;a.refresh(false);p=c.fresh()
  assert(not a.nextStepWindow.task.body:find('Schwacher Fluxus: AH',1,true),'Equal vendor/AH price advertised as cheaper')
 end

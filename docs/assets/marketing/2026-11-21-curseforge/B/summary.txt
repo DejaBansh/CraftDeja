@@ -1,0 +1,1 @@
+Follow a WoW Forever profession order from auction house and mailbox to vendors and crafting, with quantities at each step.

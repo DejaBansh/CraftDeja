@@ -1,0 +1,28 @@
+{
+  "status": "Alternative A selected by user; description-ready local PNG; not published",
+  "tool": "built-in image_gen",
+  "images": [
+    {
+      "id": "A",
+      "file": "CraftDeja-Alternative-A.png",
+      "width": 1672,
+      "height": 941,
+      "sha256": "37952a27e93e375d4802555e0c629c79b5627a616abdf3533214637a0ea09c1c",
+      "bytes": 2394065
+    },
+    {
+      "id": "B",
+      "file": "CraftDeja-Alternative-B.png",
+      "width": 1672,
+      "height": 941,
+      "sha256": "9abf0f9acc9d9bb52d2b827f761c1a1c5378cf6d0ddc8fd684853e00407d8acc",
+      "bytes": 2496629
+    }
+  ],
+  "selected": {
+    "id": "A",
+    "file": "CraftDeja-Description-Hero-DE.png",
+    "language": "de",
+    "sha256": "37952a27e93e375d4802555e0c629c79b5627a616abdf3533214637a0ea09c1c"
+  }
+}

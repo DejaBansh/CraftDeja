@@ -147,7 +147,14 @@ events:SetScript('OnEvent',function(_,event,arg,castGUID,spellID)
         app.onProfessionOpened()
     elseif event=='NEW_RECIPE_LEARNED'then
         app.noteStockRecipeLearned(arg)
-        if open then schedule()else app.invalidateWorkshopStock()end
+        if open then schedule()else
+            local r=app.active and app.active.recipes[arg]
+            if r and not r.learned then
+                r.learned=true
+                app.refresh(false);app.refreshNextStep()
+            end
+            app.invalidateWorkshopStock()
+        end
     elseif event=='TRADE_SKILL_CLOSE'then
         professionClosed(true)
         -- Blizzard's crafting panel may close when the AH opens. CraftDeja is

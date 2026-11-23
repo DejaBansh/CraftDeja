@@ -191,6 +191,7 @@ function app.newRouteSearch(model)
                                         if to==model.target then
                                             withRanks(model,cost);complete(cost)
                                         else
+                                            if model.collectPrefix and (not result.prefix or to>result.prefix.target or to==result.prefix.target and app.routeBetter(cost,result.prefix)) then result.prefix=cost end
                                             buckets[to]=buckets[to]or {}
                                             addState(buckets[to],{segments=segments,cost=cost,key=signature(segments),score=score(model,cost,reuse)},width)
                                         end

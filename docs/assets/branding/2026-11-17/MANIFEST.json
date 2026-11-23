@@ -1,0 +1,20 @@
+{
+  "status": "New branding artwork, separate from unchanged active addon assets; not installed or published",
+  "tool": "built-in image_gen",
+  "files": [
+    {
+      "file": "CraftDeja-Logo-v2.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "ed6be18c351573d12bc13a7803304a868b5b2a3ee618b65638f3b8f0f7a06937",
+      "alpha": "32-bit ARGB; corner alpha verified zero"
+    },
+    {
+      "file": "CraftDeja-Icon-v2.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a7014e91d7013c1ff454d67fb5681fc93a8b08ac6102c6b7455a18d62234e723",
+      "alpha": "32-bit ARGB; corner alpha verified zero"
+    }
+  ]
+}

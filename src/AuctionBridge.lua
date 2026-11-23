@@ -290,7 +290,9 @@ function app.performAHBuy(shownPlan,shownOffer)
     end
     if not app.shoppingFresh()then return app.blockShoppingAction()end
     app.ahMailPoll();app.refresh(false)
-    local plan=app.shoppingPlan()
+    local plan
+    if shownPlan and shownPlan.recipePurchase then plan=app.currentRecipeAHPlan(shownPlan.recipePurchase)
+    else plan=app.shoppingPlan() end
     if not plan or not shownPlan or plan.scanSerial~=shownPlan.scanSerial or app.purchaseKey(plan)~=app.purchaseKey(shownPlan) then app.actionNotice=app.caption('action_changed');app.refreshNextStep();return false end
     local row,n=nextMissing(plan);if not row then app.refreshNextStep();return false end
     local order=app.ahOrder

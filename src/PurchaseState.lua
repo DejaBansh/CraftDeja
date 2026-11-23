@@ -12,6 +12,7 @@ function app.purchaseLog(event,id,n)
     while #s.log>40 do table.remove(s.log,1)end
 end
 function app.purchaseKey(plan)
+    if plan.recipePurchase then return 'recipe:'..plan.recipePurchase end
     if plan.toolPreparation then return 'rod:'..plan.recipe.profession..':'..plan.jobSerial..':'..plan.recipe.id end
     if plan.production then return 'production:'..plan.recipe.profession..':'..plan.jobSerial..':'..tostring(plan.purchaseSlice or 'whole')end
     if plan.recipe then

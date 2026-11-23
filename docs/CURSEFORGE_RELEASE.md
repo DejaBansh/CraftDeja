@@ -91,3 +91,10 @@ After successful file upload: copy the tagged description via the Author Console
 - [CurseForge Studios API](https://docs.curseforge.com/rest-api/)
 - [Official Description editor](https://blog.curseforge.com/monthly-console-notes-october-2026/)
 - [WoWLua build/tag semantics](https://wowlua.dev/docs/guide/publishing)
+
+## Option D für jedes Update der Projektseite
+
+1. Als Ausgangspunkt für Summary, Beschreibung und Gestaltung die [freigegebene Referenz D](assets/marketing/2026-11-21-curseforge/D/desktop.html) und ihre [Medienliste](assets/marketing/2026-11-21-curseforge/D/media.md) verwenden. Das [Werkstattbanner mit Messingnieten](assets/marketing/2026-11-21-curseforge/media/workbench-banner.png) bildet den Kopf der Seite. Den Guide mit einem echten, versionsbezogen beschrifteten Ausschnitt zeigen.
+2. Vor jedem Release-Push Änderungen gegen den vorgesehenen Build prüfen und die Beschreibung in Deutsch und English in releases/<version>/description.md pflegen. Die englische Referenz enthält Beispielangaben zu Beta.26. Version, Kanal und Funktionen für den jeweiligen Build aktualisieren. Bilder über die gültigen CurseForge-Medienadressen mit Alt-Text einbinden.
+3. In der versionsbezogenen REVIEW.md Banner, Guide-Bild und Lesbarkeit bei Desktop- und schmaler Breite abgleichen. Nach der Übernahme in die Author Console Hintergrund und Messingrand in der öffentlichen Vorschau kontrollieren. Der feste Bildrahmen ist auch dann sichtbar, wenn der Editor äußere Stile einschränkt.
+4. Ein Release-Tag verwendet den Text aus seinem freigegebenen Commit. Die öffentliche Hauptbeschreibung wird separat in der Author Console gepflegt. Ein normaler Branch-Push veröffentlicht keine Projektseite.

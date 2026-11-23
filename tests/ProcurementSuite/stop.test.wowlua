@@ -1,0 +1,71 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+local a=_G['CraftDeja']
+local function setup()
+ local r={id=991912,profession=185,scroll=991913,skill=105,learned=false}
+ local c:any={r=r,item=r.scroll,stock=0,price=1150,buys=0,searches=0}
+ mock.setField(a,'active',{profile={id=185,skill=65,cap=75},recipes={[r.id]=r}})
+ mock.setField(a,'decision',{current={recipe=r,needsLearning=true}})
+ mock.setField(a,'nativeCraftHandoff',nil);mock.setField(a,'craftBatch',nil)
+ mock.setField(a.vendorPurchase,'pending',nil);mock.setField(a.vendorPurchase,'open',false)
+ mock.setField(a.shopping,'open',true)
+ mock.setField(a.character,'recipeAHRequests',{});mock.setField(a.character,'ahMail',{})
+ mock.setField(a.character,'recipeShopPrices',{[1234]={[c.item]={unit=1000,at=time()}}})
+ mock.stub(a,'sourceList',function()return {{id=1234,kind='vendor',side='Both'}}end)
+ mock.stub(a,'accessInfo',function()return {item=c.item}end)
+ mock.stub(a,'canRecommend',function()return true end)
+ mock.stub(a,'inventoryFor',function()return {bags=c.stock,total=c.stock}end)
+ mock.stub(a,'routeTransferable',function()return true end)
+ mock.stub(a,'craftRefreshBusy',function()return false end)
+ mock.stub(a,'currentRouteOrder',function()return nil end)
+ mock.stub(a,'buildRouteModel',function(o)assert(o.target==300 and a.active.profile.cap==75);return {target=o.target}end)
+ mock.stub(a,'newRouteSearch',function()return {candidates={}}end)
+ mock.stub(a,'advanceRouteSearch',function()return true end)
+ mock.stub(C_AuctionHouse,'MakeItemKey',function(id)return {itemID=id}end)
+ mock.stub(C_AuctionHouse,'GetItemKeyInfo',function()return {isCommodity=false}end)
+ mock.stub(C_AuctionHouse,'GetNumItemSearchResults',function()return 1 end)
+ mock.stub(C_AuctionHouse,'GetItemSearchResultInfo',function()return {auctionID=444,itemKey={itemID=c.item},quantity=1,buyoutAmount=c.price}end)
+ mock.stub(C_AuctionHouse,'SendSearchQuery',function()c.searches=c.searches+1 end)
+ mock.stub(C_AuctionHouse,'PlaceBid',function(id,price)assert(id==444 and price==1150);c.buys=c.buys+1 end)
+ mock.stub(_G,'GetMoney',function()return 2000 end)
+ a.showProcurement();c.panel=_G['CraftDejaProcurement']
+ assert(c.panel and c.panel:IsShown())
+ c.panel:GetScript('OnUpdate')(c.panel,0.016)
+ return c
+end
+@afterEach
+local function cleanup()
+ local f=_G['CraftDejaProcurement'];if f then f:Hide()end
+ assert(#mock.errors()==0,table.concat(mock.errors(),"\n"))
+end
+@test("Recipe stop checks exact item and final buyout on click and reconciles matching auction receipt")
+local function purchase()
+ local c=setup();local f=c.panel
+ mock.click(f.buy);assert(c.searches==1)
+ mock.fireEvent('ITEM_SEARCH_RESULTS_UPDATED',{itemID=c.item})
+ assert(f.shownRow.mode=='buy' and f.shownRow.cost==1150)
+ c.price=1151;mock.click(f.buy);assert(c.buys==0)
+ c.price=1150;mock.fireEvent('ITEM_SEARCH_RESULTS_UPDATED',{itemID=c.item})
+ mock.click(f.buy);assert(c.buys==1 and a.character.recipeAHRequests[c.item])
+ mock.fireEvent('AUCTION_HOUSE_PURCHASE_COMPLETED',445);assert(a.confirmedMail(c.item)==0)
+ mock.fireEvent('AUCTION_HOUSE_PURCHASE_COMPLETED',444)
+ assert(a.confirmedMail(c.item)==1 and not a.character.recipeAHRequests[c.item])
+ assert(not f.shownRow and not f.buy:IsEnabled())
+ assert(a.recipeLearningTask(c.r).kind=='recipe_owned')
+end
+@test("Vendor stop rechecks slot, price and inventory and does not repeat while bags lag")
+local function vendor()
+ local c=setup()
+ mock.setField(a.shopping,'open',false);mock.setField(a.vendorPurchase,'open',true)
+ local slotPrice=1000
+ mock.stub(_G,'GetMerchantNumItems',function()return 1 end)
+ mock.stub(a,'readMerchantOffer',function()return {id=c.item,price=slotPrice,bundle=1,available=1,slot=1}end)
+ mock.stub(a,'canReceiveStock',function()return true end)
+ mock.stub(_G,'BuyMerchantItem',function(slot,n)assert(slot==1 and n==1);c.buys=c.buys+1 end)
+ a.showProcurement()
+ c.panel:GetScript('OnUpdate')(c.panel,.016)
+ assert(c.panel.shownRow.mode=='vendor')
+ slotPrice=1050;mock.click(c.panel.buy);assert(c.buys==0)
+ mock.click(c.panel.buy);assert(c.buys==1)
+ mock.click(c.panel.buy);assert(c.buys==1)
+end

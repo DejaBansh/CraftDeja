@@ -22,12 +22,13 @@ function app.vendorPurchasePlan()
     local rows={}
     for _,row in ipairs(plan.rows)do
         local offer=offers[row.id]
-        if offer and row.buy>0 and offer.unit<=row.unit+.000001 then
+        local missing=math.max(0,row.buy-app.confirmedMail(row.id)-app.purchaseReserved(row.id))
+        if offer and missing>0 and offer.unit<=row.unit+.000001 then
             local max=app.try(GetMerchantItemMaxStack,offer.slot)or offer.bundle
             max=math.floor(max/offer.bundle)*offer.bundle
             if max>=offer.bundle then
-                local buy=math.min(max,math.ceil(row.buy/offer.bundle)*offer.bundle)
-                rows[#rows+1]={id=row.id,name=offer.name,slot=offer.slot,missing=row.buy,quantity=buy,bundle=offer.bundle,
+                local buy=math.min(max,math.ceil(missing/offer.bundle)*offer.bundle)
+                rows[#rows+1]={id=row.id,name=offer.name,slot=offer.slot,missing=missing,quantity=buy,bundle=offer.bundle,
                     price=offer.price,unit=offer.unit,cost=offer.price*buy/offer.bundle,locations=row.locations}
             end
         end

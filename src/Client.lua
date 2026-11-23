@@ -314,24 +314,34 @@ end
 function app.readMerchantOffer(slot)
     local id=itemID(app.try(GetMerchantItemLink,slot))
     local info=app.try(C_MerchantFrame and C_MerchantFrame.GetItemInfo,slot)
-    local name,price,bundle,available,extended
+    local name,price,bundle,available,extended,purchasable
     if type(info)=='table'then
+        purchasable=info.isPurchasable
         name,price,bundle,available,extended=info.name,info.price,info.stackCount,info.numAvailable,info.hasExtendedCost or info.currencyID~=nil
     else
         local texture,usable
         name,texture,price,bundle,available,usable,extended=app.try(GetMerchantItemInfo,slot)
     end
     if id and type(price)=='number'and price>0 and type(bundle)=='number'and bundle>0 and not extended then
-        return{id=id,slot=slot,name=name or app.itemName(id),price=price,bundle=bundle,unit=price/bundle,available=available}
+        return{id=id,slot=slot,name=name or app.itemName(id),price=price,bundle=bundle,unit=price/bundle,available=available,purchasable=purchasable}
     end
 end
 function app.observeMerchant()
     local count=app.try(GetMerchantNumItems)or 0
     local offers={}
+    local guid=app.try(UnitGUID,'npc')
+    local npc=type(guid)=='string' and tonumber(guid:match('^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-'))
     for slot=1,count do
         local offer=app.readMerchantOffer(slot)
         if offer then
+            local _,_,_,_,_,classID=app.try(C_Item and C_Item.GetItemInfoInstant or GetItemInfoInstant,offer.id)
             app.character.vendor[offer.id]={unit=offer.unit,when=app.try(time),limited=type(offer.available)=='number'and offer.available~=-1}
+            if npc and classID==9 and offer.purchasable~=false and offer.bundle==1 and (offer.available==-1 or (offer.available or 0)>0) then
+                app.character.recipeShopPrices=app.character.recipeShopPrices or {}
+                local records=app.character.recipeShopPrices
+                records[npc]=records[npc] or {}
+                records[npc][offer.id]={unit=offer.unit,at=app.try(time)}
+            end
             if offer.available==-1 then offers[offer.id]=offer.unit end
         end
     end

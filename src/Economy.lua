@@ -193,6 +193,10 @@ function app.materialPlan(recipe,requested)
     if not quote then return nil,"no_prices"end
     local crafts,estimated=app.expectedCraftAttempts(recipe,skill,target)
     if not crafts then return nil,estimated end
+    local expected=crafts
+    local green=(app.band(recipe,skill)=='green' or recipe.colour=='green') and crafts>1 and not recipe.craftLimit
+    local reserve=green and app.character and app.character.greenReserve
+    if reserve and reserve.recipe==recipe.id and reserve.target==target then crafts=2*expected end
     if type(recipe.craftLimit)=='number'then crafts=math.min(crafts,recipe.craftLimit)end
     local totals={}
     for _,input in ipairs(quote.inputs)do
@@ -211,7 +215,16 @@ function app.materialPlan(recipe,requested)
     end
     table.sort(rows,function(a,b)return a.id<b.id end)
     local plan={recipe=recipe,from=skill,target=target,crafts=crafts,estimated=estimated,rows=rows,purchase=sum,stockKnown=complete,capped=tonumber(requested)and target<tonumber(requested)}
-    plan.costs=app.planCostBreakdown(plan,quote)
+    plan.expectedCrafts=math.min(expected,recipe.craftLimit or expected)
+    if green then
+        plan.reserveEligible=true
+        plan.reserveExtra=0
+        for _,row in ipairs(rows)do
+            local baseline=row.total*expected/crafts
+            local owned=(row.owned or 0)+(app.confirmedMail and app.confirmedMail(row.id) or 0)
+            plan.reserveExtra=plan.reserveExtra+(math.max(0,2*baseline-owned)-math.max(0,baseline-owned))*row.unit
+        end
+    end
     plan.costs=app.planCostBreakdown(plan,quote)
     return plan
 end

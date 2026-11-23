@@ -54,6 +54,21 @@ ExecutionPolicy Bypass betrifft ausschließlich diesen Prozess; keine dauerhafte
 5. Git-Diff prüfen; Laufzeit, Grafiken und Build-/Testinputs bei Dokumentationsarbeit unverändert
    lassen. Archivierung erhält Originalbytes mit SHA256-Manifest. Keine Secrets/Spielerdaten sammeln.
 
+## Auslöser der Doku-Pflege
+
+Prüfung am 21.11.2026: Im Repository gibt es keinen geplanten Doku-Workflow.
+Unter 206 lesbaren Windows-Aufgaben fand sich keine passende Aufgabe. Ein lokaler
+Codex-Automationsordner war in der geprüften Umgebung nicht vorhanden.
+Ein Zeitintervall oder letzter automatischer Doku-Stand ist damit nicht belegt.
+
+Der Release-Workflow startet durch Tag-Push, Push auf `codex/curseforge-dry-run`
+oder manuellen Dispatch. Sein letzter belegter Lauf endete am 20.11.2026 um 22:05:38
+Berliner Zeit. Er packte beta.26 und bereitete die CurseForge-Beschreibung als Artefakt vor.
+[Lauf und Artefakte](https://github.com/DejaBansh/CraftDeja/actions/runs/44815834310).
+Die Repository-Doku wird bei einem Auftrag aktualisiert. Sinnvoller Prüfauslöser für
+später wäre ein erfolgreicher Release-Tag-Lauf, der Versionsstand und Nachweisindex
+gegen den Tag prüft und Abweichungen meldet.
+
 ## Prüfung dieser Umstrukturierung
 
 Isolierte Entwicklerprüfung, keine WoWLua-/Spielsimulation: PowerShell-Parser, lesender echter

@@ -3,6 +3,10 @@
 Stand: 17.11.2026. Dauerhafte Gründe und Grenzen; aktuelle Ergebnisse stehen in TEST_RESULTS.md.
 Die vollständige Entscheidungshistorie bleibt im [Archiv](docs/archive/2026-11-17-handoff/DECISIONS.md).
 
+- **Kompakter Guide und Optionen.** Beide Ansichten verwenden dieselbe Kopfzeile, Materialpalette und Texttasten. Das Werkstattpult wird als beschrifteter Eintrag im Zahnradmenü angeboten. Die reguläre Itemgrafik bleibt beim Rezept sichtbar.
+
+- **Meisterpult im Addon (23.11.2026).** Die freigegebene Vorschau verwendet dunkles Walnussbraun für Fensterflächen (`#34271F`), Sattellederbraun für die Haupttaste (`#65412B`), mattes Messing für Kanten (`#C3A672`) und Creme für Text (`#F2EBDD`). Griffmulde und Präzisionsschieber ergänzen die Haupttaste. [Designreferenz](docs/assets/mockups/meisterpult/index.html)
+
 - **Nachvollziehbare Kosten:** Kosten pro erwartetem Skillpunkt, Materialverbrauch und zusätzlicher
   Goldbedarf getrennt. Eigener Bestand ist wirtschaftlich nicht kostenlos. Händler-Mindestwert nur
   mit bestätigter Ausbeute; negative Netto-Schätzungen sind kein Gewinnversprechen. Unbekannt bleibt
@@ -46,3 +50,11 @@ Die vollständige Entscheidungshistorie bleibt im [Archiv](docs/archive/2026-11-
   Siebentägige lokale Lernkostengültigkeit ist kein globaler Händlerabgleich.
 - **Übergabe:** Kurzer aktueller Einstieg, eindeutige Dokumentzuständigkeiten, strukturierte Belege.
   Historie archivieren statt aktuelle Zustände mehrfach kopieren. Code/Git/Hashes vor Notizen prüfen.
+
+## 23.11.2026 · Materialreserve und Rezeptbeschaffung
+
+Skillchancen bestimmen den erwarteten Einkauf. Zusätzliche Reserve und eine längere native Serie brauchen jeweils eine Spielerentscheidung. Bei Rezepten ist der AH-Aufpreis auf 15 % gegenüber einem belegten Händlerpreis begrenzt. Ein ohnehin anstehender Besuch beim selben Anbieter lässt den Aufpreis entfallen. Die Vorschau bis 300 führt einen eigenen Vergleich und ändert das laufende Auftragsziel nicht.
+
+## 21.11.2026 · Gestaltung der CurseForge-Projektseite
+
+Der Nutzer hat Option D gewählt. Für künftige Releases gilt der schnelle Einstieg mit drei Spielervorteilen und echtem Guide-Ausschnitt im Goblin-Werkstattstil. Das Titelbild trägt die genietete Messingeinfassung direkt im Bild. Dunkles Rauchglas, warme Messingkanten und dezentes grünes Licht ziehen sich durch die Seite. Die Texte bleiben auch ohne Bilder lesbar. [Designreferenz D](docs/assets/marketing/2026-11-21-curseforge/D/desktop.html)

@@ -104,8 +104,8 @@ end
 function app.renderOrderProgress(parent,plan,task,y)
     if not parent.orderBar then
         local f=CreateFrame('Frame',nil,parent);parent.orderBar=f;f:SetSize(324,85);f.columns={}
-        f.heading=app.createLabel(f,10,0,0,324)
-        f.storage=app.createLabel(f,9,0,-76,324);f.storage:SetHeight(22)
+        f.heading=app.createLabel(f,10,0,0,324,{.95,.92,.87})
+        f.storage=app.createLabel(f,9,0,-76,324,{.85,.79,.69});f.storage:SetHeight(22)
         for i,def in ipairs(definitions)do
             local c=CreateFrame('Frame',nil,f);c:SetSize(62,58);c:SetPoint('TOPLEFT',(i-1)*65,-17)
             c.icon=c:CreateTexture(nil,'OVERLAY');c.icon:SetSize(19,19);c.icon:SetPoint('TOPLEFT',21,0);c.icon:SetTexture(app.uiPath('Icon_'..def[2]))
@@ -127,10 +127,10 @@ function app.renderOrderProgress(parent,plan,task,y)
     f:ClearAllPoints();f:SetPoint('TOPLEFT',18,-y);f.heading:SetText(app.caption('order_title'))
     for i,def in ipairs(definitions)do
         local key=def[1];local s=v[key];local c=f.columns[i];c.data=s
-        local colour=s.state=='done'and {0.42,.88,.57}or s.state=='active'and {1,.81,.3}or {.65,.61,.72}
+        local colour=s.state=='done'and {.82,.79,.68}or s.state=='active'and {1,.81,.48}or {.70,.63,.55}
         c.label:SetText(app.caption('order_'..key));c.label:SetTextColor(unpack(colour));c.count:SetTextColor(unpack(colour))
         c.icon:SetAlpha((s.state=='pending'or s.state=='unknown')and .4 or 1)
-        app.try(c.icon.SetDesaturated,c.icon,s.state=='pending'or s.state=='unknown')
+        c.icon:SetDesaturated(true);c.icon:SetVertexColor(unpack(colour))
         c.count:SetText(key=='done'and app.caption(v.finished and 'order_ok'or 'order_open')or (s.state=='unknown'or s.waiting)and '?'or (s.estimated and '~'or '')..tostring(s.n or 0))
     end
     f.storage:SetText(v.storage>0 and app.caption('order_storage',v.storage)or '')

@@ -1,6 +1,59 @@
 # CraftDeja — Testnachweise
 
-Stand: 20.11.2026. Maschinenlesbare Nachweise in [docs/evidence/index.json](docs/evidence/index.json).
+**Münzfarben**, 23.11.2026. Release-Build beta.27, Basis `6daffa3fc5c27449e07a441cb6a75dccc178b5f0` plus Arbeitsbaum. 686 bestanden, 0 fehlgeschlagen, 0 übersprungen in 205,39 s. Geprüft wurden die Formatierung von 1g 2s 13c, negative und anteilige Kupferbeträge sowie das Preisangebot im Kaufbutton. [Bericht](reports/tests/20261123-175825-ec906d.zip).
+
+**Händlerhinweis im kompakten Guide**, 23.11.2026. Lokaler Release-Build beta.27, Basiscommit `6daffa3fc5c27449e07a441cb6a75dccc178b5f0` plus Arbeitsbaum. In WoWLua/Camelot sind 686 Tests bestanden, 0 fehlgeschlagen, 0 übersprungen (210,60 s). Der Händlerfall prüft Item-ID 2880, Menge 10, Tooltip-Name und den Wechsel zwischen Guide und Optionen. [Testbericht](reports/tests/20261123-155412-2e49bd.zip). Die visuelle Abnahme im Spiel ist offen.
+
+Stand: 23.11.2026. Maschinenlesbare Nachweise in [docs/evidence/index.json](docs/evidence/index.json).
+
+## Beta.27 · Rezeptbeschaffung und Herstellserien
+
+Zweite Meisterpult-Probe vom 23.11.2026, Basis `6daffa3fc5c27449e07a441cb6a75dccc178b5f0` plus Arbeitsbaum. Release-Build und vollständige WoWLua-Suite: 685 bestanden, 0 fehlgeschlagen, 0 übersprungen in 196,50 s. Geprüft wurden unter anderem Händlerguide mit Materialwahl, Optionen, Rückkehr und Werkstattpult-Navigation. [Bericht](reports/tests/20261123-154140-5bf06d.zip), [Quell- und Grafikprüfsummen](docs/evidence/beta27-meisterpult-v2-manifest.json). Installationsvergleich: 86 Dateien identisch. UI-27 bleibt zur Spielabnahme offen.
+
+Der nachfolgende Meisterpult-Prüfstand vom 23.11.2026 basiert auf `6daffa3fc5c27449e07a441cb6a75dccc178b5f0` plus Arbeitsbaum. Vollständiger Release-Build und Camelot-Quellsuite mit 683 bestandenen, 0 fehlgeschlagenen und 0 übersprungenen Tests in 238,90 s. Nachweis `beta27-meisterpult-local-full` im Index. Separater Emulatorabruf des geöffneten Händlerguides mit 10 Fluxus. Lokale Forever-Installation per SHA256 bestätigt. Sichtprüfung durch den Spieler offen (UI-27).
+
+Vollständige WoWLua/Camelot-Quellsuite mit Blizzard-UI, 683 bestanden, 0 fehlgeschlagen, 0 übersprungen, 219,87 Sekunden. Lokale Paketversion `3.9.0-beta.27-alpha+6daffa3`, Basis `6daffa3fc5c27449e07a441cb6a75dccc178b5f0` plus Arbeitsbaum. Der erste Zwischenlauf hatte einen Dateizugriffsfehler beim Laden einer Suite. Der abschließende Lauf prüfte den fertigen Quellstand. Bericht und SHA256-Quellmanifest stehen in [docs/evidence/index.json](docs/evidence/index.json), Eintrag `beta27-procurement-local-full`. Bericht `reports/tests/20261123-072955-849f50.zip`.
+
+Die ProcurementSuite prüft sieben Fälle, darunter Kochkunst 219/225 mit sechs sicheren und 30 ausdrücklich gewählten Versuchen, grüne Materialreserve, unterschiedliche Rezeptwege, einen Händlerkauf mit verzögertem Eingang und den exakten AH-Sofortkauf samt Preisänderung und Beleg-ID. Die bestehende RodSuite prüft Werkzeugketten und die Rückkehr zum Hauptauftrag. Ungeklärt bleibt, welcher Clientzustand den gemeldeten Silberruten-Stillstand ausgelöst hat. Der kurze Forever-Test steht unter PROC-27.
+
+## Ingenieurskunst 1–300, zusammenhängende WoWLua-Abnahme
+
+**300/300 erreicht, „Fertig“ erst am Ziel.** WoWLua 0.13.14, Camelot, deutsche Guide- und
+Client-Texte, simulierter Charakter auf Stufe 60. Lokaler Build
+`3.9.0-beta.26-alpha+6daffa3` mit Release-Profil. Testbasis
+`6daffa3fc5c27449e07a441cb6a75dccc178b5f0` plus neuer lokaler Test.
+Addon-Laufzeitquellen und Build-Konfiguration stimmen mit dem Tag-Quellstand überein.
+
+- Einzeltest **1/0/0** in 9,93 s. [Einzelbericht](reports/tests/20261121-044754-876855.zip).
+- Gezielte Regressionen für Rang, Route, Guide, Undercity und Produktion **71/0/0**
+  in 38,67 s, 39 Dateien. [Bericht mit Prüfsummen](reports/tests/20261121-044823-d557c7.zip).
+- Die Simulation verwendet eine kontrollierte Kupferrohr-Variante mit festen Zutaten,
+  Preisen und Skillchancen. Der vollständige native Rezeptkatalog pro Rang, echte
+  Auctionator-Angebote und die Forever-Ökonomie sind nicht Bestandteil des Durchlaufs.
+  AH-Preisstand und Kaufdialog kommen aus der Testumgebung. Die Auftrags- und Guide-Logik
+  sowie die Ereignisverarbeitung stammen aus CraftDeja.
+
+| Übergang im selben Auftrag | Auslöser | Ergebnis |
+|---|---|---|
+| 1/75, AH | Beruf öffnen, im Werkstattpult Route planen, AH-Suche | 74 Herstellungen, 148 Barren und 74 Fluxus. Zwei bestätigte Barren im Teilkauf lassen 146 im AH offen. |
+| AH → Post → Händler | Kaufbestätigung, Post geöffnet, bestätigter Taschenzuwachs, Händler geöffnet | Postbedarf erst nach verbuchtem Bestand erledigt. Der Händler bietet 74 Fluxus an. |
+| Händler → Herstellung | Kaufklick und Taschenupdate, danach Klick auf den nativen Herstellknopf | 74 Herstellungen verbrauchen die Zutaten, eine davon ohne Skillpunkt. Bei 74/75 plant der Guide genau eine weitere Herstellung mit zwei Barren und einem Fluxus. |
+| 75/75 → 75/150 | Trainer öffnen, „Rang lernen“, Client bestätigt höhere Grenze | Genau ein bestätigter Trainingskauf, derselbe Auftrag fordert die nächste Materialmenge an. |
+| 150/150 → 150/225 und 225/225 → 225/300 | „Lehrer zeigen“, manueller Kauf im simulierten Trainerfenster, höhere Grenze per Client-Ereignis | Guide setzt denselben Auftrag nach beiden Rangwechseln fort. Für diese Ränge fehlt der verifizierte Kauf anhand der Service-ID. |
+| 300/300 | Bestätigter Herstellungserfolg | „Fertig“ ist deaktiviert. Beide simulierten Zutatenbestände sind aufgebraucht. |
+
+Die anfänglichen Fehler des Testaufbaus betrafen die native Frame-Attrappe, den
+Rangbalken und erlaubte AH-/Händler-Übergänge. Der bereinigte Lauf erreichte 300.
+Der separate, frühere isolierte Guide-Test scheiterte an der anfänglichen
+Sichtbarkeitsprüfung. Der Lauf der gesamten Undercity-Testdatei reproduzierte den Fehler
+nicht. Die echte Sichtbarkeit bleibt Teil der Live-Abnahme.
+
+**Forever-Checkliste:** An einem erreichbaren Rang einen Teilkauf bestätigen und Post
+abholen. Händlerangebot und Restmenge prüfen und den originalen Herstellknopf am Amboss
+verwenden. Bei einer Herstellung ohne Skillpunkt auf offenen Bedarf achten. Bei 75/75
+prüfen, ob der Guide den passenden Lehrer zeigt und erst mit 75/150 weiterplant.
+Für 150/150 und 225/225 den Rang im Lehrerfenster lernen und die Fortsetzung prüfen.
+Der Abschluss bei Skill 300 kann mit einem höherstufigen Testcharakter abgenommen werden.
 
 ## Veröffentlichung von beta.26
 

@@ -67,7 +67,11 @@ local function quoteRod(r)
             if not unit and stock and type(stock.total)=='number'and stock.total>=group.amount then unit=0 end
             if type(unit)=='number'and unit>=0 and (not selected or unit<selected.unit)then selected={item=id,amount=group.amount,unit=unit}end
         end
-        if not selected then return nil end
+        if not selected then
+            local names={}
+            for _,id in ipairs(group.choices)do names[#names+1]=app.itemName(id) end
+            return nil,table.concat(names,' / ')
+        end
         inputs[#inputs+1]=selected;cost=cost+selected.amount*selected.unit
     end
     return #inputs>0 and {inputs=inputs,cost=cost}or nil
@@ -141,8 +145,8 @@ function app.rodPreparationPlan()
         j.recipe=recipe.id;j.output=recipe.outputItemID;j.before=bags(j.output)
         app.newPurchasePlan()
     end
-    local q=quoteRod(recipe)
-    if not q then return nil,{kind='review',key='rod_prices:'..recipe.id,recipe=recipe,body=app.caption('no_prices')},true end
+    local q,missing=quoteRod(recipe)
+    if not q then return nil,{kind='review',key='rod_prices:'..recipe.id,recipe=recipe,body=app.caption('no_prices')..(missing and (' · '..missing) or '')},true end
     local totals,rows,purchase,known={},{},0,true
     for _,input in ipairs(q.inputs)do
         local row=totals[input.item]or {id=input.item,total=0,unit=input.unit};totals[input.item]=row

@@ -36,7 +36,7 @@ end
 local original={}
 local coreNames={'output','outputName','outputCount','route','body','place','notice','action','craftAll','orderBar',
     'attention','alertTitle','ctaInfo','requirementName','workshopStatus','workshopExtra','workshopToggle',
-    'routeSkip','bankLater','materialStock','materialReview'}
+    'routeSkip','bankLater','reserveButton','estimateButton','procurementButton','materialStock','materialReview','vendorItemHint'}
 local function root()return app.nextStepWindow end
 local function clearView()
     if app.unifiedView then app.unifiedView:Hide()end
@@ -54,16 +54,18 @@ local function chrome(f)
         f.headerChrome:EnableMouse(false);f.headerChrome:SetFrameLevel(999)
         f.headerChrome.title=app.createLabel(f.headerChrome,20,57,-16,220,{.87,.73,.39})
         f.headerChrome.logo=f.headerChrome:CreateTexture(nil,'ARTWORK');f.headerChrome.logo:SetSize(34,34)
-        f.headerChrome.logo:SetPoint('TOPLEFT',14,-10);f.headerChrome.logo:SetTexture(app.uiPath('Logo'))
+        f.headerChrome.logo:SetPoint('TOPLEFT',14,-10);f.headerChrome.logo:SetTexture(app.uiPath('MeisterpultStamp'))
+        f.headerChrome.logo:SetVertexColor(.78,.66,.45)
     end
     f.headerChrome.title:SetWordWrap(false);f.headerChrome.title:SetHeight(26)
     f.headerChrome.title:SetText(f.title:GetText());f.headerChrome.title:SetWidth(f:GetWidth()-140)
     f.title:Hide();if f.logo then f.logo:Hide()end
     f.title:SetWidth(f:GetWidth()-140)
     f.close:ClearAllPoints();f.close:SetPoint('TOPRIGHT',-9,-9)
+    app.styleButton(f.close,'close',true)
     f.logButton:ClearAllPoints();f.logButton:SetPoint('TOPRIGHT',-46,-9)
     f.logButton:SetText(app.caption('ui_options'));app.styleButton(f.logButton,'gear',true)
-    f.logButton:SetScript('OnClick',function()app.showOptions()end)
+    f.logButton:SetScript('OnClick',function()app.showOptions('settings')end)
     f.logButton.tipLines=function()return {app.caption('ui_options')}end
     local level=1000
     app.try(f.logButton.SetFrameLevel,f.logButton,level);app.try(f.close.SetFrameLevel,f.close,level)
@@ -82,7 +84,7 @@ local function chrome(f)
         end
         f.back=app.createButton(f,18,0,324,'',function()app.showCentralGuide()end)
         f.back.fixedRole=true;app.styleButton(f.back,'prev',false)
-        f.surface=f:CreateTexture(nil,'BACKGROUND',nil,1);f.surface:SetColorTexture(.07,.035,.12,.92)
+        f.surface=f:CreateTexture(nil,'BACKGROUND',nil,1);f.surface:SetColorTexture(52/255,39/255,31/255,.86)
     end
     f.surface:ClearAllPoints();f.surface:SetPoint('TOPLEFT',12,-48)
     f.surface:SetSize(f:GetWidth()-24,math.max(1,f:GetHeight()-63))
@@ -124,6 +126,7 @@ local function mount(v,key)
     app.unifiedView=v;app.unifiedViewKey=key
     if not v.unifiedHosted then
         v.unifiedHosted=true;v:SetParent(f);v:SetBackdrop(nil)
+        app.applyProfessionTheme(v,v.professionTheme)
         v.title:Hide();if v.logo then v.logo:Hide()end;if v.close then v.close:Hide()end;if v.scaleGrip then v.scaleGrip:Hide()end
         v:SetMovable(false)
         v:SetScript('OnDragStart',function()f:StartMoving()end)
@@ -242,6 +245,7 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='ah_done'then title,label='cta_purchase_done','cta_details'
     elseif kind=='mail'then title,label='cta_mail','cta_mail_check'
     elseif kind=='vendor'then title,label=task.atVendor and 'cta_material'or 'cta_vendor',task.atVendor and 'cta_buy'or 'cta_map'
+    elseif kind=='recipe_owned'then title,label='cta_learn','recipe_owned_check'
     elseif kind=='learn'then title,label=task.needsCostCheck and 'acquisition_check'or 'cta_learn',task.sourceTarget and 'cta_source'or 'cta_details'
     elseif kind=='rank'then title,label=task.levelBlocked and 'cta_level'or 'cta_rank','cta_trainer'
     elseif kind=='station'then
@@ -253,7 +257,7 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='craft'then
         title,label='cta_craft',app.professionOpen and 'cta_prepare'or 'cta_open'
         if f.craftAll:IsShown()then primary,secondary=f.craftAll,f.action;secondary:SetText(app.caption('cta_single'))end
-        if plan and plan.recipe.profession==333 and not plan.toolPreparation then title,label='cta_enchant','cta_enchant_target'end
+        if plan and app.requiresEnchantTarget(plan.recipe) and not plan.toolPreparation then title,label='cta_enchant','cta_enchant_target'end
         if plan and plan.toolPreparation then title='cta_rod'end
         if plan and plan.estimated and task.batch==1 then label='cta_attempt'end
     elseif kind=='craft_native'then
@@ -448,13 +452,13 @@ function app.showUnifiedGeneral()
 end
 function app.showOptions(tab)
     if not app.unifiedOptions then
-        local f=app.createWindow('CraftDejaGuideOptions',480,410);app.unifiedOptions=f;f.tabs={};f.rows={};f.tab='settings'
+        local f=app.createWindow('CraftDejaGuideOptions',480,450);app.unifiedOptions=f;f.tabs={};f.rows={};f.tab='settings'
         for i,key in ipairs({'settings','lookup','help'})do
             local tabKey=key;f.tabs[i]=app.createButton(f,24+(i-1)*146,-54,140,'',function()app.showOptions(tabKey)end)
             app.styleButton(f.tabs[i],({'gear','book','help'})[i],false);f.tabs[i].fixedRole=true
         end
-        for i=1,6 do f.rows[i]=app.createButton(f,24,-99-(i-1)*40,432,'',function(self)if self.run then self.run()end end)end
-        f.note=app.createLabel(f,10,24,-350,432);f.note:SetHeight(40)
+        for i=1,7 do f.rows[i]=app.createButton(f,24,-99-(i-1)*40,432,'',function(self)if self.run then self.run()end end)end
+        f.note=app.createLabel(f,10,24,-390,432,{.82,.75,.65});f.note:SetHeight(40)
     end
     local f=app.unifiedOptions;if type(tab)=='string'then f.tab=tab end
     app.renderUnifiedOptions();mount(f,'menu')
@@ -462,7 +466,13 @@ end
 function app.renderUnifiedOptions()
     local f=app.unifiedOptions;if not f then return end
     f.title:SetText('CraftDeja - '..app.caption('ui_options'))
-    for i,key in ipairs({'settings','lookup','help'})do f.tabs[i]:SetText(app.caption('ui_'..key))end
+    for i,key in ipairs({'settings','lookup','help'})do
+        local tab=f.tabs[i];tab:SetText(app.caption('ui_'..key))
+        if key==f.tab then
+            tab:GetNormalTexture():SetColorTexture(.36,.25,.16,1)
+            tab.label:SetTextColor(.95,.81,.57)
+        end
+    end
     local entries
     if f.tab=='lookup'then entries={
         {app.caption('ui_catalog'),'book',app.showCatalogue},
@@ -482,7 +492,8 @@ function app.renderUnifiedOptions()
         {app.caption('ui_alts',app.caption(app.options.inventoryAlts and 'enabled'or 'disabled')),'alts',function()app.options.inventoryAlts=not app.options.inventoryAlts;app.refresh(false);app.renderUnifiedOptions()end},
         {app.caption('ui_unlock'),'unlock',function()app.newPurchasePlan();app.renderUnifiedOptions()end},
         {app.caption('ui_center'),'center',function()local g=root();g:ClearAllPoints();g:SetPoint('CENTER');app.options.guidePosition=nil end},
-        {app.caption('stock_title'),'bag',app.showStockTargets}}
+        {app.caption('stock_title'),'bag',app.showStockTargets},
+        {app.caption('workshop'),'book',function()app.showCentralGuide();app.showRouteWindow()end}}
     end
     for i,b in ipairs(f.rows)do local e=entries[i];if e then b:SetText(e[1]);app.styleButton(b,e[2],false);b.fixedRole=true;b.run=e[3];b:Show()else b:Hide()end end
     f.note:SetText('CraftDeja '..app.release..'\n'..(app.actionNotice or app.caption('ui_resize')))

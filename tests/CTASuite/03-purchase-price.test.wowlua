@@ -27,6 +27,7 @@ mock.stub(a,"performAHBuy",function(p,offer)seen={plan=p,offer=offer}end)
 local offer={phase="ah_confirm",cost=12345,id=6289,quantity=11,button="Original",body="Original price explanation"}
 a.renderNextStep(plan,true,{kind="ah_confirm",key="confirm",offer=offer,body=offer.body})
 local f=a.nextStepWindow
+assert(a.money(10213)=="1|cffffd166g|r 2|cffd4dce5s|r 13|cffe49a70c|r")
 assert(f.primaryCTA:GetText():find(a.money(12345),1,true),"Purchase price hidden by concise CTA")
 mock.click(f.primaryCTA);assert(seen and seen.offer==offer and seen.plan==plan,"CTA changed purchase payload")
 end

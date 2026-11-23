@@ -76,7 +76,7 @@ end
 local function scenario()
 
  local c=setup();c.open("Blacksmithing",3100,164)
- mock.click(c.guide().workshopOpen);local dashboard=c.app.routeWindow.workshop
+ mock.click(c.guide().logButton);mock.click(c.app.unifiedOptions.rows[7]);local dashboard=c.app.routeWindow.workshop
  mock.click(dashboard.navigation.advanced);mock.click(dashboard.editOrder)
  local v=c.app.skillOrderView
  assert(v and v:IsVisible(),"Skill target page missing")

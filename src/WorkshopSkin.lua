@@ -48,10 +48,47 @@ local theme=app.applyProfessionTheme
 app.applyProfessionTheme=function(f,profession)
     theme(f,profession)
     f:SetBackdrop(nil);if f.themeHeader then f.themeHeader:Hide()end
-    if not f.unifiedHosted then app.workshopCard(f)end
+    if not f.unifiedHosted then
+        local guide=f:GetName()=='CraftDejaNextStep'
+        local asset=guide and 'MeisterpultFrame' or 'WorkshopCard'
+        app.workshopCard(f,asset)
+        if guide and f.guideFrameAsset~=asset then
+            for _,slice in ipairs(f.workshopSlices) do slice:SetTexture(app.uiPath(asset)) end
+            f.guideFrameAsset=asset
+        end
+    end
     if f.workshopSlices then for _,t in ipairs(f.workshopSlices)do t:SetShown(not f.unifiedHosted)end end
 end
 local style=app.styleButton
+local leather={
+    Normal={.245,.176,.126,1}, Pushed={.15,.10,.07,1},
+    Highlight={.68,.54,.36,.26}, Disabled={.18,.15,.13,1},
+}
+local function guideControl(b)
+    local frame=b:GetParent()
+    if not frame then return false end
+    local name=frame:GetName()
+    return name=='CraftDejaNextStep' or name=='CraftDejaGuideOptions' or name=='CraftDejaOptions' or frame.unifiedHosted
+end
+local function dressControl(b)
+    for state,color in pairs(leather) do
+        local texture=b['Get'..state..'Texture'](b)
+        if texture then texture:SetColorTexture(unpack(color));texture:SetAlpha(1) end
+    end
+    if b.label then b.label:SetTextColor(.949,.922,.867) end
+    if b.icon and not b.itemIcon then
+        if b.iconOnly then
+            if b.role=='gear' or b.role=='close' then
+                b.icon:SetTexture(app.uiPath(b.role=='gear' and 'MeisterpultGear' or 'MeisterpultClose'))
+                b.icon:SetSize(19,19)
+            end
+            b.icon:SetVertexColor(.83,.71,.50)
+        else
+            b.icon:Hide()
+            b.label:ClearAllPoints();b.label:SetPoint('CENTER')
+        end
+    end
+end
 app.styleButton=function(b,role,iconOnly)
     style(b,role,iconOnly)
     for _,kind in ipairs({'Normal','Pushed','Highlight','Disabled'})do
@@ -65,6 +102,7 @@ app.styleButton=function(b,role,iconOnly)
     end
     if b.label then b.label:SetTextColor(.88,.93,1);b.label:SetFont(STANDARD_TEXT_FONT or 'Fonts\\FRIZQT__.TTF',b:GetWidth()<170 and 11 or 12,'')end
     if b.icon then b.icon:SetDesaturated(true);b.icon:SetVertexColor(.65,.86,.95)end
+    if guideControl(b) then dressControl(b) end
 end
 local create=app.createButton
 app.createButton=function(...)
@@ -76,14 +114,24 @@ local cta=app.styleCTAButton
 function app.workshopTint(b)
     local ready=b:IsEnabled()and b.workshopReadyState~=false
     local c=not ready and {.38,.46,.52,1}or b.workshopPointer=='pressed'and {.6,.8,.65,1}or b.workshopPointer=='hover'and {1,1,1,1}or {.85,1,.92,1}
+    if b.meisterpultAction then
+        local level=not ready and .61 or b.workshopPointer=='pressed' and .76 or b.workshopPointer=='hover' and 1 or .92
+        c={level,level,level,1}
+    end
     for _,t in ipairs(b.workshopSlices or {})do t:SetDesaturated(not ready);t:SetVertexColor(unpack(c))end
 end
 app.styleCTAButton=function(b,primary)
     cta(b,primary)
+    if not primary and guideControl(b) then
+        dressControl(b)
+        if b.ctaBorder then b.ctaBorder:Hide() end
+    end
     if b.workshopSlices then for _,t in ipairs(b.workshopSlices)do t:SetShown(primary==true)end end
     if primary then
         for _,kind in ipairs({'Normal','Pushed','Highlight','Disabled'})do b['Set'..kind..'Texture'](b,'Interface\\Buttons\\WHITE8X8');b['Get'..kind..'Texture'](b):SetAlpha(0)end
-        app.workshopCard(b,'WorkshopAction',2048,512,12,112,'ARTWORK')
+        b.meisterpultAction=b:GetParent()==app.nextStepWindow
+        app.workshopCard(b,b.meisterpultAction and 'MeisterpultLeather' or 'WorkshopAction',2048,512,12,112,'ARTWORK')
+        if b.meisterpultAction and b.label then b.label:SetTextColor(242/255,235/255,221/255) end
         if not b.workshopStateHooks then
             b.workshopStateHooks=true
             b:HookScript('OnEnter',function()b.workshopPointer='hover';app.workshopTint(b)end)
@@ -92,13 +140,14 @@ app.styleCTAButton=function(b,primary)
             b:HookScript('OnMouseUp',function()b.workshopPointer='hover';app.workshopTint(b)end)
         end
         app.workshopTint(b)
-        b:SetHeight(60);if b.label then b.label:SetFont(STANDARD_TEXT_FONT or 'Fonts\\FRIZQT__.TTF',15,'OUTLINE');b.label:SetWidth(b:GetWidth()-38);b.label:SetHeight(42);b.label:SetWordWrap(true)end
+        b:SetHeight(60);if b.label then b.label:SetFont(STANDARD_TEXT_FONT or 'Fonts\\FRIZQT__.TTF',15,b.meisterpultAction and '' or 'OUTLINE');b.label:SetWidth(b:GetWidth()-38);b.label:SetHeight(42);b.label:SetWordWrap(true)end
         if b.ctaBorder then b.ctaBorder:Hide()end
     end
 end
 function app.workshopReady(b,ready,key)
     if not b.workshopGlow then
         local t=b:CreateTexture(nil,'ARTWORK');b.workshopGlow=t;t:SetPoint('TOPLEFT',12,-12);t:SetPoint('BOTTOMRIGHT',-12,12);t:SetColorTexture(.08,.8,.25,.22);t:SetBlendMode('ADD');t:SetAlpha(0)
+        if b.meisterpultAction then t:SetColorTexture(.76,.65,.45,.22) end
         local g=t:CreateAnimationGroup();b.readyAnimation=g
         local up=g:CreateAnimation('Alpha');up:SetFromAlpha(0);up:SetToAlpha(.38);up:SetDuration(.22);up:SetOrder(1)
         local down=g:CreateAnimation('Alpha');down:SetFromAlpha(.38);down:SetToAlpha(0);down:SetDuration(.65);down:SetOrder(2)
@@ -130,17 +179,14 @@ function app.workshopActionIdentity(f)
 end
 function app.paintWorkshopGuide(f)
     if not f then return end
-    if f.surface then f.surface:SetColorTexture(.014,.025,.045,.92)end
-    if not f.workshopBadge then
-        f.workshopBadge=f:CreateTexture(nil,'ARTWORK');f.workshopBadge:SetTexture(app.uiPath('WorkshopLogoFrame'));f.workshopBadge:SetSize(48,48);f.workshopBadge:SetPoint('TOPLEFT',8,-4)
-        f.workshopOpen=app.createButton(f,0,0,36,'',function()app.showRouteWindow()end);f.workshopOpen.fixedRole=true;app.styleButton(f.workshopOpen,'book',true)
-        f.workshopOpen.tipLines=function()return {app.caption('workshop')}end
-        f.workshopStatus=app.createLabel(f,13,20,-190,380);f.workshopStatus:SetTextColor(.82,.9,.96)
-        f.workshopExtra=app.createLabel(f,12,20,-260,380)
+    if f.surface then f.surface:SetColorTexture(52/255,39/255,31/255,.86)end
+    if not f.workshopStatus then
+        f.workshopStatus=app.createLabel(f,13,20,-190,380);f.workshopStatus:SetTextColor(242/255,235/255,221/255)
+        f.workshopExtra=app.createLabel(f,12,20,-260,380,{.85,.79,.69})
+        f.outputName:SetTextColor(.95,.92,.87);f.outputCount:SetTextColor(.83,.75,.63)
         f.workshopToggle=app.createButton(f,20,0,183,'',function()f.workshopExpanded=not f.workshopExpanded;app.paintWorkshopGuide(f)end)
         f.workshopToggle.fixedRole=true;app.styleButton(f.workshopToggle,'info',false)
     end
-    f.workshopOpen:ClearAllPoints();f.workshopOpen:SetPoint('TOPRIGHT',-83,-12)
     if app.unifiedView then f.workshopStatus:Hide();f.workshopExtra:Hide();f.workshopToggle:Hide();if f.routeSkip then f.routeSkip:Hide()end;if f.bankLater then f.bankLater:Hide()end;return end
     f:SetWidth(420)
     if f.headerChrome then f.headerChrome.title:SetWidth(240);f.headerChrome.title:SetFont(STANDARD_TEXT_FONT or 'Fonts\\FRIZQT__.TTF',18,'');f.headerChrome.logo:SetSize(30,30);f.headerChrome.logo:ClearAllPoints();f.headerChrome.logo:SetPoint('TOPLEFT',17,-13)end
@@ -158,7 +204,13 @@ function app.paintWorkshopGuide(f)
     local status={}
     local stock=app.guideStockPosition(f.plan,f.task)
     if stock then status[#status+1]=app.caption('stock_counts',app.itemName(stock.id),stock.bags,stock.goal,stock.missing)end
-    if f.task and f.task.body and f.task.body~=''then status[#status+1]=f.task.body end
+    local offer=kind=='vendor' and f.task.atVendor and not app.isPoison() and f.vendorOffer
+    if offer and offer.id==f.task.id then
+        table.insert(status,1,'× '..offer.quantity)
+    else
+        offer=nil
+        if f.task.body and f.task.body~='' then status[#status+1]=f.task.body end
+    end
     if app.actionNotice and app.actionNotice~=''then status[#status+1]=app.actionNotice end
     if not b:IsEnabled()and #status==0 then status[1]=app.caption('ws_wait')end
     local statusTop=182
@@ -166,9 +218,25 @@ function app.paintWorkshopGuide(f)
         f.requirementName:SetWidth(380);f.requirementName:SetHeight(22);f.requirementName:SetText(f.task.requirement.name or '?');point(f.requirementName,20,180);f.requirementName:Show();statusTop=206
     else f.requirementName:Hide()end
     local full=table.concat(status,'\n');local visible=full:gsub(', ','\n')
-    f.workshopStatus:SetWidth(380);f.workshopStatus:SetWordWrap(true);f.workshopStatus:SetText(visible)
+    if offer then
+        if not f.vendorItemHint then
+            local hint=CreateFrame('Frame',nil,f);f.vendorItemHint=hint
+            hint:SetSize(22,22);hint:EnableMouse(true)
+            hint.icon=hint:CreateTexture(nil,'ARTWORK');hint.icon:SetAllPoints()
+            hint:SetScript('OnEnter',function(self)app.showTip(self,self.itemName)end)
+            hint:SetScript('OnLeave',app.hideTip)
+            hint:SetScript('OnHide',function(self)
+                if GameTooltip and GameTooltip:IsOwned(self) then app.hideTip() end
+            end)
+        end
+        local hint=f.vendorItemHint
+        hint.itemName=offer.name or app.itemName(offer.id)
+        hint.icon:SetTexture(app.itemIcon(offer.id));point(hint,20,statusTop);hint:Show()
+        if GameTooltip and GameTooltip:IsOwned(hint) then app.showTip(hint,hint.itemName) end
+    elseif f.vendorItemHint then f.vendorItemHint:Hide() end
+    f.workshopStatus:SetWidth(offer and 350 or 380);f.workshopStatus:SetWordWrap(true);f.workshopStatus:SetText(visible)
     local _,breaks=visible:gsub('\n','')
-    local height=math.min(112,math.max(48,16*(breaks+1)+8,f.workshopStatus:GetStringHeight()+8));f.workshopStatus:SetHeight(height);point(f.workshopStatus,20,statusTop);f.workshopStatus:Show()
+    local height=math.min(112,math.max(offer and 26 or 48,16*(breaks+1)+8,f.workshopStatus:GetStringHeight()+8));f.workshopStatus:SetHeight(height);point(f.workshopStatus,offer and 50 or 20,statusTop+(offer and 3 or 0));f.workshopStatus:Show()
     f.workshopStatus:SetMaxLines(6);f.workshopStatus:EnableMouse(true);f.workshopStatus:SetScript('OnEnter',function(self)app.showTip(self,f.body:GetText(),{full})end);f.workshopStatus:SetScript('OnLeave',app.hideTip)
     f.ctaInfo:Show();f.notice:Hide()
     local y=statusTop+height+6
@@ -189,12 +257,17 @@ function app.paintWorkshopGuide(f)
         if show then point(f.bankLater,20,y);f.bankLater:SetWidth(380);f.bankLater.label:SetWidth(340);y=y+32 end
     end
     if f.secondaryCTA then point(f.secondaryCTA,20,y);f.secondaryCTA:SetWidth(183);f.secondaryCTA.label:SetWidth(143);app.styleCTAButton(f.secondaryCTA,false);y=y+32 end
+    if app.paintProcurementControls then y=app.paintProcurementControls(f,y) end
     point(f.workshopToggle,20,y);f.workshopToggle:SetWidth(380);f.workshopToggle.label:SetWidth(340)
     f.workshopToggle:SetText(app.caption(f.workshopExpanded and 'ws_less'or 'ws_details'));f.workshopToggle:Show()
+    f.workshopToggle:GetNormalTexture():SetColorTexture(.16,.12,.095,1)
+    f.workshopToggle:GetPushedTexture():SetColorTexture(.13,.09,.07,1)
+    f.workshopToggle:GetHighlightTexture():SetColorTexture(.71,.58,.40,.22)
+    f.workshopToggle.label:SetTextColor(242/255,235/255,221/255)
     f:SetHeight(y+42);app.workshopFit(f,420,f:GetHeight(),app.options.windowScales and app.options.windowScales.CraftDejaNextStep or app.options.scale)
     if f.surface then
         f.surface:ClearAllPoints();f.surface:SetPoint('TOPLEFT',12,-48);f.surface:SetPoint('BOTTOMRIGHT',-12,12)
-        f.surface:SetColorTexture(.014,.025,.045,.3)
+        f.surface:SetColorTexture(52/255,39/255,31/255,.7)
     end
     app.workshopReady(b,app.workshopActionReady(f),app.workshopActionIdentity(f))
 end

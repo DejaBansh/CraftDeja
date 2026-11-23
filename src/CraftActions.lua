@@ -172,7 +172,8 @@ function app.craftBatchInfo(plan)
     -- Even if every yellow/green cast succeeds, a native batch must not pass
     -- the next route/green/rank boundary. Failed skill-ups can need another batch.
     local safe=math.max(1,math.floor((stop-skill)/(plan.recipe.points or 1)))
-    return {available=available,count=math.min(available,safe,plan.crafts),stop=stop,expected=bounded and bounded.crafts or plan.crafts}
+    local expected=bounded and (bounded.expectedCrafts or bounded.crafts) or plan.crafts
+    return {available=available,count=math.min(available,safe,plan.crafts),stop=stop,expected=expected,estimatedCount=math.min(available,expected,plan.crafts)}
 end
 function app.updateCraftBatchPlan(b)
     local plan=b and b.plan
@@ -295,7 +296,7 @@ function app.craftBatchPlan(recipe,count,stop)
     local plan=rod and rod.recipe.id==recipe.id and rod or supply and supply.recipe.id==recipe.id and supply or app.productionEnabled()and app.productionPlan()or app.materialPlan(recipe,stop)
     if not plan or plan.crafts<1 then return nil end
     local planned=plan.crafts;plan.crafts=count;plan.purchase=0
-    plan.expectedCrafts=planned;plan.forecastTarget=plan.target;plan.forecastSkill=plan.from
+    plan.expectedCrafts=plan.expectedCrafts or planned;plan.forecastTarget=plan.target;plan.forecastSkill=plan.from
     for _,row in ipairs(plan.rows)do
         row.total=math.floor(row.total/planned*count+.000001)
         row.buy=math.max(0,row.total-(row.owned or 0))
@@ -307,6 +308,9 @@ end
 function app.craftQueueBody()
     local b=app.craftBatch
     return app.caption(b.attention and 'craft_queue_attention'or b.phase=='requested'and 'craft_queue_waiting'or 'craft_queue_running',b.remaining)
+end
+function app.requiresEnchantTarget(recipe)
+    return recipe.profession==333 and not (recipe.outputFromClient and recipe.isEnchantingRecipe==false and recipe.outputItemID)
 end
 function app.craftNext(plan,all)
     if plan and plan.supplyOnly then return false end
@@ -326,7 +330,7 @@ function app.craftNext(plan,all)
     if old~=recipe.id then return fail('action_changed')end
     local requirement=app.craftRequirementTask(recipe)
     if requirement then app.actionNotice=requirement.body;app.refreshNextStep(true);return false end
-    if recipe.profession==333 and not(production and production.toolPreparation)then
+    if app.requiresEnchantTarget(recipe) and not(production and production.toolPreparation)then
         app.selectNativeRecipe(recipe.id);return fail('action_enchant_target')
     end
     local quote=app.quote(recipe,{})
@@ -352,6 +356,10 @@ function app.craftNext(plan,all)
     local fresh=production or app.materialPlan(recipe,target)
     local batch=fresh and app.craftBatchInfo(fresh)
     local count=all and batch and batch.count or 1
+    if all=='estimate' then
+        if not batch or not batch.estimatedCount or not plan or plan.from~=fresh.from or plan.target~=fresh.target or math.min(app.craftAvailability(plan),plan.expectedCrafts or 0,plan.crafts)~=batch.estimatedCount then return fail('action_changed') end
+        count=batch.estimatedCount
+    end
     if not count or count<1 then return fail('action_materials')end
     app.clearNativeCraft();app.craftBlocked=nil
     local called,ok,message=pcall(prepareNativeCraft,recipe,count,batch.stop)
