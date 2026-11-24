@@ -211,6 +211,8 @@ function app.shoppingPlan(points)
     if not app.shoppingFresh()then return nil,shop.reason or 'shop_wait_scan'end
     local rod,_,rodActive=app.rodPreparationPlan()
     if rodActive then return rod and app.completeShoppingPlan(rod)or nil,'requirement_tool'end
+    local trip=app.trainerSupplyPlan()
+    if trip then return trip end
     if app.productionEnabled and app.productionEnabled()then
         local plan,reason=app.productionPlan()
         if plan and app.craftRequirementTask(plan.recipe,true)then return nil,'requirement_tool'end

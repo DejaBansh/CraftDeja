@@ -9,7 +9,7 @@ app.words.en.source_same='%s: %d owned (bags/bank). This stage needs %d units. U
 local function busy()return app.craftRefreshBusy()or app.nativeCraftHandoff or app.purchasePending()end
 local function own(id)local r=app.inventoryFor(id);return math.max(0,(r.bags or 0)+(r.bank or 0)),r end
 local function stage(plan)
-    if not plan or not plan.recipe or plan.sourceConversion or plan.toolPreparation or plan.routeSupply then return end
+    if not plan or not plan.recipe or plan.sourceConversion or plan.toolPreparation or plan.routeSupply or plan.trainerTrip then return end
     local key=table.concat({plan.recipe.profession,plan.recipe.id,plan.target or 0},':')
     return plan.production and key..':job:'..tostring(plan.jobSerial)or key
 end

@@ -6,7 +6,7 @@ local function setup(side)
     mock.stub(_G,"UnitFactionGroup",function()return side or "Horde"end)
     mock.stub(C_Map,"GetBestMapForUnit",function()return 1454 end)
     mock.stub(C_Map,"GetPlayerMapPosition",function()return {x=.5,y=.4,GetXY=function()return .5,.4 end}end)
-    return app,{id=7748,profession=333,learned=false,green=120,grey=140}
+    return app,{id=9907748,profession=333,learned=false,green=120,grey=140}
 end
 @afterEach
 local function errors()

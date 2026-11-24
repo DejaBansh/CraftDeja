@@ -53,6 +53,38 @@ local function trainer()
  assert(#a.routeTeacherVisit(route).available==0)
 end
 
+@test('Trainer trip: pack for the next threshold, subtract only bag stock and include unknown-fee services')
+local function trip()
+ local a=_G['CraftDeja']
+ local source={id=11074,kind='trainer',name='Hgarth'}
+ local recipe={id=1,profession=333,learned=false,skill=155,complete=true,groups={{amount=2,choices={42}}}}
+ local second={id=13637,learned=false,skill=160}
+ local active={profile={id=333,skill=159,cap=225},recipes={[1]=recipe,[13637]=second}}
+ local route={segments={{recipe=1,from=159,to=160},{recipe=13637,from=160,to=161}}}
+ mock.setField(a,'active',active)
+ mock.stub(a,'sourceList',function()return {source}end)
+ mock.stub(a,'probability',function()return .25 end)
+ mock.stub(a,'quote',function()return nil end)
+ mock.stub(a,'inventoryFor',function()return {bags=3,bank=100}end)
+ local n=a.trainerTravelAttempts(recipe,159,160,1)
+ assert(n>4)
+ local body=a.trainerPackingList(route,source)
+ assert(body:find(tostring(2*n),1,true) and body:find(tostring(2*n-3),1,true))
+ mock.setField(a,'decision',{current={recipe=recipe}})
+ mock.stub(a,'productionEnabled',function()return false end)
+ mock.stub(a,'isPoison',function()return false end)
+ mock.stub(a,'unitPrice',function()return 10 end)
+ mock.stub(a,'inventoryFor',function()return {bags=3,bank=5,total=8}end)
+ local plan=a.trainerSupplyPlan(recipe,source,{[42]=2*n},160)
+ assert(plan.trainerTrip==11074 and plan.rows[1].buy==2*n-8 and plan.target==160)
+ assert(a.purchaseKey(plan):find('trainer:11074',1,true))
+ active.profile.skill=160;assert(not a.trainerPackingList(route,source))
+ mock.stub(a,'currentTrainerOffers',function()return {{id=13637,index=2,name='Boots',kind='available',cost=2800}}end)
+ mock.stub(_G,'UnitGUID',function()return 'Trainer'end)
+ mock.setField(a,'trainerVisitOpen',true)
+ assert(a.openTrainerRecipeTask(route).visit.available[1].id==13637)
+end
+
 @test('Transfer proof: preexisting BoE stock is conservative, newly crafted BoE may transfer')
 local function bind()
  local a=_G['CraftDeja']

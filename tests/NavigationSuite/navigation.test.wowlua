@@ -10,6 +10,26 @@ local function setup(map,x,y)
 end
 @afterEach
 local function errors()local e=mock.errors();assert(#e==0,table.concat(e,'\n'))end
+@test('Forever vendor references: reagent stock, scroll identity, faction and stronger local evidence')
+local function imported()
+ local a=setup(1458,.81,.31)
+ local recipe={id=7751}
+ mock.setField(a,'accessData',{})
+ assert(a.accessInfo(recipe).item==6325)
+ local ref=a.recipeSourceTarget(recipe)
+ assert(ref and ref.id==4574 and ref.kind=='vendor' and ref.side=='Horde')
+ local daniel=false
+ for _,npc in ipairs(a.ofaStock[2880])do if npc==4561 then daniel=true end end
+ assert(daniel and a.ofaMerchants[4561].map==1458)
+ mock.setField(a.character,'identity',{realm='Test'})
+ mock.setField(a.saved,'merchants',{Test={test={npc=900001,name='Local',map=1454,x=42,y=42,side='Horde',offers={},recipeOffers={[6325]=true}}}})
+ assert(a.recipeSourceTarget(recipe).id==900001)
+ local quest,drop=false,false
+ for _,rows in pairs(a.ofaRecipeSources)do for _,v in ipairs(rows)do
+  if v.kind=='quest' then quest=true elseif v.kind=='drop' then drop=true end
+ end end
+ assert(quest and drop)
+end
 @test('Navigation: Copper Tube selects recorded Undercity teacher, details and marker agree')
 local function copper()
  local a=setup();local r={id=3924,profession=202};local t=a.recipeSourceTarget(r)
@@ -24,6 +44,19 @@ local function allProfessions()
  end end
  for _,id in ipairs({129,164,165,171,185,186,197,202,333})do assert(covered[id],'Missing profession '..id)end
  assert(#a.extraTrainerSources({id=900009,profession=202})==0,'A nearby teacher is not proof of an offer')
+end
+@test('Godan visit: imported hint for Lesser Agility cannot route to the reported missing offer')
+local function godan()
+ local a=setup(1454,.538,.386);local recipe={id=13637,profession=333}
+ local godan={kind='trainer',name='Godan',id=3345,map=1454,x=53.8,y=38.6,side='Horde',reference=true}
+ mock.setField(a.accessData,13637,{routes={godan}})
+ for _,row in ipairs(a.sourceList(recipe))do assert(row.kind~='trainer' or row.id~=3345)end
+ local ref=a.recipeSourceTarget(recipe)
+ assert(ref.id==11074 and ref.map==1442 and ref.x==49.2 and ref.y==57.2 and not ref.observed)
+ mock.setField(a.character,'trainerSources',{visit={kind='trainer',name='Confirmed',id=999001,map=1458,x=70,y=40,side='Horde',observed=true,recipes={[13637]=true}}})
+ assert(a.recipeSourceTarget(recipe).id==999001)
+ godan.observed=true;godan.recipes={[13637]=true};a.character.trainerSources.godan=godan
+ assert(a.recipeSourceTarget(recipe).id==3345 and a.recipeSourceTarget(recipe).observed)
 end
 @test('Navigation: same-continent world distances work across maps and ignore selected world map')
 local function distance()

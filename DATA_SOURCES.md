@@ -1,5 +1,17 @@
 # Data provenance and limitations
 
+## Recipe and merchant references from OneForAll Forever, 2026-11-23
+
+[Pinned upstream](https://github.com/smoergi/OneForAll_Forever/tree/d66ac9b9cdb47c0a4152e835b137bef85bdc127f/OneForAll/Data). The eight profession recipe files supply 1,353 vendor, 1,714 creature-drop and 71 quest associations. BossDrops supplies 168 additional boss/recipe associations through recipe scroll item IDs. The generated dataset also contains 1,661 spell-to-scroll mappings, vendor ID lists for 94 reagents, 580 merchant locations and 289 trainer location records. A trainer location alone cannot establish which spells the trainer teaches. Neither stock nor a live price follows from a reference location. Recipe-specific faction fields and NPC faction data are used where available; unclassified locations remain visible in details.
+
+Regenerate `src/Data/OneForAllSources.lua` with `node tools/Import-OneForAll.mjs <path-to-upstream-checkout>`. The importer reads committed data from the pinned revision. Adaptation and source licenses are included in `Licenses/OneForAll-NOTICE.txt`, `Licenses/OneForAll-GPL-3.0.txt` and `Licenses/OneForAll-upstream-notices.txt`. These data have separate licensing from the CraftDeja implementation.
+
+## Wowhead Forever recipe-source audit, 2026-11-23
+
+The [comparison by profession and spell ID](docs/evidence/forever-recipe-comparison.csv) covers all 2,512 static catalogue entries. The English Forever profession lists supplied a source category for 1,975, showed an empty source for 245, and did not list 292. The latter two groups retain their previous data. Fishing is included in this inventory. Rogue Poisons uses the logged-in character's learned recipes and has no static catalogue to reconcile. The [captured category/ID groups](docs/evidence/wowhead-forever-profession-sources.txt) can be replayed with `tools/Compare-ForeverRecipeSources.ps1`. Sources: the [main profession database](https://www.wowhead.com/forever/spells/professions) and [secondary skills database](https://www.wowhead.com/forever/spells/secondary-skills). Primary profession lists were read separately to avoid the combined list's 1,000-row cap.
+
+For 375 spells the complete “Taught by” tab was checked against the count displayed by Wowhead. Those spell/NPC memberships are in RecipeSourceCorrections.lua. NPC coordinates are resolved separately. For the other spells a category alone does not identify an NPC. Individually observed services take precedence. The remaining individual checks are open after the website returned HTTP 403. For [spell 13637](https://www.wowhead.com/forever/spell=13637/enchant-boots-lesser-agility#taught-by-npc), Wowhead lists Annora, Hgarth, Kitta Firewind, Melanie Sable and Vanessa Sellers. Its [Forever enchanting guide](https://www.wowhead.com/forever/guide/professions/enchanting/overview) locates Hgarth in Sun Rock Retreat at 49.2, 57.2.
+
 ## Newly authored implementation
 
 Start.lua, Words.lua, Client.lua, Economy.lua, Screen.lua and Run.lua were written

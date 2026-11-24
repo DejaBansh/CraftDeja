@@ -3,6 +3,12 @@ local _,app=...
 local elapsed=0
 local words={en={recipe_source_map='Show recipe source on map',recipe_source_missing='No compatible source with coordinates is recorded. Open the recipe details for its known sources.',recipe_source_reference='Reference location; check the recipe offer in game.',recipe_source_marked='Recipe source marked on the map.',recipe_source_coordinates='Use the source coordinates above.',recipe_source_learn='Learn %s at the source shown below.'},de={recipe_source_map='Rezeptquelle auf Karte zeigen',recipe_source_missing='Keine passende Rezeptquelle mit Koordinaten gespeichert. Die Rezeptdetails zeigen die bekannten Bezugsquellen.',recipe_source_reference='Referenzstandort; Rezeptangebot im Spiel pruefen.',recipe_source_marked='Rezeptquelle auf der Karte markiert.',recipe_source_coordinates='Nutze die Koordinaten der Rezeptquelle oben.',recipe_source_learn='Lerne %s bei der unten angezeigten Bezugsquelle.'}}
 for lang,entries in pairs(words)do for k,v in pairs(entries)do app.words[lang][k]=v end end
+app.words.de.recipe_source_check='Mögliche Quelle für %s. Angebot vor Ort prüfen.'
+app.words.en.recipe_source_check='Possible source for %s. Check the offer on site.'
+app.words.de.recipe_source_seen='Rezeptangebot bei einem Besuch erfasst.'
+app.words.en.recipe_source_seen='Recipe offer recorded during a visit.'
+app.words.de.recipe_source_buy='Kaufe das Rezept für %s beim angezeigten Händler.'
+app.words.en.recipe_source_buy='Buy the recipe for %s from the vendor shown below.'
 local function validLocation(v)
     return type(v.map)=='number'and v.map>0 and v.map<math.huge and v.map==math.floor(v.map)
         and type(v.x)=='number'and v.x>=0 and v.x<=100
@@ -14,12 +20,15 @@ function app.recipeSourceTarget(recipe)
     if not recipe then return nil end
     local faction=app.playerFaction()
     local context=app.locationContext()
-    local best
+    local best,bestPriority
     for _,source in ipairs(app.sourceList(recipe))do
         local kind=source.kind
         if (kind=='trainer'or kind=='vendor'or kind=='questgiver'or kind=='object')and validLocation(source)
             and (source.side=='Both'or faction and source.side==faction)then
-            if not best or app.locationBefore(source,best,context)then best=app.copy(source)end
+            local priority=source.observed and 3 or source.recipeReference and 2 or 1
+            if not best or priority>bestPriority or priority==bestPriority and app.locationBefore(source,best,context)then
+                best,bestPriority=app.copy(source),priority
+            end
         end
     end
     if best then best.recipeID=recipe.id;best.npc=best.id;best.name=app.sourceTitle(best)end
@@ -41,8 +50,20 @@ function app.recipeLearningTask(recipe)
     local snapshot=app.decision and app.decision.snapshot
     local assessment=snapshot and app.learningAssessment and app.learningAssessment(snapshot,recipe,snapshot.profile.skill)
     local costCheck=assessment and not assessment.known or app.acquisitionQuote and not app.acquisitionQuote(recipe).known
-    return {kind='learn',key=key,recipe=recipe,sourceTarget=source,needsCostCheck=costCheck,
-        body=app.caption(source and 'recipe_source_learn'or 'step_learn',app.recipeName(recipe))}
+    local body=app.caption(source and (source.kind=='trainer' and not source.observed and 'recipe_source_check' or 'recipe_source_learn') or 'step_learn',app.recipeName(recipe))
+    if source and source.kind=='vendor' then body=app.caption('recipe_source_buy',app.recipeName(recipe))end
+    local pack,totals,goal=app.trainerPackingList(app.trainerTravelRoute(),source)
+    if totals then
+        local plan=app.trainerSupplyPlan(recipe,source,totals,goal)
+        if plan then
+            local task=app.nextStep(plan)
+            if task and task.kind~='craft' then
+                task.routePlan=plan;task.body=task.body..'\n'..pack
+                return task
+            end
+        end
+    end
+    return {kind='learn',key=key,recipe=recipe,sourceTarget=source,needsCostCheck=costCheck,body=pack and (body..'\n'..pack) or body}
 end
 function app.showRecipeSource(recipe)
     local source=app.recipeSourceTarget(recipe)

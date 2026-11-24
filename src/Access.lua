@@ -1,13 +1,43 @@
 -- SPDX-License-Identifier: MIT
 local _,app=...
 
+-- Merge reference categories once, before recipe views are constructed.
+for spell,rows in pairs(app.ofaRecipeSources)do
+    local data=app.accessData[spell]
+    if data then
+        local kinds,sides={},{}
+        local categories={}
+        for _,kind in ipairs(data.categories or {})do kinds[kind]=true;categories[#categories+1]=kind end
+        for _,row in ipairs(rows)do
+            if not kinds[row.kind]then
+                kinds[row.kind]=true;categories[#categories+1]=row.kind
+            end
+            if row.kind=='vendor'then sides[row.side]=true end
+        end
+        data.categories=categories
+        data.referenceSources=true
+        if data.access=='Unknown' then
+            if sides.Both or (sides.Alliance and sides.Horde) then data.access='Both'
+            elseif sides.Alliance then data.access='Alliance'
+            elseif sides.Horde then data.access='Horde' end
+        end
+    end
+end
+
 function app.playerFaction()
     local faction=app.try(UnitFactionGroup,'player')
     return (faction=='Alliance'or faction=='Horde')and faction or nil
 end
 
 function app.accessInfo(recipe)
-    return(app.accessData or {})[recipe.id]or {access='Unknown',audit='missing'}
+    local data=(app.accessData or {})[recipe.id]or {access='Unknown',audit='missing'}
+    local item=app.ofaRecipeItems[recipe.id]
+    if item and not data.item and not recipe.scroll then
+        local enriched=app.copy(data)
+        enriched.item=item
+        return enriched
+    end
+    return data
 end
 
 function app.canRecommend(recipe)
@@ -40,15 +70,31 @@ end
 function app.sourceList(recipe)
     local data=app.accessInfo(recipe);local player=app.playerFaction();local list={}
     local seen={}
+    local disputed=app.disputedTrainerHints[recipe.id]
     local function add(row)
+        if row.kind=='trainer' and disputed and disputed[row.id] and not row.observed then return end
+        local teachers=app.foreverTeacherLists[recipe.id]
+        if row.kind=='trainer' and teachers and not teachers[row.id] and not row.observed then return end
         local key=table.concat({tostring(row.kind),tostring(row.id),tostring(row.map),tostring(row.x),tostring(row.y)},':')
         if seen[key]then return end
         seen[key]=true;list[#list+1]=row
         if row.giver then add({kind='questgiver',id=row.giver,name=row.giverName,side=row.side,map=row.map,x=row.x,y=row.y,reference=row.reference})end
     end
-    for _,row in ipairs(data.routes or {})do add(row)end
+    local extra=app.extraTrainerSources and app.extraTrainerSources(recipe)or {}
+    for _,row in ipairs(extra)do if row.observed then add(row)end end
+    local realm=app.character and app.character.identity and app.character.identity.realm
+    local item=data.item or recipe.scroll
+    if item and realm then
+        for _,v in pairs(app.saved and app.saved.merchants and app.saved.merchants[realm]or {})do
+            if v.npc and v.npc>0 and ((v.offers and v.offers[item]) or (v.recipeOffers and v.recipeOffers[item]))then
+                add({kind='vendor',id=v.npc,name=v.name,side=v.side,map=v.map,x=v.x,y=v.y,observed=true})
+            end
+        end
+    end
     for _,row in ipairs((app.recipeSourceCorrections or {})[recipe.id]or {})do add(row)end
-    for _,row in ipairs(app.extraTrainerSources and app.extraTrainerSources(recipe)or {})do add(row)end
+    for _,row in ipairs(data.routes or {})do add(row)end
+    for _,row in ipairs(app.ofaRecipeSources[recipe.id]or {})do add(row)end
+    for _,row in ipairs(extra)do if not row.observed then add(row)end end
     -- The detail list should agree with routing: own/neutral faction, current
     -- map, then comparable local distance. No cross-map distance is invented.
     local context=app.locationContext()

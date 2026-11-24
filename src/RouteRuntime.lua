@@ -166,6 +166,8 @@ function app.routeTask(plan)
     if app.routeApplyBlocked then return {kind='route_review',key='route_no_prices',body=app.caption('no_prices')}end
     local search=app.routeResult
     if not search or not search.best then return {kind='route_review',key='route_missing',body=app.caption(app.routeBuildProblem or 'route_no_complete')}end
+    local teacher=app.openTrainerRecipeTask(search.best)
+    if teacher then return teacher end
     for _,rank in ipairs(search.best.ranks or {})do
         if app.active.profile.cap==rank.fromCap and app.active.profile.skill>=rank.skill then return app.rankTrainerTask()end
     end
@@ -231,12 +233,14 @@ frame:SetScript('OnEvent',function(_,event,...)
         if app.guildShareScope~=app.routeGuildIdentity()then app.setGuildRecipeSharing(app.options.guildRecipeSharing)end
         app.invalidateRoute('guild_roster')
     elseif event=='GUILD_ROSTER_UPDATE'then if app.refreshRouteGuildRoster()then app.invalidateRoute('guild_roster')end
-    elseif event=='TRAINER_CLOSED'then app.routeLearnPending=nil
+    elseif event=='TRAINER_CLOSED'then app.trainerVisitOpen=nil;app.routeLearnPending=nil;app.refreshNextStep(false)
     elseif event=='PLAYER_ENTERING_WORLD'then app.invalidateRoute('resume')
     elseif event:find('TRAINER',1,true)then
+        if event=='TRAINER_SHOW' then app.trainerVisitOpen=true end
         app.verifyPlannedLearning()
         if app.observeRouteRankCosts()then app.invalidateRoute('rank_fee')end
         if app.renderRouteWindow then app.renderRouteWindow()end
+        if app.trainerVisitOpen then app.refreshNextStep(false)end
     end
 end)
 frame:SetScript('OnUpdate',function()app.routeRuntimeTick()end)

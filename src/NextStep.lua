@@ -156,7 +156,11 @@ function app.renderNextStep(plan,keepVisible,override)
     end
     if app.craftBatch then plan=app.craftBatch.plan elseif app.nativeCraftHandoff then plan=app.nativeCraftHandoff.plan end
     local f=app.nextStepWindow;local task=override or app.nextStep(plan)
-    if not task.sourceTarget and app.clearGuideMarker then app.clearGuideMarker('recipeID')end
+    local target=task.sourceTarget
+    local marker=app.mapTarget or app.character and app.character.mapTarget
+    if marker and marker.recipeID and app.clearGuideMarker and (not target or marker.recipeID~=target.recipeID or marker.npc~=target.id or marker.map~=target.map or marker.x~=target.x or marker.y~=target.y) then
+        app.clearGuideMarker('recipeID')
+    end
     if (task.kind~='station'or not task.station)and app.clearStationMarker then app.clearStationMarker()end
     if plan and app.syncShoppingList then app.syncShoppingList(plan);if not override and app.shopping.listStale then task=app.nextStep(plan)end end
     if app.shopping.open and not app.shoppingFresh()and app.active and not app.craftBatch and task.kind~='open'and task.kind~='loading'then
@@ -206,7 +210,7 @@ function app.renderNextStep(plan,keepVisible,override)
     if task.kind=='station'then f.place:SetText(app.caption('station_help'))end
     if task.kind=='learn'then
         if task.sourceTarget then
-            f.place:SetText(task.sourceTarget.name..'\n'..app.merchantLocation(task.sourceTarget)..'\n'..app.caption('recipe_source_reference'))
+            f.place:SetText(task.sourceTarget.name..'\n'..app.merchantLocation(task.sourceTarget)..'\n'..app.caption(task.sourceTarget.observed and 'recipe_source_seen' or 'recipe_source_reference'))
             f.notice:SetText(app.caption(f.marked and 'recipe_source_marked'or 'recipe_source_coordinates'))
         else f.place:SetText(app.caption('recipe_source_missing'))end
     end
@@ -312,5 +316,9 @@ function app.refreshNextStep(force)
         if plan and app.craftAvailability(plan)==0 and not app.craftBatch and app.shopping.open and not app.shoppingFresh()then task={kind='scan',key='scan',body=app.caption(app.shopping.started and 'step_auto_scanning'or app.shopping.autoReason or 'step_auto_scan')}end
         if not plan then task={kind='review',key='plan:'..tostring(reason),body=app.caption(reason or 'open')}end
     end
-    app.renderNextStep(plan,true,task)
+    if app.trainerVisitOpen and app.active and not app.active.invalidated and not app.craftRefreshBusy() and not app.nativeCraftHandoff and not app.productionEnabled() and not app.isPoison() and not app.professionLoading then
+        local learn=app.openTrainerRecipeTask(app.trainerTravelRoute())
+        if learn then task=learn;plan=nil end
+    end
+    app.renderNextStep(task and task.routePlan or plan,true,task)
 end

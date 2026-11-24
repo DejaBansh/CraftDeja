@@ -3,6 +3,10 @@
 Stand: 23.11.2026. Fakten dieser Momentaufnahme beim Arbeitsbeginn erneut prüfen.
 Arbeitsregeln: AGENTS.md. Planung: ROADMAP.md. Nachweise: TEST_RESULTS.md.
 
+Der lokale Build enthält OneForAll-Rezeptquellen für acht Berufe und Zutatenhändler. Die Quellenansicht, Einkaufsvorschläge und Kartenführung verwenden diese Referenzen. Beobachtete Rezeptangebote haben auf der Karte Vorrang. Berufsstandorte liefern keine neuen Lehrer-Rezept-Zuordnungen. Prüfstand: TEST_RESULTS.md, Live-Abnahme OFA-SOURCES.
+
+Der lokale Guide nutzt rezeptbezogene Forever-Lehrerlisten und plant vor einem gemeinsamen Lehrerbesuch die Zutaten bis zur nächsten benötigten Lernschwelle mit Reserve. Hgarth ist für Rezept 13637 belegt. Der Datenabgleich umfasst zehn Katalogberufe. Einzelne Quellen und der Live-Durchlauf bleiben unter DATA-TRAINERS und TRAINER-13637 offen.
+
 Der Zielbestandsreiter listet clientbestätigte Verbrauchsrezepte je Charakter und fasst identische
 Ausgaben je Item-ID zusammen. Rechts stehen Taschen, editierbares Ziel, Fehlmenge und Bezugswege.
 Das Werkstattpult ist im kompakten Guide über Zahnrad → Einstellungen → Werkstattpult erreichbar. Die Kopfzeile trägt ein Amboss-Siegel. Gehostete

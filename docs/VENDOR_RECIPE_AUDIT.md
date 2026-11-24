@@ -2,9 +2,11 @@
 
 ## Tatsächlicher Addonstand
 
-Es gibt keinen wöchentlichen Gesamtabgleich. `Run.lua` verarbeitet `MERCHANT_SHOW` und `MERCHANT_UPDATE`; `Client.observeMerchant` liest dabei die gerade verfügbaren Händlerzeilen und speichert beobachtete Stückpreise mit Zeitstempel. `Merchants.recordMerchant` speichert Standorte und unlimitierte Angebote. Das ist ein Besuchsabgleich, kein vollständiges Verzeichnis aller Rezeptangebote. Limitierte Angebote und erweiterte Kosten sind keine verlässlichen unlimitierten Kupferpreisquellen.
+Es gibt keinen wöchentlichen Gesamtabgleich. `Run.lua` verarbeitet `MERCHANT_SHOW` und `MERCHANT_UPDATE`; `Client.observeMerchant` liest dabei die gerade verfügbaren Händlerzeilen und speichert beobachtete Stückpreise mit Zeitstempel. `Merchants.recordMerchant` speichert Standorte, unlimitierte Angebote und separat die beim Besuch tatsächlich kaufbaren Rezeptgegenstände. Das ist ein Besuchsabgleich, kein vollständiges Verzeichnis aller Rezeptangebote. Limitierte Angebote und erweiterte Kosten sind keine verlässlichen unlimitierten Kupferpreisquellen.
 
 `Client.vendorPrice` verwendet gespeicherte unlimitierte Preise ohne Sieben-Tage-Ablauf. `Acquisition.acquisitionQuote` hat dagegen eine Gültigkeit von 604800 Sekunden für beobachtete **Lern-/Erwerbskosten**. Das löst keinen Netzabruf und keinen erneuten Händlerbesuch aus. Rezeptquellen im ausgelieferten Katalog stammen aus versionierter Referenzpflege.
+
+Am 23.11.2026 wurden die rezeptbezogenen Händler-, Drop- und Questdaten aus OneForAll Forever in den lokalen beta.27-Kandidaten übernommen. Grundlage, Lizenz, Commit und Importbefehl stehen in [DATA_SOURCES.md](../DATA_SOURCES.md). Ein Rezeptverkäufer in dieser Referenz ist kein Beleg für momentane Verfügbarkeit oder einen Kaufpreis.
 
 ## Neuer Referenzstand gefunden
 

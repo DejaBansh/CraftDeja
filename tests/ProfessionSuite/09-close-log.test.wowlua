@@ -79,5 +79,8 @@ local function scenario()
  mock.click(c.guide().logButton)
  mock.click(c.app.unifiedOptions.tabs[3]);mock.click(c.app.unifiedOptions.rows[3])
  assert(c.app.flowLogWindow:IsVisible(),"Log page not opened")
+ for _,button in ipairs({c.app.flowLogWindow.select,c.app.flowLogWindow.refresh,c.app.flowLogWindow.toggle,c.app.flowLogWindow.clear})do
+    assert(button:IsVisible() and not button.icon:IsShown(),"Legacy action icon on first log visit")
+ end
  c.close();c.single();c.done()
 end

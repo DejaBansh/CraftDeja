@@ -6,16 +6,31 @@ local function add(row)
     if not app.validLocation(row)then return end
     local id=row.id or row.npc;if not id then return end
     locations[id]=locations[id]or {}
-    for _,old in ipairs(locations[id])do if old.map==row.map and old.x==row.x and old.y==row.y then return end end
+    for _,old in ipairs(locations[id])do
+        if old.map==row.map and old.floor==row.floor then
+            if old.x==row.x and old.y==row.y then return end
+            -- A rounded position from a second dataset is the same city stop.
+            if row.origin=='OneForAll-Forever' and (old.x-row.x)^2+(old.y-row.y)^2<=1 then return end
+        end
+    end
     local v=app.copy(row);v.id=id;v.kind='trainer';locations[id][#locations[id]+1]=v
 end
 for _,data in pairs(app.accessData)do for _,v in ipairs(data.routes or {})do if v.kind=='trainer'then add(v)end end end
 for _,v in ipairs(app.trainerLocations)do add(v)end
+for _,v in ipairs(app.ofaTrainerLocations)do add(v)end
 -- Forever Copper Tube taught-by list + NPC location; reference, not live proof.
 add({id=11031,name='Franklin Lloyd',side='Horde',map=1458,x=76,y=74,reference=true})
 function app.extraTrainerSources(recipe)
     local rows={}
-    for _,id in ipairs(app.trainerRecipeMembers[recipe.id]or {})do
+    local verified=app.foreverTeacherLists[recipe.id]
+    if verified then
+        for id in pairs(verified)do
+            for _,v in ipairs(locations[id]or {})do
+                local row=app.copy(v);row.reference=true;row.observed=nil;row.membership='Wowhead-Forever';rows[#rows+1]=row
+            end
+        end
+    end
+    for _,id in ipairs(not verified and app.trainerRecipeMembers[recipe.id]or {})do
         for _,v in ipairs(locations[id]or {})do local row=app.copy(v);row.reference=true;row.observed=nil;row.membership='ProfessionDB-1.9.1';rows[#rows+1]=row end
     end
     local records=app.character and app.character.trainerSources

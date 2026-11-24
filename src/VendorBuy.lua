@@ -7,11 +7,11 @@ function app.vendorPurchasePlan()
     if not state.open or not app.active or app.active.invalidated then return nil end
     local rod,_,rodActive=app.rodPreparationPlan()
     if rodActive and not rod then return nil end
-    local production=rod or app.productionEnabled()and app.productionPlan()
+    local production=rod or app.productionEnabled()and app.productionPlan() or app.trainerSupplyPlan()
     local current=app.decision and app.decision.current
     if not production and (not current or current.needsLearning or not current.recipe.learned)then return nil end
     local plan=production or (app.isPoison and app.isPoison()and app.poisonPlan()or app.materialPlan(current.recipe,app.planningTarget()))
-    if plan and app.craftRequirementTask(plan.recipe,true)then return nil end
+    if plan and not plan.trainerTrip and app.craftRequirementTask(plan.recipe,true)then return nil end
     if not plan or not plan.stockKnown then return nil end
     if app.completeShoppingPlan then plan=app.completeShoppingPlan(plan)end
     local offers={}

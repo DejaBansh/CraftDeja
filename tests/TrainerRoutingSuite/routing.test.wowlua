@@ -76,7 +76,10 @@ end
 
 @test("Trainer routing 11: other recipe gets no guessed Thunder Bluff trainers")
 local function case11()
-    local a=setup(1456,.443,.389);for _,r in ipairs(a.sourceList({id=7748,profession=333}))do assert(r.id~=3011 and r.id~=11071)end
+    local a=setup(1456,.443,.389)
+    local boots={id=13637,profession=333}
+    for _,r in ipairs(a.sourceList(boots))do assert(r.id~=3011 and r.id~=11071)end
+    assert(a.recipeSourceTarget(boots).id==11074)
 end
 
 @test("Trainer routing 12: rank trainer is not proof of recipe teaching")

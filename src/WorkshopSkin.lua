@@ -68,7 +68,7 @@ local function guideControl(b)
     local frame=b:GetParent()
     if not frame then return false end
     local name=frame:GetName()
-    return name=='CraftDejaNextStep' or name=='CraftDejaGuideOptions' or name=='CraftDejaOptions' or frame.unifiedHosted
+    return name=='CraftDejaNextStep' or name=='CraftDejaGuideOptions' or name=='CraftDejaOptions' or name=='CraftDejaFlowLog' or frame.unifiedHosted
 end
 local function dressControl(b)
     for state,color in pairs(leather) do

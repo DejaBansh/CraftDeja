@@ -9,9 +9,9 @@ local function currentPosition()
     if not x and pos then x,y=pos.x,pos.y end
     return map,x and x*100,y and y*100
 end
-function app.recordMerchant(offers)
+function app.recordMerchant(offers,recipeOffers)
     local map,x,y=currentPosition()
-    if not map or not x or not y or not next(offers)then return end
+    if not map or not x or not y or not (next(offers) or (recipeOffers and next(recipeOffers)))then return end
     local guid=app.try(UnitGUID,'npc')or ''
     local npc=tonumber(guid:match('^[^-]+%-[^-]+%-[^-]+%-[^-]+%-[^-]+%-(%d+)%-'))or 0
     local name=app.try(UnitName,'npc')or app.caption('origin_vendor')
@@ -21,12 +21,16 @@ function app.recordMerchant(offers)
     app.saved.merchants[identity.realm]=app.saved.merchants[identity.realm]or {}
     local key=(npc>0 and tostring(npc)or name)..':'..map
     app.saved.merchants[identity.realm][key]={npc=npc,name=name,map=map,x=x,y=y,
-        side=app.playerFaction()or 'Unknown',offers=offers,when=app.try(time),observed=true}
+        side=app.playerFaction()or 'Unknown',offers=offers,recipeOffers=recipeOffers,when=app.try(time),observed=true}
 end
 function app.nearestMerchant(item)
     local map,x,y=currentPosition();local faction=app.playerFaction()
     local candidates={}
     for _,v in ipairs((app.vendorLocations or {})[item]or {})do candidates[#candidates+1]=v end
+    for _,id in ipairs(app.ofaStock[item]or {})do
+        local v=app.ofaMerchants[id]
+        if v then candidates[#candidates+1]=v end
+    end
     local realm=app.character and app.character.identity and app.character.identity.realm
     for _,v in pairs(app.saved and app.saved.merchants and app.saved.merchants[realm]or {})do
         if v.offers and v.offers[item]then candidates[#candidates+1]=v end
@@ -39,7 +43,10 @@ function app.nearestMerchant(item)
             v.distance=v.sameMap and x and y and ((v.x-x)^2+(v.y-y)^2)or nil
             v.nearby=v.distance~=nil and v.distance<=225 -- map-relative proximity, not path distance
             local score=(v.sameMap and 0 or 100000)+(v.distance or 10000)+(v.observed and -0.001 or 0)
-            if not bestScore or score<bestScore then best,bestScore=v,score end
+            if not best or (v.observed and not best.observed) or
+                (not not v.observed)==(not not best.observed) and score<bestScore then
+                best,bestScore=v,score
+            end
         end
     end
     return best

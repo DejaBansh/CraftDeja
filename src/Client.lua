@@ -329,6 +329,7 @@ end
 function app.observeMerchant()
     local count=app.try(GetMerchantNumItems)or 0
     local offers={}
+    local recipeOffers={}
     local guid=app.try(UnitGUID,'npc')
     local npc=type(guid)=='string' and tonumber(guid:match('^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-'))
     for slot=1,count do
@@ -341,11 +342,12 @@ function app.observeMerchant()
                 local records=app.character.recipeShopPrices
                 records[npc]=records[npc] or {}
                 records[npc][offer.id]={unit=offer.unit,at=app.try(time)}
+                recipeOffers[offer.id]=true
             end
             if offer.available==-1 then offers[offer.id]=offer.unit end
         end
     end
-    if app.recordMerchant then app.recordMerchant(offers)end
+    if app.recordMerchant then app.recordMerchant(offers,recipeOffers)end
 end
 
 function app.owned(id)

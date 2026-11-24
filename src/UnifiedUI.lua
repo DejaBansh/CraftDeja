@@ -246,6 +246,7 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='mail'then title,label='cta_mail','cta_mail_check'
     elseif kind=='vendor'then title,label=task.atVendor and 'cta_material'or 'cta_vendor',task.atVendor and 'cta_buy'or 'cta_map'
     elseif kind=='recipe_owned'then title,label='cta_learn','recipe_owned_check'
+    elseif kind=='trainer_learn'then title,label='cta_learn','route_teach'
     elseif kind=='learn'then title,label=task.needsCostCheck and 'acquisition_check'or 'cta_learn',task.sourceTarget and 'cta_source'or 'cta_details'
     elseif kind=='rank'then title,label=task.levelBlocked and 'cta_level'or 'cta_rank','cta_trainer'
     elseif kind=='station'then
@@ -328,6 +329,14 @@ function app.applyGuideCTA(f,plan)
 end
 function app.unifiedAction(f)
     local t=f.task
+    if t.kind=='trainer_learn'then
+        local route=app.trainerTravelRoute()
+        if route then
+            local ok,reason=app.learnPlannedRecipe(t.visit,route)
+            if not ok then app.actionNotice=app.caption('route_error',reason)end
+        end
+        app.refreshNextStep(true);return true
+    end
     if t.kind=='poison_apply'then
         if app.startPoisonOrder()then app.showCentralGuide()else app.refreshNextStep(true)end;return true
     elseif t.kind=='poison_open'then app.openCraftProfession(nil,40);return true

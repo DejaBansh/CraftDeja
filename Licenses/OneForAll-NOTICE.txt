@@ -1,0 +1,8 @@
+OneForAll Forever source references, adapted 2026-11-23 for CraftDeja.
+Copyright (C) 2026 Smoergi and the upstream contributors.
+Generated data: src/Data/OneForAllSources.lua. Rebuild: node tools/Import-OneForAll.mjs <checkout>.
+Upstream: https://github.com/smoergi/OneForAll_Forever/tree/d66ac9b9cdb47c0a4152e835b137bef85bdc127f
+OneForAll is GPL-3.0-or-later. The combined reference dataset is distributed under GPLv3.
+QuestieDB e3c3bc4 / Questie: https://github.com/Questie/questiedb and https://github.com/Questie/Questie.
+The recipe files also credit Wowhead Forever and the Forever client DB2 exports.
+See OneForAll-GPL-3.0.txt and OneForAll-upstream-notices.txt.

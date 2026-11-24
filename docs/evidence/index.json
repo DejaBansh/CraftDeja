@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "current": "beta27-money-colors-full",
+  "current": "beta27-oneforall-full",
   "entries": [
     {
       "id": "beta25-local-full",
@@ -162,6 +162,54 @@
       "skipped": 0,
       "profile": "release",
       "durationSeconds": 205.39,
+      "kind": "WoWLua/Camelot source emulation",
+      "liveAcceptance": "pending"
+    },
+    {
+      "id": "beta27-godan-log-full",
+      "version": "3.9.0-beta.27",
+      "releaseCommit": null,
+      "reportGitCommit": "cf51214966014ccfb9123b262580a494246aec1e",
+      "manifest": "docs/evidence/beta27-godan-log-manifest.json",
+      "report": "reports/tests/20261123-194415-07837e.zip",
+      "reportSHA256": "ADD2346B370C0E352D1422BEBB6CF0ACDF93355CD39E85B0DE8D2842A5464B1C",
+      "passed": 687,
+      "failed": 0,
+      "skipped": 0,
+      "profile": "release",
+      "durationSeconds": 244.94,
+      "kind": "WoWLua/Camelot source emulation",
+      "liveAcceptance": "pending"
+    },
+    {
+      "id": "beta27-hgarth-full",
+      "version": "3.9.0-beta.27",
+      "releaseCommit": null,
+      "reportGitCommit": "cf51214966014ccfb9123b262580a494246aec1e",
+      "manifest": "docs/evidence/beta27-hgarth-manifest.json",
+      "report": "reports/tests/20261123-203103-19c91f.zip",
+      "reportSHA256": "C065E63873A4D0A5D264EE1DAED87FD9E6A47D10F3EDAC0209C302AAD4E57586",
+      "passed": 688,
+      "failed": 0,
+      "skipped": 0,
+      "profile": "release",
+      "durationSeconds": 217.79,
+      "kind": "WoWLua/Camelot source emulation",
+      "liveAcceptance": "pending"
+    },
+    {
+      "id": "beta27-oneforall-full",
+      "version": "3.9.0-beta.27",
+      "releaseCommit": null,
+      "reportGitCommit": "cf51214966014ccfb9123b262580a494246aec1e",
+      "manifest": "docs/evidence/beta27-oneforall-manifest.json",
+      "report": "reports/tests/20261123-210708-559a1e.zip",
+      "reportSHA256": "1DA9E447B674FE8485025501F491E1B2BA884EB5D1A420755DE199546CCB54F2",
+      "passed": 689,
+      "failed": 0,
+      "skipped": 0,
+      "profile": "release",
+      "durationSeconds": 285.46,
       "kind": "WoWLua/Camelot source emulation",
       "liveAcceptance": "pending"
     }
