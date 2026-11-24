@@ -1,10 +1,12 @@
 # CraftDeja — versioned CurseForge releases
 
+**Release 3.9.0-beta.27, 24.11.2026.** Tag v3.9.0-beta.27 auf 8d66c68050882d99cc49c9cdc9c7a3f52aa06fbd. [GitHub Actions](https://github.com/DejaBansh/CraftDeja/actions/runs/45334384376) erfolgreich. [CurseForge-Datei 9786102](https://www.curseforge.com/wow/addons/craftdeja/files/9786102) für Forever 1.60.1, Beta. 689/0/0 im Release-Dry-Run, 89 Dateien im öffentlichen CDN-Paket einzeln per SHA256 abgeglichen. Hauptbeschreibung separat für die Author Console vorbereitet.
+
 ## Current scope and honest limits
 
 The workflow `.github/workflows/curseforge-release.yml` handles tags, manual dispatch and the single dedicated test branch `codex/curseforge-dry-run`. No previous local or remote GitHub workflow existed; normal branch pushes remain unchanged. All tags reach strict validation: only `vX.Y.Z` (release) and `vX.Y.Z-beta.N` (beta, N > 0) are accepted. Package manifest, runtime release string and built TOC must match exactly. Alpha, unknown, dirty and mismatched packages cannot publish.
 
-## Current release: beta.26, 20 November 2026
+## Previous release: beta.26, 20 November 2026
 
 Tag `v3.9.0-beta.26` resolves to `e6cb2909067f41ebc2e3e9def59e3c0274c58606`.
 [Actions run 44815834310](https://github.com/DejaBansh/CraftDeja/actions/runs/44815834310)

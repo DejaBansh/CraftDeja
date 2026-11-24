@@ -17,15 +17,15 @@ Option D ist für künftige CurseForge-Updates ausgewählt. Die Hauptbeschreibun
 | Ebene | Letzter belegter Stand |
 |---|---|
 | Repository / lokaler Ordner | DejaBansh/CraftDeja / C:\Users\Tim\Projects\CraftDeja |
-| Addon-Version im Arbeitszweig | 3.9.0-beta.27, lokaler Beschaffungs-Kandidat. Der letzte öffentliche Build ist beta.26. |
-| Freigegebener Release-Commit | e6cb2909067f41ebc2e3e9def59e3c0274c58606 |
-| Release-Tag | v3.9.0-beta.26 |
+| Addon-Version im Arbeitszweig | 3.9.0-beta.27, als Beta auf CurseForge verfügbar. |
+| Freigegebener Release-Commit | 8d66c68050882d99cc49c9cdc9c7a3f52aa06fbd |
+| Release-Tag | v3.9.0-beta.27 |
 | Arbeitsbranch / HEAD / Änderungen | Mit Get-ProjectContext.ps1 ermitteln; nicht mit Release gleichsetzen |
 | Letzter geprüfter main | 711d463af4c17f1e711248bb409f1dd5fecfe303; kein Merge dieser Arbeit |
-| CurseForge | Projekt 1796977, Datei 9722537, Beta, Forever 1.60.1 / Versions-ID 17053 |
+| CurseForge | Projekt 1796977, Datei 9786102, Beta, Forever 1.60.1 / Versions-ID 17053 |
 | Veröffentlichung | API angenommen, öffentliches CDN-ZIP per SHA256 geprüft; Moderationsstatus nicht separat abgefragt |
-| Letztes öffentliches Paket | dist/packages/CraftDeja-3.9.0-beta.26.zip (Download aus dem öffentlichen CurseForge-CDN) |
-| Öffentliches Paket SHA256 | F4873231D36A064EFA2CE74A8CD017796ABB527128E9952E84EDF68C06F88F58 |
+| Letztes öffentliches Paket | dist/packages/CraftDeja-3.9.0-beta.27.zip (Download aus dem öffentlichen CurseForge-CDN) |
+| Öffentliches Paket SHA256 | 9C6EE73F6561A2D5EA70E80AF5BBAF9AE591E27C7B3854234782228717AA3065 |
 | Lokaler Kandidat | `dist/packages/CraftDeja-3.9.0-beta.27-RC.zip`, Paketversion `3.9.0-beta.27-alpha+6daffa3`, Release-Profil `445168f4` |
 | Installationsnachweis | Am 23.11.2026 vollständiges Backup des vorgefundenen beta.25-Builds und Vergleich aller 81 installierten Dateien mit dem Kandidaten per SHA256. `reports/install/procurement-20261123-073403/INSTALLATION.json` |
 | Spielziel | C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\CraftDeja |

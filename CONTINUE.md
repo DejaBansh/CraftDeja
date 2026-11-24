@@ -1,5 +1,7 @@
 # CraftDeja — hier beginnen
 
+**Release 3.9.0-beta.27, 24.11.2026.** Tag v3.9.0-beta.27 auf 8d66c68050882d99cc49c9cdc9c7a3f52aa06fbd. [GitHub Actions](https://github.com/DejaBansh/CraftDeja/actions/runs/45334384376) erfolgreich. [CurseForge-Datei 9786102](https://www.curseforge.com/wow/addons/craftdeja/files/9786102) für Forever 1.60.1, Beta. 689/0/0 im Release-Dry-Run, 89 Dateien im öffentlichen CDN-Paket einzeln per SHA256 abgeglichen. Hauptbeschreibung separat für die Author Console vorbereitet.
+
 **OneForAll-Quellen, 23.11.2026.** Installierter lokaler beta.27-Kandidat auf cf51214966014ccfb9123b262580a494246aec1e plus Arbeitsbaum. 3.138 Rezeptbeziehungen abgeglichen, 168 weitere Boss-Zuordnungen. Alle 4.125 Zutaten-Händler-Paare auflösbar. WoWLua 0.13.14: 689 bestanden, 0 fehlgeschlagen, 0 übersprungen (285,46 s). 89 installierte Dateien sowie Backup geprüft. Nächste Live-Abnahme: OFA-SOURCES, Rezept 7751 bei Lizbeth Cromwell und begrenzt verfügbares Rezeptangebot. [Bericht](reports/tests/20261123-210708-559a1e.zip) · [Installation](reports/install/oneforall-210708/Installationsbericht.zip).
 
 Lokaler Hgarth-Kandidat beta.27 auf Basis cf51214966014ccfb9123b262580a494246aec1e plus Arbeitsbaum, 23.11.2026. 375 Lehrerlisten geprüft. WoWLua: 688 bestanden, 0 Fehler, 0 übersprungen in 217,79 s. Materialreserve vor der Anreise und verfügbare Lernschritte am Lehrer geprüft. 86 installierte Dateien und Backup per SHA256 verifiziert. Nächste Live-Abnahme: Packliste und Lernschritt bei Hgarth in Sonnenfels. Weitere Datenlücken unter DATA-TRAINERS. [Tests](reports/tests/20261123-203103-19c91f.zip) · [Installation](reports/install/hgarth-203103/Installationsbericht.zip).
@@ -15,7 +17,7 @@ Die zweite Meisterpult-Designprobe ist als lokaler beta.27-Build in Forever inst
 3. [PROJECT_STATE.md](PROJECT_STATE.md), [DECISIONS.md](DECISIONS.md), [ROADMAP.md](ROADMAP.md) und auftragsrelevanten Code lesen.
 4. Den jüngsten Beleg in [TEST_RESULTS.md](TEST_RESULTS.md) und offene Prüfungen in [docs/OPEN_ITEMS.md](docs/OPEN_ITEMS.md) nachlesen.
 
-Beta.26 ist als Beta veröffentlicht. Release-Commit und Datei-ID stehen in PROJECT_STATE.md.
+Beta.27 ist als Beta veröffentlicht. Release-Commit und Datei-ID stehen in PROJECT_STATE.md.
 Der zusammenhängende Ingenieurslauf ist in TEST_RESULTS.md protokolliert. Als Nächstes
 die dort bezeichneten Übergänge in Forever prüfen. Lokale Werbe-, Logo- und Mockup-Entwürfe
 sind separat vorhanden. Für die CurseForge-Seite ist [Option D](docs/assets/marketing/2026-11-21-curseforge/D/desktop.html) ausgewählt. Der Prüfstand und die noch benötigten Live-Aufnahmen stehen in

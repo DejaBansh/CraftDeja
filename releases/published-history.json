@@ -2,6 +2,23 @@
   "projectId": 1796977,
   "files": [
     {
+      "version": "3.9.0-beta.27",
+      "fileId": 9786102,
+      "fileName": "CraftDeja-3.9.0-beta.27.zip",
+      "channel": "beta",
+      "status": "API accepted; public CDN download verified. Moderation status not queried separately",
+      "apiUploadStatus": "accepted_moderation_pending",
+      "description": "manual_author_console_required",
+      "sourceCommit": "8d66c68050882d99cc49c9cdc9c7a3f52aa06fbd",
+      "packagedVersion": "3.9.0-beta.27",
+      "zipSHA256": "9C6EE73F6561A2D5EA70E80AF5BBAF9AE591E27C7B3854234782228717AA3065",
+      "remotePayloadChecksumVerified": true,
+      "downloadUrl": "https://edge.forgecdn.net/files/9786/102/CraftDeja-3.9.0-beta.27.zip",
+      "workflowRun": "https://github.com/DejaBansh/CraftDeja/actions/runs/45334384376",
+      "gameVersionId": 17053,
+      "evidence": "Successful tag workflow; 689 tests passed locally. All 89 public CDN payload files match the tested dry run by SHA256."
+    },
+    {
       "version": "3.9.0-beta.26",
       "fileId": 9722537,
       "fileName": "CraftDeja-3.9.0-beta.26.zip",
