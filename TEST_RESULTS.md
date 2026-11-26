@@ -189,3 +189,20 @@ WoWLua 0.13.14, 254.79 seconds.
 Report: reports/tests/20261126-065943-c236fd.zip.
 Live CPU verification and red baseline test remain open.
 No installation or publication.
+
+## 26.11.2026 - PERF-001: Passive hidden guide
+
+Periodic guide refresh is skipped only when the guide is hidden,
+no profession is active, and the owner's active route waits for
+a profession to open. Transaction and explicit refresh paths
+remain unchanged.
+
+Baseline: 79db8a149c184315c355a67e0aa43deba8b85ec5.
+Changed: src/Run.lua.
+Regression suite: tests/GuideIdleSuite/guide-idle.test.wowlua.
+Local release build: passed.
+Source emulator: 705 passed, 0 failed, 0 skipped (329 files).
+WoWLua 0.13.14, 254.79 seconds.
+Report: reports/tests/20261126-065943-c236fd.zip.
+Live CPU verification and red baseline test remain open.
+No installation or publication.
