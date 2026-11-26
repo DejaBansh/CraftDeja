@@ -1,0 +1,214 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+-- Deterministic regression tests for the BAG_UPDATE_DELAYED inventory scan.
+--
+-- The addon must NOT scan the inventory synchronously on every
+-- BAG_UPDATE_DELAYED event while the bank is open. Events must be consolidated
+-- through the existing dirty/ready debounce in app.inventoryTick (0.3s), with
+-- an immediate capture on logout and fresh data after a bank close inside the
+-- debounce window. Values are read once per capture and are fresh at capture
+-- time, so bank-open, bank-close, logout and craft-busy paths all behave the
+-- same way.
+local a=_G["CraftDeja"]
+
+local VALUES={
+ [1001]={bags=5,personal=12,shared=15},
+ [1002]={bags=3,personal=8,shared=11},
+ [1003]={bags=1,personal=4,shared=6},
+}
+local EXPECTED_CALLS=9 -- 3 tracked IDs x 3 reads (bags/personal/shared) per capture
+
+local function setup()
+ local counts={capture=0,itemRead=0}
+ local bankAvailable=true
+ mock.setField(a,"active",nil)
+ mock.setField(a,"craftBatch",nil)
+ mock.setField(a.character,"identity",{name="Tester",realm="TestRealm",faction="Alliance",seen=0})
+ mock.setField(a.character,"inventory",{items={}})
+ mock.setField(a.saved,"sharedInventory",{["TestRealm"]={items={}}})
+ mock.setField(a.inventoryState,"tracked",{[1001]=true,[1002]=true,[1003]=true})
+ mock.setField(a.inventoryState,"ready",true)
+ mock.setField(a.inventoryState,"bankOpen",true)
+ mock.setField(a.inventoryState,"dirty",false)
+ mock.setField(a.inventoryState,"elapsed",0)
+ mock.stub(C_Container,"GetContainerNumSlots",function()return 0 end)
+ mock.stub(C_Item,"GetItemCount",function(id,bank,_,bank2,account)
+  counts.itemRead=counts.itemRead+1
+  local d=VALUES[id]
+  if not d then return 0 end
+  if account then return bankAvailable and d.shared or nil end
+  if bank then return bankAvailable and d.personal or nil end
+  return d.bags
+ end)
+ local realCapture=a.captureInventory
+ mock.stub(a,"captureInventory",function()
+  counts.capture=counts.capture+1
+  return realCapture()
+ end)
+ return counts,function(v)bankAvailable=v end
+end
+
+local function fireEvents(n)
+ for i=1,n do
+  a.inventoryEvent("BAG_UPDATE_DELAYED")
+ end
+end
+
+local function freshBankData()
+ assert(a.character.inventory.items[1001],"1001 was not captured")
+ assert(a.character.inventory.items[1001].bags==VALUES[1001].bags,"1001 bags count is wrong")
+ assert(a.character.inventory.items[1001].bank==VALUES[1001].personal-VALUES[1001].bags,
+  "1001 bank count is stale/wrong")
+ local shared=a.saved.sharedInventory["TestRealm"].items[1001]
+ assert(shared and shared.count==VALUES[1001].shared-VALUES[1001].personal,
+  "1001 shared count is stale/wrong")
+ assert(a.character.inventory.items[1002].bags==VALUES[1002].bags,"1002 bags count is wrong")
+ assert(a.character.inventory.items[1002].bank==VALUES[1002].personal-VALUES[1002].bags,
+  "1002 bank count is stale/wrong")
+ assert(a.character.inventory.items[1003].bags==VALUES[1003].bags,"1003 bags count is wrong")
+ assert(a.character.inventory.items[1003].bank==VALUES[1003].personal-VALUES[1003].bags,
+  "1003 bank count is stale/wrong")
+end
+
+@afterEach
+local function clean()
+ assert(#mock.errors()==0,table.concat(mock.errors(),"\n"))
+end
+
+@test("Bank-open burst: 50 delayed events do not scan synchronously")
+local function burst()
+ local counts=setup()
+ fireEvents(50)
+ assert(counts.capture==0,"expected 0 scans during the burst, got "..tostring(counts.capture))
+ assert(counts.itemRead==0,"expected 0 GetItemCount calls during the burst, got "..tostring(counts.itemRead))
+ assert(a.inventoryState.dirty==true,"burst must leave the inventory marked dirty")
+ a.inventoryTick(.35)
+ assert(counts.capture==1,"expected exactly 1 scan after the debounce interval, got "..tostring(counts.capture))
+ assert(counts.itemRead==EXPECTED_CALLS,"expected "..EXPECTED_CALLS.." GetItemCount calls, got "..tostring(counts.itemRead))
+ freshBankData()
+end
+
+@test("Bank close captures synchronously and does not double-scan")
+local function closeInsideWindow()
+ local counts=setup()
+ fireEvents(10)
+ a.inventoryTick(.1)
+ assert(counts.capture==0,"no scan before the close")
+ a.inventoryEvent("BANKFRAME_CLOSED")
+ assert(counts.capture==1,"bank close must capture immediately, got "..tostring(counts.capture))
+ assert(counts.itemRead==EXPECTED_CALLS,"expected "..EXPECTED_CALLS.." GetItemCount calls, got "..tostring(counts.itemRead))
+ freshBankData()
+ a.inventoryTick(.35)
+ assert(counts.capture==1,"no second capture after the close, got "..tostring(counts.capture))
+end
+
+@test("Bank close with the bank API unavailable preserves the last saved bank data")
+local function closeWithUnavailableBank()
+ local counts,setBankAvailable=setup()
+ a.inventoryEvent("BAG_UPDATE_DELAYED")
+ a.inventoryTick(.35)
+ assert(counts.capture==1,"expected 1 scan before the close, got "..tostring(counts.capture))
+ setBankAvailable(false)
+ a.inventoryEvent("BANKFRAME_CLOSED")
+ assert(counts.capture==2,"close must capture immediately, got "..tostring(counts.capture))
+ assert(a.character.inventory.items[1001].bags==VALUES[1001].bags,"bags must refresh even when the bank data is unavailable")
+ assert(a.character.inventory.items[1001].bank==VALUES[1001].personal-VALUES[1001].bags,"last saved bank count must be preserved")
+ local shared=a.saved.sharedInventory["TestRealm"].items[1001]
+ assert(shared and shared.count==VALUES[1001].shared-VALUES[1001].personal,"last saved shared count must be preserved")
+end
+
+@test("Mixed delayed and slot-change events cannot defer the refresh indefinitely")
+local function mixedEvents()
+ local counts=setup()
+ for i=1,30 do
+  a.inventoryEvent(i%2==1 and "BAG_UPDATE_DELAYED" or "PLAYERBANKSLOTS_CHANGED")
+  a.inventoryTick(.05)
+ end
+ assert(counts.capture>=3 and counts.capture<=6,
+  "expected a steady cadence of scans, got "..tostring(counts.capture))
+ assert(counts.itemRead==counts.capture*EXPECTED_CALLS,
+  "GetItemCount calls do not match the scan count")
+ freshBankData()
+end
+
+@test("A re-dirtying event during capture survives the capture")
+local function reDirtyDuringCapture()
+ local counts=setup()
+ mock.stub(a,"trackRecipeInventory",function()
+  a.inventoryEvent("BAG_UPDATE_DELAYED")
+ end)
+ a.inventoryEvent("BAG_UPDATE_DELAYED")
+ a.inventoryTick(.35)
+ assert(counts.capture==1,"expected 1 scan, got "..tostring(counts.capture))
+ assert(a.inventoryState.dirty==true,"a re-dirtying event during the capture must survive")
+ a.inventoryTick(.35)
+ assert(counts.capture==2,"a second capture must follow the re-dirtied window, got "..tostring(counts.capture))
+end
+
+@test("Logout inside the debounce window captures immediately")
+local function logoutInsideWindow()
+ local counts=setup()
+ fireEvents(5)
+ a.inventoryEvent("PLAYER_LOGOUT")
+ assert(counts.capture==1,"logout must trigger exactly 1 capture, got "..tostring(counts.capture))
+ assert(counts.itemRead==EXPECTED_CALLS,"expected "..EXPECTED_CALLS.." GetItemCount calls, got "..tostring(counts.itemRead))
+ freshBankData()
+end
+
+@test("Continuous events never defer the refresh beyond one interval")
+local function continuousEvents()
+ local counts=setup()
+ for i=1,30 do
+  a.inventoryEvent("BAG_UPDATE_DELAYED")
+  a.inventoryTick(.05)
+ end
+ -- One capture every ~0.3s at most: events must not reset the debounce timer.
+ assert(counts.capture>=3 and counts.capture<=6,
+  "expected a steady cadence of scans, got "..tostring(counts.capture))
+ assert(counts.itemRead==counts.capture*EXPECTED_CALLS,
+  "GetItemCount calls do not match the scan count")
+ freshBankData()
+end
+
+@test("Busy craft window defers the scan and the tick resumes after it clears")
+local function craftBusy()
+ local counts=setup()
+ mock.setField(a,"craftBatch",{id=123})
+ for i=1,10 do
+  a.inventoryEvent("BAG_UPDATE_DELAYED")
+  a.inventoryTick(.1)
+ end
+ assert(counts.capture==0,"no scan while crafting is busy, got "..tostring(counts.capture))
+ assert(counts.itemRead==0,"no GetItemCount calls while busy, got "..tostring(counts.itemRead))
+ mock.setField(a,"craftBatch",nil)
+ a.inventoryTick(.3)
+ assert(counts.capture==1,"tick must resume after the busy window, got "..tostring(counts.capture))
+ assert(counts.itemRead==EXPECTED_CALLS,"expected "..EXPECTED_CALLS.." GetItemCount calls, got "..tostring(counts.itemRead))
+ freshBankData()
+end
+
+@test("Full dispatcher path: events through the addon's OnEvent/OnUpdate")
+local function dispatcherPath()
+ local counts=setup()
+ local onEvent=a.events:GetScript("OnEvent")
+ for _i=1,20 do onEvent(a.events,"BAG_UPDATE_DELAYED") end
+ assert(counts.capture==0,"no synchronous scan through the dispatcher, got "..tostring(counts.capture))
+ assert(counts.itemRead==0,"no GetItemCount calls through the dispatcher, got "..tostring(counts.itemRead))
+ a.inventoryTick(.35)
+ assert(counts.capture==1,"expected 1 scan after the debounce interval, got "..tostring(counts.capture))
+ assert(counts.itemRead==EXPECTED_CALLS,"expected "..EXPECTED_CALLS.." GetItemCount calls, got "..tostring(counts.itemRead))
+ freshBankData()
+end
+
+@test("Bank-open path still captures through the debounce")
+local function bankOpenPath()
+ local counts=setup()
+ mock.setField(a.inventoryState,"ready",true)
+ a.inventoryEvent("BANKFRAME_OPENED")
+ assert(counts.capture==0,"bank-open must not scan synchronously")
+ a.inventoryTick(.35)
+ assert(counts.capture==1,"expected 1 scan after the debounce interval, got "..tostring(counts.capture))
+ assert(counts.itemRead==EXPECTED_CALLS,"expected "..EXPECTED_CALLS.." GetItemCount calls, got "..tostring(counts.itemRead))
+ freshBankData()
+end

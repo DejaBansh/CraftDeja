@@ -12,6 +12,8 @@ Lokaler Hgarth-Kandidat beta.27 auf Basis cf51214966014ccfb9123b262580a494246aec
 
 **Händlerhinweis im kompakten Guide**, 23.11.2026. Lokaler Release-Build beta.27, Basiscommit `6daffa3fc5c27449e07a441cb6a75dccc178b5f0` plus Arbeitsbaum. In WoWLua/Camelot sind 686 Tests bestanden, 0 fehlgeschlagen, 0 übersprungen (210,60 s). Der Händlerfall prüft Item-ID 2880, Menge 10, Tooltip-Name und den Wechsel zwischen Guide und Optionen. [Testbericht](reports/tests/20261123-155412-2e49bd.zip). Die visuelle Abnahme im Spiel ist offen.
 
+**BAG_UPDATE_DELAYED-Optimierung**, 26.11.2026. Lokaler Arbeitsbaum-Stand auf `34a90a60c33e3c33fae3bc0f396c5f6f0383909e` plus uncommittierte Änderung in `src/Inventory.lua` (synchroner Inventarscan bei geöffneter Bank durch das bestehende `dirty`-Debounce-Intervall ersetzt) und neue Suite `tests/InventoryDebounceSuite/inventory-debounce.test.wowlua`. Dev-Profil via `tools/Test-CraftDeja.ps1 -Profile dev`: **696 bestanden, 0 fehlgeschlagen, 0 übersprungen** (328 Dateien), 228,33 s. ZIP SHA256 `dec3f38a99741840968d289b7270820581d2f4c67937a0e2da4d143476b467f9`. 7 neue deterministische Tests: 5/7 schlagen mit dem bisherigen Code fehl (Fehlschlagsnachweis), 7/7 nach der Optimierung (4,80 s). Gemessene Reduktion bei 50 Delay-Events mit offener Bank: 50 Synchron-Scans → 1 Scan (98 %), 450 → 9 GetItemCount-Aufrufe (98 %). Basiscommit und änderungsführender Arbeitsbaum getrennt dargestellt; der Lauf ist kein Release/keine Release-Evidenz, deshalb bleibt der Release-Nachweis in docs/evidence/index.json unberührt. [Bericht](reports/tests/20261126-023618-f9e921.zip).
+
 Stand: 23.11.2026. Maschinenlesbare Nachweise in [docs/evidence/index.json](docs/evidence/index.json).
 
 ## Beta.27 · Rezeptbeschaffung und Herstellserien

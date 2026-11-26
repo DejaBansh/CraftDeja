@@ -113,6 +113,10 @@ function app.inventoryLines(row,required)
 end
 function app.captureInventory()
     if not app.saved or not app.character.inventory then return end
+    -- Consume the pending request up front. A re-dirtying event that fires
+    -- during the scan must survive the capture instead of being wiped by an
+    -- unconditional reset at the end.
+    state.dirty=false;state.elapsed=0
     app.trackRecipeInventory()
     -- Include live-only reagents carried by an alt, even before that alt opens
     -- the profession. Previously seen IDs remain tracked so withdrawals clear.
@@ -126,16 +130,18 @@ function app.captureInventory()
     end
     for id in pairs(app.character.inventory.items)do state.tracked[id]=true end
     for id in pairs(state.tracked)do readCurrent(id)end
-    app.character.identity.seen=stamp();state.dirty=false;state.elapsed=0
+    app.character.identity.seen=stamp()
 end
 function app.inventoryEvent(event)
     if not app.saved then return end
     if event=='PLAYER_ENTERING_WORLD'then state.ready=true end
-    if event=='BANKFRAME_OPENED'then state.bankOpen=true;state.dirty=true;state.elapsed=0
-    elseif event=='BANKFRAME_CLOSED'then state.bankOpen=false;state.dirty=true
+    if event=='BANKFRAME_OPENED'then state.bankOpen=true;state.dirty=true
+    elseif event=='BANKFRAME_CLOSED'then state.bankOpen=false;app.captureInventory()
     elseif event=='BAG_UPDATE_DELAYED'or event=='PLAYERBANKSLOTS_CHANGED'or event=='PLAYERREAGENTBANKSLOTS_CHANGED'or event=='BANK_TABS_CHANGED'or event=='PLAYER_ENTERING_WORLD'then
-        state.dirty=true;state.elapsed=0
-        if state.bankOpen and event=='BAG_UPDATE_DELAYED'and not(app.craftRefreshBusy and app.craftRefreshBusy())then app.captureInventory()end
+        -- One pending window for the whole burst: no event may reset the
+        -- debounce timer, otherwise mixed notification types would defer the
+        -- capture indefinitely. Only the tick performs the capture.
+        state.dirty=true
     elseif event=='PLAYER_LOGOUT'then app.captureInventory()end
 end
 function app.inventoryTick(delta)
