@@ -27,3 +27,20 @@ sind separat vorhanden. Für die CurseForge-Seite ist [Option D](docs/assets/mar
 Historische Übergaben liegen in [docs/archive](docs/archive).
 
 Der lokale Kandidat beta.27 ergänzt die [Rezeptbeschaffung und Serienwahl](docs/GUIDE_BESCHAFFUNG_UND_SERIEN.md). Im Guide beim Händler oder AH „Rezepte bis Skill 300 prüfen“ öffnen. Der aktuelle Auftrag behält sein Ziel. Die sichere Serie bleibt voreingestellt. Eine längere Serie muss der Spieler am Ziel selbst stoppen. Prüfstand und Bericht stehen in TEST_RESULTS.md. Am 23.11.2026 sind 683 Tests bestanden. Das lokale beta.27-Paket wurde mit Backup und Prüfung aller 81 installierten Dateien übernommen. Für die nächste Forever-Runde PROC-27 in docs/OPEN_ITEMS.md verwenden.
+
+## 26.11.2026 - PERF-001: Passive hidden guide
+
+Periodic guide refresh is skipped only when the guide is hidden,
+no profession is active, and the owner's active route waits for
+a profession to open. Transaction and explicit refresh paths
+remain unchanged.
+
+Baseline: 79db8a149c184315c355a67e0aa43deba8b85ec5.
+Changed: src/Run.lua.
+Regression suite: tests/GuideIdleSuite/guide-idle.test.wowlua.
+Local release build: passed.
+Source emulator: 705 passed, 0 failed, 0 skipped (329 files).
+WoWLua 0.13.14, 254.79 seconds.
+Report: reports/tests/20261126-065943-c236fd.zip.
+Live CPU verification and red baseline test remain open.
+No installation or publication.

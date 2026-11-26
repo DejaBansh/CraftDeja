@@ -195,6 +195,20 @@ events:SetScript('OnEvent',function(_,event,arg,castGUID,spellID)
         if open then schedule()elseif app.active then app.refresh(false)end
     end
 end)
+-- Skip the periodic guide refresh only in the passive, hidden
+-- route-profession state. Explicit refreshes remain unchanged.
+local function passiveHiddenGuide()
+    local f=app.nextStepWindow
+    if not f or f:IsShown() or app.guideRequested or app.unifiedView then return false end
+    if app.active or app.professionOpen or app.professionLoading or app.shopping.open then return false end
+    if app.vendorPurchase and app.vendorPurchase.open then return false end
+    if app.mailOpen or app.trainerVisitOpen or app.materialConversion or app.poisonMerchantNeedsRead then return false end
+    if app.craftBatch or app.nativeCraftHandoff or app.purchasePending() then return false end
+    if app.actionNotice or app.pendingRecipeSelection then return false end
+    local order=app.currentRouteOrder and app.currentRouteOrder()
+    return order and order.active and order.owner==app.characterKey
+        and f.task and f.task.kind=='route_profession'
+end
 events:SetScript('OnUpdate',function(_,delta)
     if not app.saved then return end
     app.inventoryTick(delta)
@@ -211,7 +225,10 @@ events:SetScript('OnUpdate',function(_,delta)
         if busy then
             deferCraftRefresh()
             if not app.refreshCraftProgress()then app.refresh(true)end
-        else app.checkCraftBatch();app.traceState();app.refreshNextStep()end
+        else
+            app.checkCraftBatch();app.traceState()
+            if not passiveHiddenGuide()then app.refreshNextStep()end
+        end
         app.purchasePoll();app.ahMailPoll();app.shoppingPoll();app.bindAuctionBuying();app.vendorBuyTick();if not busy then app.poisonTick()end
         if not busy and app.shoppingWindow and app.shoppingWindow:IsShown()then app.renderShopping()end end
     if pending then

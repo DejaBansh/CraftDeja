@@ -1,0 +1,145 @@
+import test, afterEach from "wowlua:test"
+import * as mock from "wowlua:mock"
+
+local function setup()
+    local a=_G["CraftDeja"]
+    local c={a=a,refreshes=0,opened=0,visible=false,requested=false}
+    local order={active=true,owner=a.characterKey}
+
+    mock.setField(a,"active",nil)
+    mock.setField(a,"professionOpen",false)
+    mock.setField(a,"professionLoading",false)
+    mock.setField(a,"guideRequested",false)
+    mock.setField(a,"unifiedView",nil)
+    mock.setField(a,"unifiedViewKey",nil)
+    mock.setField(a,"main",nil)
+    mock.setField(a,"shoppingWindow",nil)
+    mock.setField(a,"mailOpen",false)
+    mock.setField(a,"trainerVisitOpen",false)
+    mock.setField(a,"materialConversion",nil)
+    mock.setField(a,"poisonMerchantNeedsRead",nil)
+    mock.setField(a,"craftBatch",nil)
+    mock.setField(a,"nativeCraftHandoff",nil)
+    mock.setField(a,"actionNotice",nil)
+    mock.setField(a,"pendingRecipeSelection",nil)
+    mock.setField(a,"craftRefreshDeferred",nil)
+    mock.setField(a,"marketRefreshPending",nil)
+    mock.setField(a.shopping,"open",false)
+    mock.setField(a.vendorPurchase,"open",false)
+
+    mock.setField(a,"nextStepWindow",{
+        IsShown=function()return c.visible end,
+        task={kind="route_profession"}
+    })
+
+    mock.stub(a,"currentRouteOrder",function()return order end)
+    mock.stub(a,"purchasePending",function()return c.pending end)
+    mock.stub(a,"craftRefreshBusy",function()return false end)
+    mock.stub(a,"nativeProfessionVisible",function()return c.profession end)
+
+    for _,name in ipairs({
+        "inventoryTick","updateMerchantMarker","checkCraftBatch",
+        "traceState","purchasePoll","ahMailPoll","shoppingPoll",
+        "bindAuctionBuying","vendorBuyTick","poisonTick","refresh"
+    })do
+        mock.stub(a,name,function()end)
+    end
+
+    mock.stub(a,"refreshNextStep",function(force)
+        c.refreshes=c.refreshes+1
+        c.requested=force==true
+    end)
+
+    mock.stub(a,"onProfessionOpened",function()
+        c.opened=c.opened+1
+        a.professionOpen=true
+    end)
+
+    c.order=order
+    c.tick=function(n)
+        local update=a.events:GetScript("OnUpdate")
+        for i=1,n do update(a.events,1)end
+    end
+    return c
+end
+
+@afterEach
+local function clean()
+    assert(#mock.errors()==0,table.concat(mock.errors(),"\n"))
+end
+
+@test("Guide idle: hidden passive route skips 30 periodic refreshes")
+local function idle()
+    local c=setup()
+    c.tick(30)
+    assert(c.refreshes==0,
+        "Unexpected idle refreshes: "..c.refreshes)
+end
+
+@test("Guide idle: visible guide keeps periodic updates")
+local function visible()
+    local c=setup()
+    c.visible=true
+    c.tick(3)
+    assert(c.refreshes==3)
+end
+
+@test("Guide idle: explicit opening is never suppressed")
+local function explicit()
+    local c=setup()
+    c.tick(1)
+    assert(c.refreshes==0)
+    c.a.showCentralGuide()
+    assert(c.refreshes==1 and c.requested)
+    assert(c.a.guideRequested==true)
+end
+
+@test("Guide idle: profession detection remains active")
+local function profession()
+    local c=setup()
+    c.profession=true
+    c.tick(1)
+    assert(c.opened==1)
+    assert(c.refreshes>=1)
+end
+
+@test("Guide idle: AH, vendor, mail and purchases retain updates")
+local function transactions()
+    local c=setup()
+
+    c.a.shopping.open=true
+    c.tick(1)
+    assert(c.refreshes==1)
+    c.a.shopping.open=false
+
+    c.a.vendorPurchase.open=true
+    c.tick(1)
+    assert(c.refreshes==2)
+    c.a.vendorPurchase.open=false
+
+    c.a.mailOpen=true
+    c.tick(1)
+    assert(c.refreshes==3)
+    c.a.mailOpen=false
+
+    c.pending={status="pending"}
+    c.tick(1)
+    assert(c.refreshes==4)
+    c.pending=nil
+
+    c.tick(1)
+    assert(c.refreshes==4)
+end
+
+@test("Guide idle: inactive route or other owner is not suppressed")
+local function routeChange()
+    local c=setup()
+    c.order.active=false
+    c.tick(1)
+    assert(c.refreshes==1)
+
+    c.order.active=true
+    c.order.owner="OTHER_OWNER"
+    c.tick(1)
+    assert(c.refreshes==2)
+end
