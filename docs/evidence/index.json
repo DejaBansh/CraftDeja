@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "current": "beta27-oneforall-full",
+  "current": "beta27-cooking6610-full",
   "entries": [
     {
       "id": "beta25-local-full",
@@ -210,6 +210,21 @@
       "skipped": 0,
       "profile": "release",
       "durationSeconds": 285.46,
+      "kind": "WoWLua/Camelot source emulation",
+      "liveAcceptance": "pending"
+    },
+    {
+      "id": "beta27-cooking6610-full",
+      "version": "3.9.0-beta.27",
+      "releaseCommit": null,
+      "reportGitCommit": "776d0ce3b48a5c803fe22652a1b89ea21a79681f",
+      "manifest": "docs/evidence/beta27-cooking6610-manifest.json",
+      "report": "reports/tests/20261128-024151-b65c86.zip",
+      "reportSHA256": "FDE8983F79B7D1A90692DE661657376EBFFA8B6A70F64CD5BA22E6D710BFD7B8",
+      "passed": 706,
+      "failed": 0,
+      "skipped": 0,
+      "profile": "release",
       "kind": "WoWLua/Camelot source emulation",
       "liveAcceptance": "pending"
     }

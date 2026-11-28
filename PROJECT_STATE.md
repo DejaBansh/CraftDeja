@@ -1,5 +1,7 @@
 # CraftDeja — aktueller Projektstand
 
+Lokaler Stand vom 28.11.2026: Bei Kochkunst 225/225 bereitet der Guide Quest 6610 mit AH-Einkauf, Post, Bank und Kartenführung ins Gasthaus von Gadgetzan vor. Geprüfter Commit 776d0ce3b48a5c803fe22652a1b89ea21a79681f. Die öffentliche beta.27 auf 8d66c68 ist der vorherige Stand.
+
 Stand: 23.11.2026. Fakten dieser Momentaufnahme beim Arbeitsbeginn erneut prüfen.
 Arbeitsregeln: AGENTS.md. Planung: ROADMAP.md. Nachweise: TEST_RESULTS.md.
 
