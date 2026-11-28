@@ -69,3 +69,58 @@ local function cooking()
  assert(a.craftNext(plan,true) and input.n==6);a.clearNativeCraft()
  assert(a.craftNext(plan,'estimate') and input.n==30 and a.nativeCraftHandoff.stop==225 and not a.craftBatch)
 end
+
+@test("Cooking quest 6610: AH deficits, confirmed mail, bank, Dirge and the next rank")
+local function clamlette()
+ local p={id=185,skill=225,cap=225}
+ mock.setField(a,'active',{profile=p,recipes={}})
+ local bags={[12207]=2,[7974]=10,[8932]=0}
+ local bank={[8932]=3}
+ local mail={}
+ local level=34
+ local completed=false
+ local accepted=false
+ mock.stub(a,'playerLevel',function()return level end)
+ mock.stub(a,'productionEnabled',function()return false end)
+ mock.stub(a,'inventoryFor',function(id)return {bags=bags[id],bank=bank[id] or 0}end)
+ mock.stub(C_Item,'GetItemCount',function(id)return bags[id] end)
+ mock.setField(C_QuestLog,'IsQuestFlaggedCompleted',function(id)return id==6610 and completed end)
+ mock.setField(C_QuestLog,'IsOnQuest',function(id)return id==6610 and accepted end)
+ mock.stub(a,'confirmedMail',function(id)return mail[id] or 0 end)
+ mock.stub(a,'itemName',function(id)return 'Material '..id end)
+ mock.stub(a,'vendorPrice',function()return 5 end)
+ mock.setField(a.shopping,'open',false)
+ assert(a.rankTrainerTask().levelBlocked and not a.cookingQuestPlan())
+ level=35
+ local t=a.rankTrainerTask()
+ assert(t.kind=='ah' and t.routePlan.ahRows==2 and t.routePlan.vendorRows==0)
+ assert(t.routePlan.rows[1].buy==10 and t.routePlan.rows[3].buy==17)
+ mail[12207]=4
+ local _,items=a.shoppingTerms(t.routePlan)
+ assert(items and items[12207].quantity==6 and items[8932].quantity==17)
+ mock.stub(a,'shoppingFresh',function()return true end)
+ mock.stub(a,'shoppingPricesCurrent',function()return true end)
+ mock.setField(a.shopping,'prices',{[12207]=100})
+ assert(a.rankTrainerTask().kind=='quest_price')
+ a.shopping.prices[8932]=80
+ local live=a.shoppingPlan()
+ assert(live.questID==6610 and live.rows[3].unit==80 and not live.rows[3].vendor)
+ mail[12207]=10;mail[8932]=17
+ assert(a.rankTrainerTask().kind=='mail')
+ bags[12207]=12;bags[8932]=17;mail={}
+ assert(a.rankTrainerTask().kind=='bank')
+ bags[8932]=20;bank={}
+ t=a.rankTrainerTask();assert(t.kind=='quest_visit' and t.trainer.npc==8125 and t.trainer.map==1446)
+ mock.setField(a,'guideRequested',true)
+ mock.setField(a,'problem','rank_full')
+ a.renderNextStep(nil,true,t)
+ assert(a.nextStepWindow.primaryCTA:GetText()==a.caption('cta_map'))
+ mock.click(a.nextStepWindow.primaryCTA)
+ assert(WorldMapFrame:IsShown() and WorldMapFrame:GetMapID()==1446 and a.mapTarget and a.mapTarget.npc==8125)
+ accepted=true;assert(a.rankTrainerTask().key~=t.key)
+ completed=true;bags={}
+ assert(not a.cookingQuestPlan() and a.rankTrainerTask().kind=='open')
+ p.cap=300;assert(not a.atCookingQuestCap())
+ p.cap=225;p.skill=224;assert(not a.atCookingQuestCap())
+ p.skill=225;p.id=202;assert(not a.atCookingQuestCap())
+end

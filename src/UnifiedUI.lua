@@ -224,6 +224,7 @@ function app.applyGuideCTA(f,plan)
     local kind=task.kind
     local details={task.body,f.place:GetText(),f.notice:GetText(),f.route:GetText()}
     local recipe=plan and plan.recipe or task.recipe or f.draftRecipe
+    if plan and plan.questID or kind=='quest_visit' then recipe=nil end
     if recipe then
         local requirements=kind=='craft_queue'and (recipe.requirements or {})or app.recipeRequirements(recipe)
         for _,r in ipairs(requirements)do details[#details+1]=(r.met==true and '[+] 'or '[?] ')..app.caption('requirement_checked',r.name or '?')end
@@ -248,6 +249,8 @@ function app.applyGuideCTA(f,plan)
     elseif kind=='recipe_owned'then title,label='cta_learn','recipe_owned_check'
     elseif kind=='trainer_learn'then title,label='cta_learn','route_teach'
     elseif kind=='learn'then title,label=task.needsCostCheck and 'acquisition_check'or 'cta_learn',task.sourceTarget and 'cta_source'or 'cta_details'
+    elseif kind=='quest_visit'then title,label='cooking_quest','cta_map'
+    elseif kind=='quest_price'then title,label='cooking_quest','cta_wait'
     elseif kind=='rank'then title,label=task.levelBlocked and 'cta_level'or 'cta_rank','cta_trainer'
     elseif kind=='station'then
         title,label='cta_workshop','cta_workshop'
@@ -286,6 +289,7 @@ function app.applyGuideCTA(f,plan)
     if cost and (kind=='ah_buy'or kind=='ah_confirm'or kind=='vendor'and task.atVendor)then primary:SetText(primary:GetText()..' · '..app.money(cost))end
     if kind=='stock_vendor'then primary:SetText(app.caption('vendor_named_action',task.offer.name,task.offer.quantity)..' · '..app.money(cost))end
     f.primaryCTA=primary;f.secondaryCTA=secondary
+    if kind=='quest_price' then primary:Disable() end
     local extra=task.requirement and 22 or 0
     if not f.requirementName then f.requirementName=app.createLabel(f,12,18,-92,324);f.requirementName:SetHeight(20);f.requirementName:SetJustifyH('CENTER')end
     if task.requirement then f.requirementName:SetText(task.requirement.name or '?');f.requirementName:Show()else f.requirementName:Hide()end

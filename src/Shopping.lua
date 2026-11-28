@@ -209,6 +209,8 @@ function app.requestShopping()
 end
 function app.shoppingPlan(points)
     if not app.shoppingFresh()then return nil,shop.reason or 'shop_wait_scan'end
+    local quest=app.cookingQuestPlan()
+    if quest then return quest end
     local rod,_,rodActive=app.rodPreparationPlan()
     if rodActive then return rod and app.completeShoppingPlan(rod)or nil,'requirement_tool'end
     local trip=app.trainerSupplyPlan()
@@ -236,6 +238,7 @@ function app.completeShoppingPlan(plan)
     local observedPrices=current and shop.prices or {}
     for _,row in ipairs(plan.rows)do
         local vendor,kind=app.vendorPrice(row.id)
+        if plan.questID then vendor,kind=nil,nil end
         local live=current and shop.livePrices and shop.livePrices[row.id]
         local ah=live and live.unit or observedPrices[row.id]or row.unit
         row.vendor=vendor and (not ah or vendor<=ah)or false
@@ -245,6 +248,9 @@ function app.completeShoppingPlan(plan)
         -- A zero advanced maxPrice means "no ceiling" in Auctionator. Preserve
         -- fractional copper for cheap stacks rather than rounding it to zero.
         row.maxUnit=ceiling>=1 and math.floor(ceiling)or ceiling
+        if plan.questID and current and row.maxUnit<=0 and row.buy>app.confirmedMail(row.id) then
+            plan.unpricedQuestItem=row.id
+        end
         if vendor and not row.vendor then
             -- Even with tolerance, AH results must remain strictly cheaper than
             -- this normal merchant price. Never raise a vial search above it.
@@ -259,6 +265,7 @@ function app.completeShoppingPlan(plan)
 end
 function app.shoppingTerms(plan)
     local terms,items={},{}
+    if plan.questID and plan.unpricedQuestItem then return terms,items end
     for _,row in ipairs(plan.rows)do if row.buy>0 and not row.vendor then
         local quantity=math.max(0,app.purchaseBudget(plan,row.id,math.max(0,row.buy-app.confirmedMail(row.id)))-app.purchaseReserved(row.id))
         if quantity>0 then

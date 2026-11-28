@@ -192,6 +192,7 @@ function app.buildRouteModel(order)
     while cap<order.target do
         local row=app.nearestRankTrainer(profile.id,cap);if not row or not row.toCap then break end
         local rank=app.copy(row);rank.cost=app.character.routeRankCosts and app.character.routeRankCosts[cap]
+        if rank.questID then rank.cost=nil end -- Quest materials have variable auction prices.
         rank.spellID=(app.routeRankSpells[profile.id]or {})[cap]
         model.ranks[#model.ranks+1]=rank;cap=row.toCap
     end

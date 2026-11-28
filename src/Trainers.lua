@@ -20,7 +20,75 @@ function app.playerLevel()
     local level=app.try(UnitLevel,'player')
     return math.max(type(level)=='number'and level or 0,app.levelUpValue or 0)
 end
+-- Forever quest 6610. Dirge's coordinates match the project's vendor record.
+local dirge={npc=8125,name="Dirge Quikcleave",profession=185,fromCap=225,toCap=300,
+    level=35,skill=225,map=1446,x=52.6,y=28,side="Both",questID=6610}
+local supplies={{12207,12},{7974,10},{8932,20}}
+app.words.de.cooking_quest="Muschelette Surprise"
+app.words.en.cooking_quest="Clamlette Surprise"
+app.words.de.cooking_visit="Reise nach Tanaris ins Gasthaus im Osten von Gadgetzan. Sprich mit Dirge Quikcleave (52,6 / 28,0)."
+app.words.en.cooking_visit="Travel to Tanaris and enter the inn in eastern Gadgetzan. Speak to Dirge Quikcleave (52.6 / 28.0)."
+app.words.de.cooking_start="Quest annehmen und Zutaten übergeben"
+app.words.en.cooking_start="Accept the quest and deliver the ingredients"
+app.words.de.cooking_finish="Quest bei Dirge abgeben"
+app.words.en.cooking_finish="Turn in the quest to Dirge"
+app.words.de.cooking_refresh="Quest abgeschlossen. Öffne Kochkunst, um den neuen Rang einzulesen."
+app.words.en.cooking_refresh="Quest completed. Open Cooking to read the new rank."
+app.words.de.cooking_no_offer="Für %s fehlt ein aktuelles AH-Angebot. Besorge den Gegenstand oder prüfe das AH später erneut."
+app.words.en.cooking_no_offer="No current auction quote for %s. Collect the item or check the auction house again later."
+function app.atCookingQuestCap()
+    local p=app.active and not app.active.invalidated and app.active.profile
+    return p and p.id==185 and p.cap==225 and p.skill>=225
+end
+local function questCompleted()
+    return app.try(C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted or IsQuestFlaggedCompleted,6610)
+end
+function app.cookingQuestPlan()
+    if not app.atCookingQuestCap() or app.productionEnabled() or app.playerLevel()<35 or questCompleted() then return end
+    local plan={questID=6610,supplyOnly=true,from=225,target=225,crafts=0,purchase=0,stockKnown=true,rows={},
+        recipe={id=18260,profession=185,liveName=app.caption('cooking_quest')}}
+    local missing=false
+    for _,item in ipairs(supplies) do
+        local id,total=item[1],item[2]
+        local loc=app.inventoryFor(id) or {}
+        local bags=loc.bags or app.try(C_Item and C_Item.GetItemCount or GetItemCount,id,false,false,false,false)
+        if bags==nil then plan.stockKnown=false end
+        local bank=(loc.bank or 0)+(loc.shared or 0)
+        local owned=(bags or 0)+bank
+        local buy=math.max(0,total-owned)
+        local unit=0 -- completeShoppingPlan applies the current AH quote, including to vendor goods.
+        plan.rows[#plan.rows+1]={id=id,name=app.itemName(id),total=total,owned=owned,buy=buy,unit=unit,
+            locations={bags=bags,bank=bank,total=owned}}
+        plan.purchase=plan.purchase+buy*unit
+        missing=missing or (bags or 0)<total
+    end
+    if missing then return app.completeShoppingPlan(plan) end
+end
+local function cookingQuestTask(level)
+    if level<35 then
+        return {kind='rank',key='cooking_level',trainer=dirge,levelBlocked=true,requiredLevel=35,
+            body=app.caption('trainer_level_first',35,level,app.professionName(185),225,300)}
+    end
+    if questCompleted() then
+        return {kind='open',key='cooking_refresh',body=app.caption('cooking_refresh')}
+    end
+    local plan=app.cookingQuestPlan()
+    if plan then
+        local task=app.nextStep(plan)
+        task.routePlan=plan
+        if task.kind=='mail' then task.after=app.caption('cooking_visit') end
+        if plan.unpricedQuestItem and app.shoppingFresh() and not app.purchasePending() then
+            task={kind='quest_price',key='quest_price:'..plan.unpricedQuestItem,
+                body=app.caption('cooking_no_offer',app.itemName(plan.unpricedQuestItem)),routePlan=plan}
+        end
+        return task
+    end
+    local accepted=app.try(C_QuestLog and C_QuestLog.IsOnQuest,6610)
+    return {kind='quest_visit',key='quest6610:'..tostring(accepted),trainer=dirge,
+        body=app.caption('cooking_quest')..' · '..app.caption(accepted and 'cooking_finish' or 'cooking_start')..'\n'..app.caption('cooking_visit')}
+end
 function app.nearestRankTrainer(profession,cap)
+    if profession==185 and cap==225 then return app.copy(dirge) end
     local faction=app.playerFaction()
     local context=app.locationContext()
     local best
@@ -36,6 +104,7 @@ function app.nearestRankTrainer(profession,cap)
     return best
 end
 function app.rankTrainerTask()
+    if app.atCookingQuestCap() then return cookingQuestTask(app.playerLevel()) end
     local p=app.active and app.active.profile
     local trainer=p and app.nearestRankTrainer(p.id,p.cap)
     local level=app.playerLevel()

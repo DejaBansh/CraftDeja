@@ -9,7 +9,7 @@ app.words.en.source_same='%s: %d owned (bags/bank). This stage needs %d units. U
 local function busy()return app.craftRefreshBusy()or app.nativeCraftHandoff or app.purchasePending()end
 local function own(id)local r=app.inventoryFor(id);return math.max(0,(r.bags or 0)+(r.bank or 0)),r end
 local function stage(plan)
-    if not plan or not plan.recipe or plan.sourceConversion or plan.toolPreparation or plan.routeSupply or plan.trainerTrip then return end
+    if not plan or not plan.recipe or plan.sourceConversion or plan.toolPreparation or plan.routeSupply or plan.trainerTrip or plan.questID then return end
     local key=table.concat({plan.recipe.profession,plan.recipe.id,plan.target or 0},':')
     return plan.production and key..':job:'..tostring(plan.jobSerial)or key
 end
@@ -305,12 +305,12 @@ end
 local rankTask=app.rankTrainerTask
 app.rankTrainerTask=function()
     local t=rankTask()
-    if t.trainer then t.body=t.body..'\n'..t.trainer.name..' · '..app.merchantLocation(t.trainer)..(t.trainer.reference and '\n'..app.caption('trainer_reference')or '')end
+    if t.trainer and not t.trainer.questID then t.body=t.body..'\n'..t.trainer.name..' · '..app.merchantLocation(t.trainer)..(t.trainer.reference and '\n'..app.caption('trainer_reference')or '')end
     return t
 end
 function app.currentMaterialRankOffer()
     local p=app.active and app.active.profile
-    if not p or not app.materialTrainerOpen or not app.try(UnitGUID,'npc')then return end
+    if not p or app.atCookingQuestCap() or not app.materialTrainerOpen or not app.try(UnitGUID,'npc')then return end
     local id=(app.routeRankSpells[p.id]or {})[p.cap];if not id then return end
     local offer
     for _,r in ipairs(app.currentTrainerOffers())do if r.id==id then

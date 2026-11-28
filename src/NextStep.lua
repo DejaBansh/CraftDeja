@@ -142,7 +142,7 @@ function app.renderNextStep(plan,keepVisible,override)
             elseif t.kind=='craft_native'then app.focusNativeCraft()
             elseif t.kind=='craft'then app.craftNext(f.plan)
             elseif t.kind=='mail'then app.ahMailPoll();app.refresh(false);app.refreshNextStep(true)
-            elseif t.kind=='rank'and t.trainer then f.marked=app.showRankTrainer(t.trainer);app.refreshNextStep(true)
+            elseif (t.kind=='rank' or t.kind=='quest_visit')and t.trainer then f.marked=app.showRankTrainer(t.trainer);app.refreshNextStep(true)
             elseif t.kind=='open'then app.openCraftProfession()
             elseif t.kind=='ah_buy'or t.kind=='ah_confirm'or t.kind=='ah_load'or t.kind=='ah_wait'or t.kind=='ah_done'then app.performAHBuy(f.plan,t.offer)
             elseif f.plan then app.showDetails(f.plan.recipe,true)end
@@ -156,6 +156,7 @@ function app.renderNextStep(plan,keepVisible,override)
     end
     if app.craftBatch then plan=app.craftBatch.plan elseif app.nativeCraftHandoff then plan=app.nativeCraftHandoff.plan end
     local f=app.nextStepWindow;local task=override or app.nextStep(plan)
+    if task.kind~="quest_visit" and app.clearGuideMarker then app.clearGuideMarker("questID") end
     local target=task.sourceTarget
     local marker=app.mapTarget or app.character and app.character.mapTarget
     if marker and marker.recipeID and app.clearGuideMarker and (not target or marker.recipeID~=target.recipeID or marker.npc~=target.id or marker.map~=target.map or marker.x~=target.x or marker.y~=target.y) then
@@ -194,7 +195,7 @@ function app.renderNextStep(plan,keepVisible,override)
     if plan then f.route:Show()else f.route:Hide()end
     app.taskAttention(f,task,bodyY,bodyH)
     f.task=task;f.plan=plan or f.plan;
-    if plan then
+    if plan and not plan.questID then
         f.output:Show();f.outputName:Show();f.outputCount:Show()
         local icon,_,minimum,maximum=app.craftDisplay(plan.recipe)
         f.output.icon:SetTexture(icon);f.outputName:SetText(app.recipeName(plan.recipe))

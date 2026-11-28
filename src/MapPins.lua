@@ -82,7 +82,7 @@ function app.showRecipeSource(recipe)
     return marked
 end
 function app.setMerchantMarker(v)
-    app.mapTarget={name=v.name,map=v.map,x=v.x,y=v.y,npc=v.npc,recipeID=v.recipeID,stationKey=v.stationKey,floor=v.floor}
+    app.mapTarget={name=v.name,map=v.map,x=v.x,y=v.y,npc=v.npc,recipeID=v.recipeID,questID=v.questID,stationKey=v.stationKey,floor=v.floor}
     if app.character then app.character.mapTarget=app.copy(app.mapTarget)end
     return WorldMapFrame and type(WorldMapFrame.GetCanvas)=='function'or false
 end
